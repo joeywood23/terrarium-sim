@@ -1,0 +1,13 @@
+{
+  "_comment": "Water-only plant: germinates and grows only where water depth >= minDepth. seedShare scales how much spawns at world generation.",
+  "id": "seakelp",
+  "name": "Sea Kelp",
+  "behavior": "plant",
+  "habitat": "water",
+  "colorYoung": "#a7ffeb",
+  "colorOld": "#00695c",
+  "chartColor": "#1de9b6",
+  "minDepth": 0.5,
+  "maxRadius": 1.6,
+  "seedShare": 0.9
+}

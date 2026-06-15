@@ -1,0 +1,50 @@
+{
+  "_comment": "Aerial creature. Flight is fully tunable via cfg. model.parts is a declarative primitive model (shape/pos/rot/scale/color).",
+  "id": "beetle",
+  "name": "Beetle",
+  "behavior": "aerial",
+  "color": "#2e7d32",
+  "chartColor": "#66bb6a",
+  "cfg": {
+    "length": 1.3,
+    "width": 1.1,
+    "height": 0.8,
+    "altMin": 2
+  },
+  "model": {
+    "parts": [
+      {
+        "shape": "sphere",
+        "scale": [
+          1.3,
+          0.7,
+          1.0
+        ],
+        "color": "body"
+      },
+      {
+        "shape": "sphere",
+        "pos": [
+          0.55,
+          0.1,
+          0
+        ],
+        "scale": [
+          0.5,
+          0.45,
+          0.5
+        ],
+        "color": "bodyDark"
+      },
+      {
+        "shape": "eyes",
+        "pos": [
+          0.7,
+          0.18,
+          0.22
+        ],
+        "r": 0.08
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "_comment": "Land plant in warm tones.",
+  "id": "emberleaf",
+  "name": "Emberleaf",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#ffd180",
+  "colorOld": "#bf360c",
+  "chartColor": "#ff7043"
+}

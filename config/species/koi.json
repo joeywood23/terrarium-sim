@@ -1,0 +1,11 @@
+{
+  "_comment": "Aquatic creature. Rides the fish archetype (same body/physics), inherits fish-style heritable color, reuses the built-in fish model.",
+  "id": "koi",
+  "name": "Koi",
+  "behavior": "aquatic",
+  "geneticColor": true,
+  "chartColor": "#ffb14d",
+  "model": {
+    "builtin": "fish"
+  }
+}

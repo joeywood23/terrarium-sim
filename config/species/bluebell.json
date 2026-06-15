@@ -1,0 +1,10 @@
+{
+  "_comment": "Land plant. colorYoung/colorOld are the stripped->lush gradient.",
+  "id": "bluebell",
+  "name": "Bluebell",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#c8b6f0",
+  "colorOld": "#4527a0",
+  "chartColor": "#7e57c2"
+}

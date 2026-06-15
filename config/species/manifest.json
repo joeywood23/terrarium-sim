@@ -1,0 +1,10 @@
+{
+  "_comment": "Files loaded at startup. Add a new species: drop a .json here and list its filename below. behavior: aquatic|terrestrial|aerial = creatures (ride that movement archetype); plant = flora (habitat land|water).",
+  "files": [
+    "koi.json",
+    "beetle.json",
+    "bluebell.json",
+    "emberleaf.json",
+    "seakelp.json"
+  ]
+}
