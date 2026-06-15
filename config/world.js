@@ -30,17 +30,16 @@ export const CONFIG = {
     width:  0.9,       // hitbox Z
     height: 0.5,       // hitbox Y
     speed: 9,          // cruise speed, units/sec
-    turnNoise: 1.5,    // wander, radians/sec of random heading drift
+    yawNoise: 1.5,     // wander, radians/sec of random yaw drift
+    pitchNoise: 0.6,   // wander, radians/sec of random pitch drift
+    pitchMax: 0.7,     // max nose-up/down angle in radians (~40°)
+    steerRate: 3,      // radians/sec yaw/pitch correction toward a target
     lookAhead: 7,      // obstacle probe distance
     depthMargin: 0.25, // extra water depth required beyond hitbox height
-    cruiseDraft: 0.55, // preferred depth of fish centre below the surface
+    surfaceMargin: 0.3,// how close to the surface fish cruise before pitching down
     gravity: 25,       // fall acceleration when beached, units/s^2
     flopHoriz: 6,      // horizontal flop impulse, units/s
     flopVert: 6.5,     // vertical flop impulse, units/s
-    diveSpeed: 6,      // vertical approach rate when navigating to a depth target
-    pitchMax: 0.7,     // max nose-up/down angle in radians (~40°)
-    depthDrift: 2.5,   // how fast the idle depth target wanders, units/s
-    depthBias: 0.35,   // 0 = hug floor, 1 = hug surface; 0.35 = slightly bottom-heavy
   },
   breeding: {
     // Shared defaults; each species below overrides only what differs.

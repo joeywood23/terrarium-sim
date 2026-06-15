@@ -1381,14 +1381,12 @@ function spawnFish(x, z, opts = {}) {
     grounded: false,
     seekTime: 0,           // how long it's been trying to reach the zone
     pitch: 0,              // nose-up/down angle for 3D swimming
-    targetDepthY: null,    // null = wander depth; set when diving to food
-    wanderDepthY: null,    // slowly drifting idle depth target (initialized on first tick)
     color,                 // genetic color trait
   }, !!opts.newborn, color);
   if (fishNavigable(x, z)) {
     mesh.position.set(
       x,
-      Math.max(sampleHeight(x, z) + FISH.height / 2 + 0.1, water.level - FISH.cruiseDraft),
+      Math.max(sampleHeight(x, z) + FISH.height / 2 + 0.1, water.level - FISH.surfaceMargin - Math.random() * Math.max(0, water.level - sampleHeight(x, z) - FISH.height - FISH.surfaceMargin)),
       z
     );
   } else {
@@ -1494,37 +1492,41 @@ function swimTick(a, dt) {
   }
 
   // Grazing/hunting takes priority over breeding when the reserve is low.
-  // Fish eat submerged vegetation and hunt any flier (insects, beetles, ...)
-  // whose position is over the water — every species in the `birds` array.
   const graze = grazeControl(a, dt, {
     plant: plantInWater,
     prey: { lists: [birds], reach: pos => waterDepthAt(pos.x, pos.z) >= fishMinDepth },
     use3D: true,
   });
+
+  // --- Steering: yaw + pitch are the only movement controls ---
+  const SR = FISH.steerRate;
+  let seeking = false;
+
   if (graze === 'eat') {
-    // Hold station at the food's depth, face it, and bob to nibble.
-    st.heading += angDiff(st.grazeHeading, st.heading) * Math.min(1, dt * 3);
-    const foodY = st.forage ? forageY(st.forage) : p.y;
-    const f = sampleHeight(p.x, p.z) + FISH.height / 2 + 0.1;
-    const c = water.level - FISH.height / 2 - 0.1;
-    const ty = Math.max(f, Math.min(c, foodY));
-    p.y += (ty - p.y) * Math.min(1, dt * FISH.diveSpeed);
+    // Hold station: face the food, bob, don't advance.
+    st.heading += angDiff(st.grazeHeading, st.heading) * Math.min(1, dt * SR);
+    st.pitch += (0 - st.pitch) * Math.min(1, dt * SR);
     p.y += eatBob(st, FISH.height);
-    st.pitch += (0 - st.pitch) * Math.min(1, dt * 4); // level out while eating
     orientFish(a.mesh, st.heading, st.pitch, dt);
     return;
   }
 
-  let seeking = false;
-
   if (graze === 'move') {
-    st.heading += angDiff(st.grazeHeading, st.heading) * Math.min(1, dt * 3);
-    st.targetDepthY = st.forage ? forageY(st.forage) : null;
+    // Steer yaw toward food's XZ bearing.
+    st.heading += angDiff(st.grazeHeading, st.heading) * Math.min(1, dt * SR);
+    // Steer pitch toward food's 3D elevation angle.
+    if (st.forage) {
+      const fp = foragePos(st.forage);
+      const fy = forageY(st.forage);
+      const dx = fp.x - p.x, dz = fp.z - p.z;
+      const hDist = Math.sqrt(dx * dx + dz * dz) + 0.01;
+      const desiredPitch = Math.atan2(fy - p.y, hDist);
+      const targetPitch = Math.max(-FISH.pitchMax, Math.min(FISH.pitchMax, desiredPitch));
+      st.pitch += angDiff(targetPitch, st.pitch) * Math.min(1, dt * SR);
+    }
     seeking = true;
   } else {
-    st.targetDepthY = null; // idle: use wandering depth
-    // Not grazing: breeding / wander as before. The reproduction gate also
-    // stops a starved fish from spending its time seeking the egg zone.
+    // Not foraging: breeding / idle wander.
     const wantsToLay = st.mature && st.layTimer <= 0 && canReproduce(st, BREED_F.layCost);
     const doLay = () => { layEgg(a); payReproCost(st, BREED_F.layCost); st.layTimer = randomLayInterval(BREED_F); };
     if (wantsToLay) {
@@ -1537,7 +1539,7 @@ function swimTick(a, dt) {
         const fh = flowHeadingAt(p.x, p.z);
         st.seekTime += dt;
         if (fh !== null) {
-          st.heading += angDiff(fh, st.heading) * Math.min(1, dt * 3);
+          st.heading += angDiff(fh, st.heading) * Math.min(1, dt * SR);
           seeking = true;
         }
         if (st.seekTime > BREED_F.seekTimeout) {
@@ -1548,53 +1550,52 @@ function swimTick(a, dt) {
     } else {
       st.seekTime = 0;
     }
-    if (!seeking) st.heading += (Math.random() - 0.5) * FISH.turnNoise * dt;
+    // Random wander on both axes when not steering toward anything.
+    if (!seeking) {
+      st.heading += (Math.random() - 0.5) * FISH.yawNoise * dt;
+      st.pitch   += (Math.random() - 0.5) * FISH.pitchNoise * dt;
+    }
   }
 
-  // Obstacle avoidance: probe ahead; if blocked, fan out for open water.
+  // --- Boundary avoidance: pitch + yaw corrections ---
+  const floor = sampleHeight(p.x, p.z) + FISH.height / 2 + 0.1;
+  const ceil  = water.level - FISH.surfaceMargin;
+
+  // Pitch away from floor and surface.
+  if (p.y < floor + 0.5 && st.pitch < 0) st.pitch += dt * SR * 2;
+  if (p.y > ceil  - 0.5 && st.pitch > 0) st.pitch -= dt * SR * 2;
+
+  // Clamp pitch.
+  st.pitch = Math.max(-FISH.pitchMax, Math.min(FISH.pitchMax, st.pitch));
+
+  // Yaw obstacle avoidance: probe ahead in XZ; if blocked, fan out.
   const probeBlocked = (ang) => !fishNavigable(
     p.x + Math.cos(ang) * FISH.lookAhead,
     p.z + Math.sin(ang) * FISH.lookAhead
   );
   if (probeBlocked(st.heading)) {
     const offsets = [0.5, -0.5, 1.0, -1.0, 1.6, -1.6, 2.4, -2.4, Math.PI];
-    let turned = false;
     for (const o of offsets) {
-      if (!probeBlocked(st.heading + o)) { st.heading += o; turned = true; break; }
+      if (!probeBlocked(st.heading + o)) { st.heading += o; break; }
     }
-    if (!turned) st.heading += Math.PI; // boxed in: about-face
   }
 
-  // Advance along the 3D heading; horizontal speed scales with cos(pitch)
-  // so diving fish don't also move at full horizontal speed.
-  const hSpeed = FISH.speed * Math.cos(st.pitch);
-  const nx = p.x + Math.cos(st.heading) * hSpeed * dt;
-  const nz = p.z + Math.sin(st.heading) * hSpeed * dt;
+  // --- Advance along the 3D forward vector ---
+  const cosPitch = Math.cos(st.pitch);
+  const sinPitch = Math.sin(st.pitch);
+  const vx = Math.cos(st.heading) * cosPitch * FISH.speed * dt;
+  const vy = sinPitch * FISH.speed * dt;
+  const vz = Math.sin(st.heading) * cosPitch * FISH.speed * dt;
+
+  const nx = p.x + vx;
+  const nz = p.z + vz;
+  let   ny = p.y + vy;
+
+  // Hard clamp: stay in navigable water and between floor and surface.
   if (fishNavigable(nx, nz)) { p.x = nx; p.z = nz; }
-
-  // Depth keeping: wander depth when idle, dive to food when foraging.
-  const floor = sampleHeight(p.x, p.z) + FISH.height / 2 + 0.1;
-  const ceil  = water.level - FISH.height / 2 - 0.1;
-
-  // Idle depth wandering: a slowly drifting target that explores the water column.
-  if (st.wanderDepthY === null) {
-    // Initialize: random position biased by depthBias (0=floor, 1=surface).
-    st.wanderDepthY = floor + (ceil - floor) * (FISH.depthBias + (Math.random() - 0.5) * 0.4);
-  }
-  // Drift the wander target with smooth noise.
-  st.wanderDepthY += (Math.random() - 0.5) * FISH.depthDrift * dt;
-  st.wanderDepthY = Math.max(floor, Math.min(ceil, st.wanderDepthY));
-
-  const targetY = st.targetDepthY != null
-    ? Math.max(floor, Math.min(ceil, st.targetDepthY))
-    : st.wanderDepthY;
-  const dy = targetY - p.y;
-  p.y += dy * Math.min(1, dt * FISH.diveSpeed);
-
-  // Pitch from vertical movement direction.
-  const desiredPitch = Math.atan2(dy, FISH.speed * dt + 0.01);
-  const clampedPitch = Math.max(-FISH.pitchMax, Math.min(FISH.pitchMax, desiredPitch));
-  st.pitch += (clampedPitch - st.pitch) * Math.min(1, dt * 4);
+  const floorHere = sampleHeight(p.x, p.z) + FISH.height / 2 + 0.1;
+  const ceilHere  = water.level - FISH.height / 2 - 0.1;
+  p.y = Math.max(floorHere, Math.min(ceilHere, ny));
 
   orientFish(a.mesh, st.heading, st.pitch, dt);
 }
@@ -1629,8 +1630,6 @@ function beachedTick(a, dt) {
       Math.abs(p.x) <= agentBoundX && Math.abs(p.z) <= agentBoundZ) {
     st.mode = 'swim';
     st.pitch = 0;
-    st.targetDepthY = null;
-    st.wanderDepthY = null; // re-initialize on next swim tick
     return;
   }
 
@@ -2659,7 +2658,7 @@ function spawnArchetypeAquatic(def, x, z, opts = {}) {
     ...(color ? { color } : {}),
   }, !!opts.newborn, tint);
   if (fishNavigable(x, z)) {
-    mesh.position.set(x, Math.max(sampleHeight(x, z) + FISH.height / 2 + 0.1, water.level - FISH.cruiseDraft), z);
+    mesh.position.set(x, Math.max(sampleHeight(x, z) + FISH.height / 2 + 0.1, water.level - FISH.surfaceMargin - Math.random() * Math.max(0, water.level - sampleHeight(x, z) - FISH.height - FISH.surfaceMargin)), z);
   } else {
     st.mode = 'beached';
     mesh.position.set(x, sampleHeight(x, z) + FISH.height / 2 + 1.5, z);
