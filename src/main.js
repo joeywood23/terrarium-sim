@@ -906,6 +906,11 @@ function setWaterLevel(level) {
 }
 
 const waterInput = bindSlider('water-level', setWaterLevel, v => v.toFixed(2));
+let waterOpacity = 0.45; // 0..1; driven by the opacity slider (0..100)
+bindSlider('water-opacity', v => {
+  waterOpacity = v / 100;
+  waterMat.opacity = 0.05 + waterOpacity * 0.9; // 0.05 (crystal clear) to 0.95 (near opaque)
+}, v => Math.round(v).toString());
 
 /* ============================================================
  * FISH  —  aquatic population: rectangular hitboxes with two
@@ -3849,13 +3854,15 @@ function animate() {
 
   if (!possessed) controls.update();
 
-  // Underwater visual effect: tint + short fog when camera is submerged.
+  // Underwater visual effect: tint + fog scaled by water opacity.
   const camUnderwater = water.level > 0 && camera.position.y < water.level;
   if (camUnderwater) {
+    // Lerp fog range: crystal clear (opacity 0) = 20..200, thick (opacity 1) = 1..20
+    const uw = waterOpacity;
     scene.background = underwaterColor;
     scene.fog.color.copy(underwaterColor);
-    scene.fog.near = 1;
-    scene.fog.far  = 45;
+    scene.fog.near = 20 - 19 * uw;    // 20 → 1
+    scene.fog.far  = 200 - 180 * uw;  // 200 → 20
   }
   renderer.render(scene, camera);
   if (camUnderwater) {
