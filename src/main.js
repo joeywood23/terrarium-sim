@@ -695,24 +695,38 @@ renderer.domElement.addEventListener('pointerleave', () => {
  * ------------------------------------------------------------ */
 const creatureMenu = document.getElementById('creature-menu');
 let menuAgent = null; // the agent under the context menu
-const _creatureNdc = new THREE.Vector2();
+const _screenPos = new THREE.Vector3();
+const PICK_RADIUS = 40; // px — forgiving screen-space click radius
 
-function castCreature(clientX, clientY) {
-  _creatureNdc.set(
-    (clientX / window.innerWidth) * 2 - 1,
-    -(clientY / window.innerHeight) * 2 + 1
-  );
-  raycaster.setFromCamera(_creatureNdc, camera);
-  const meshes = [...fishes, ...frogs, ...birds].map(a => a.mesh);
-  const hits = raycaster.intersectObjects(meshes, true);
-  for (const h of hits) {
-    let obj = h.object;
-    while (obj) {
-      if (obj.userData && obj.userData.agent) return obj.userData.agent;
-      obj = obj.parent;
-    }
+/* Screen-space proximity pick: project every live creature to screen coords
+ * and return the closest one within PICK_RADIUS of the click. Much more
+ * forgiving than mesh raycasting, especially on small/fast creatures. */
+function pickCreature(clientX, clientY) {
+  let best = null, bestDist = PICK_RADIUS;
+  const all = [...fishes, ...frogs, ...birds];
+  for (const a of all) {
+    if (a.st.dead) continue;
+    _screenPos.copy(a.mesh.position).project(camera);
+    const sx = (_screenPos.x * 0.5 + 0.5) * window.innerWidth;
+    const sy = (-_screenPos.y * 0.5 + 0.5) * window.innerHeight;
+    // Skip creatures behind the camera.
+    if (_screenPos.z > 1) continue;
+    const d = Math.hypot(clientX - sx, clientY - sy);
+    if (d < bestDist) { bestDist = d; best = a; }
   }
-  return null;
+  return best;
+}
+
+/* Project the menu agent's world position to screen and reposition the menu. */
+function trackCreatureMenu() {
+  if (!menuAgent) return;
+  if (menuAgent.st.dead) { hideCreatureMenu(); return; }
+  _screenPos.copy(menuAgent.mesh.position).project(camera);
+  if (_screenPos.z > 1) { hideCreatureMenu(); return; } // behind camera
+  const sx = (_screenPos.x * 0.5 + 0.5) * window.innerWidth;
+  const sy = (-_screenPos.y * 0.5 + 0.5) * window.innerHeight;
+  creatureMenu.style.left = sx + 'px';
+  creatureMenu.style.top = sy + 'px';
 }
 
 function showCreatureMenu(x, y, agent) {
@@ -753,7 +767,7 @@ renderer.domElement.addEventListener('pointermove', e => {
 window.addEventListener('pointerup', e => {
   if (e.button === 2 && _rmbDown) {
     if (_rmbDrag < 6 && !possessed) {
-      const agent = castCreature(e.clientX, e.clientY);
+      const agent = pickCreature(e.clientX, e.clientY);
       if (agent && !agent.st.dead) showCreatureMenu(e.clientX, e.clientY, agent);
       else hideCreatureMenu();
     }
@@ -3672,6 +3686,7 @@ function animate() {
   vegVisualTick();           // GPU instance writes: once per frame, changed plants only
 
   povTick(dt);               // POV possession: real-time dt, not sim-scaled
+  trackCreatureMenu();       // keep context menu pinned to the creature
 
   if (!possessed) controls.update();
   renderer.render(scene, camera);
