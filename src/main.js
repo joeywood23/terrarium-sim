@@ -154,6 +154,9 @@ camera.far = Math.max(CONFIG.camera.far, R * 8);
 camera.updateProjectionMatrix();
 scene.fog.near = R * 2.2;
 scene.fog.far  = R * 6;
+const fogNear = scene.fog.near;
+const fogFar  = scene.fog.far;
+const underwaterColor = new THREE.Color(0x1a4a6a); // deep blue-green tint
 
 /* ============================================================
  * CONTROLS
@@ -3846,7 +3849,22 @@ function animate() {
   trackCreatureMenu();       // keep context menu pinned to the creature
 
   if (!possessed) controls.update();
+
+  // Underwater visual effect: tint + short fog when camera is submerged.
+  const camUnderwater = water.level > 0 && camera.position.y < water.level;
+  if (camUnderwater) {
+    scene.background = underwaterColor;
+    scene.fog.color.copy(underwaterColor);
+    scene.fog.near = 1;
+    scene.fog.far  = 45;
+  }
   renderer.render(scene, camera);
+  if (camUnderwater) {
+    scene.background = bg0;
+    scene.fog.color.copy(bg0);
+    scene.fog.near = fogNear;
+    scene.fog.far  = fogFar;
+  }
 
   // FPS counter (updated ~once/sec)
   frames++;
