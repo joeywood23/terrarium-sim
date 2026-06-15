@@ -37,6 +37,8 @@ export const CONFIG = {
     gravity: 25,       // fall acceleration when beached, units/s^2
     flopHoriz: 6,      // horizontal flop impulse, units/s
     flopVert: 6.5,     // vertical flop impulse, units/s
+    diveSpeed: 6,      // vertical approach rate when navigating to a depth target
+    pitchMax: 0.7,     // max nose-up/down angle in radians (~40°)
   },
   breeding: {
     // Shared defaults; each species below overrides only what differs.

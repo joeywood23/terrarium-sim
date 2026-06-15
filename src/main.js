@@ -1377,6 +1377,8 @@ function spawnFish(x, z, opts = {}) {
     flopTimer: 0.4,
     grounded: false,
     seekTime: 0,           // how long it's been trying to reach the zone
+    pitch: 0,              // nose-up/down angle for 3D swimming
+    targetDepthY: null,    // null = cruise depth; set when diving to food
     color,                 // genetic color trait
   }, !!opts.newborn, color);
   if (fishNavigable(x, z)) {
@@ -1410,6 +1412,18 @@ const _fq = new THREE.Quaternion(), _fm = new THREE.Matrix4();
 const _fx = new THREE.Vector3(), _fy = new THREE.Vector3(), _fz = new THREE.Vector3();
 const _froll = new THREE.Quaternion(), _xAxis = new THREE.Vector3(1, 0, 0);
 const UP = new THREE.Vector3(0, 1, 0);
+/* Fish-specific orientation with pitch baked into the forward vector so
+ * the mesh tilts nose-down when diving and nose-up when ascending. */
+function orientFish(mesh, heading, pitch, dt) {
+  _fx.set(Math.cos(heading) * Math.cos(pitch), Math.sin(pitch), Math.sin(heading) * Math.cos(pitch)).normalize();
+  _fy.set(0, 1, 0);
+  _fz.crossVectors(_fx, _fy).normalize();
+  _fy.crossVectors(_fz, _fx); // recompute up from forward × right
+  _fm.makeBasis(_fx, _fy, _fz);
+  _fq.setFromRotationMatrix(_fm);
+  mesh.quaternion.slerp(_fq, Math.min(1, dt * 10));
+}
+
 function orientAgent(mesh, heading, normal, wobble, dt) {
   _fy.copy(normal).normalize();
   _fx.set(Math.cos(heading), 0, Math.sin(heading));
@@ -1481,15 +1495,19 @@ function swimTick(a, dt) {
   const graze = grazeControl(a, dt, {
     plant: plantInWater,
     prey: { lists: [birds], reach: pos => waterDepthAt(pos.x, pos.z) >= fishMinDepth },
+    use3D: true,
   });
   if (graze === 'eat') {
-    // Hold station by the plant; keep depth, face it, and bob to nibble.
+    // Hold station at the food's depth, face it, and bob to nibble.
     st.heading += angDiff(st.grazeHeading, st.heading) * Math.min(1, dt * 3);
+    const foodY = st.forage ? forageY(st.forage) : p.y;
     const f = sampleHeight(p.x, p.z) + FISH.height / 2 + 0.1;
     const c = water.level - FISH.height / 2 - 0.1;
-    const ty = Math.max(f, Math.min(c, water.level - FISH.cruiseDraft));
-    p.y = ty + eatBob(st, FISH.height);
-    orientAgent(a.mesh, st.heading, UP, 0, dt);
+    const ty = Math.max(f, Math.min(c, foodY));
+    p.y += (ty - p.y) * Math.min(1, dt * FISH.diveSpeed);
+    p.y += eatBob(st, FISH.height);
+    st.pitch += (0 - st.pitch) * Math.min(1, dt * 4); // level out while eating
+    orientFish(a.mesh, st.heading, st.pitch, dt);
     return;
   }
 
@@ -1497,8 +1515,10 @@ function swimTick(a, dt) {
 
   if (graze === 'move') {
     st.heading += angDiff(st.grazeHeading, st.heading) * Math.min(1, dt * 3);
+    st.targetDepthY = st.forage ? forageY(st.forage) : null;
     seeking = true;
   } else {
+    st.targetDepthY = null; // idle: return to cruise depth
     // Not grazing: breeding / wander as before. The reproduction gate also
     // stops a starved fish from spending its time seeking the egg zone.
     const wantsToLay = st.mature && st.layTimer <= 0 && canReproduce(st, BREED_F.layCost);
@@ -1546,13 +1566,22 @@ function swimTick(a, dt) {
   const nz = p.z + Math.sin(st.heading) * FISH.speed * dt;
   if (fishNavigable(nx, nz)) { p.x = nx; p.z = nz; }
 
-  // Depth keeping: cruise just under the surface, never grounding.
+  // Depth keeping: dive to food or cruise just under the surface.
   const floor = sampleHeight(p.x, p.z) + FISH.height / 2 + 0.1;
   const ceil  = water.level - FISH.height / 2 - 0.1;
-  const targetY = Math.max(floor, Math.min(ceil, water.level - FISH.cruiseDraft));
-  p.y += (targetY - p.y) * Math.min(1, dt * 4);
+  const cruiseY = Math.max(floor, Math.min(ceil, water.level - FISH.cruiseDraft));
+  const targetY = st.targetDepthY != null
+    ? Math.max(floor, Math.min(ceil, st.targetDepthY))
+    : cruiseY;
+  const dy = targetY - p.y;
+  p.y += dy * Math.min(1, dt * FISH.diveSpeed);
 
-  orientAgent(a.mesh, st.heading, UP, 0, dt);
+  // Pitch from vertical movement
+  const desiredPitch = Math.atan2(dy, FISH.speed * dt + 0.01);
+  const clampedPitch = Math.max(-FISH.pitchMax, Math.min(FISH.pitchMax, desiredPitch));
+  st.pitch += (clampedPitch - st.pitch) * Math.min(1, dt * 4);
+
+  orientFish(a.mesh, st.heading, st.pitch, dt);
 }
 
 function beachedTick(a, dt) {
@@ -1584,6 +1613,8 @@ function beachedTick(a, dt) {
   if (waterDepthAt(p.x, p.z) >= fishMinDepth + 0.05 &&
       Math.abs(p.x) <= agentBoundX && Math.abs(p.z) <= agentBoundZ) {
     st.mode = 'swim';
+    st.pitch = 0;
+    st.targetDepthY = null;
     return;
   }
 
@@ -2271,6 +2302,17 @@ function forageValid(f) {
 function foragePos(f) {
   return f.type === 'plant' ? f.ref : f.ref.mesh.position; // both expose .x/.z
 }
+/* Y coordinate of a forage target — plants sit on the terrain at their
+ * visual radius; creatures have a real mesh Y. Used for 3D distance. */
+function forageY(f) {
+  if (f.type === 'plant') {
+    const pl = f.ref;
+    const foodFrac = pl.food / VEG.maxFood;
+    const r = VEG.minRadius + (pl.maxR - VEG.minRadius) * foodFrac;
+    return sampleHeight(pl.x, pl.z) + r;
+  }
+  return f.ref.mesh.position.y;
+}
 
 function grazeControl(a, dt, diet) {
   const st = a.st, p = a.mesh.position;
@@ -2290,18 +2332,30 @@ function grazeControl(a, dt, diet) {
     let cand = null, candType = null, candD = Infinity;
     if (diet.plant) {
       const pl = nearestPlant(p.x, p.z, GRAZE.searchRadius, diet.plant);
-      if (pl) { const d = (pl.x-p.x)**2 + (pl.z-p.z)**2; if (d < candD) { cand = pl; candType = 'plant'; candD = d; } }
+      if (pl) {
+        let d = (pl.x-p.x)**2 + (pl.z-p.z)**2;
+        if (diet.use3D) { const plY = sampleHeight(pl.x, pl.z) + (VEG.minRadius + (pl.maxR - VEG.minRadius) * (pl.food / VEG.maxFood)); d += (plY - p.y) ** 2; }
+        if (d < candD) { cand = pl; candType = 'plant'; candD = d; }
+      }
     }
     if ((diet.prey || diet.carrion) && st.forageRetry <= 0) {
       if (diet.prey) {
         const pr = nearestCreature(p.x, p.z, PRED.searchRadius, diet.prey.lists,
           c => !c.st.dead && !c.st.consumed && diet.prey.reach(c.mesh.position));
-        if (pr) { const d = (pr.mesh.position.x-p.x)**2 + (pr.mesh.position.z-p.z)**2; if (d < candD) { cand = pr; candType = 'prey'; candD = d; } }
+        if (pr) {
+          let d = (pr.mesh.position.x-p.x)**2 + (pr.mesh.position.z-p.z)**2;
+          if (diet.use3D) d += (pr.mesh.position.y - p.y) ** 2;
+          if (d < candD) { cand = pr; candType = 'prey'; candD = d; }
+        }
       }
       if (diet.carrion) {
         const ca = nearestCreature(p.x, p.z, PRED.searchRadius, diet.carrion.lists,
           c => c.st.dead && !c.st.consumed && c.st.meat > 0);
-        if (ca) { const d = (ca.mesh.position.x-p.x)**2 + (ca.mesh.position.z-p.z)**2; if (d < candD) { cand = ca; candType = 'carrion'; candD = d; } }
+        if (ca) {
+          let d = (ca.mesh.position.x-p.x)**2 + (ca.mesh.position.z-p.z)**2;
+          if (diet.use3D) d += (ca.mesh.position.y - p.y) ** 2;
+          if (d < candD) { cand = ca; candType = 'carrion'; candD = d; }
+        }
       }
       if (!cand) st.forageRetry = PRED.retryDelay; // nothing found: back off the scan
     }
@@ -2312,7 +2366,9 @@ function grazeControl(a, dt, diet) {
   if (!f) return 'none'; // nothing reachable in range — wander (may starve)
   const tp = foragePos(f);
   const range = f.type === 'plant' ? GRAZE.eatRange : PRED.eatRange;
-  const dist = Math.hypot(tp.x - p.x, tp.z - p.z);
+  const dist = diet.use3D
+    ? Math.sqrt((tp.x-p.x)**2 + (forageY(f)-p.y)**2 + (tp.z-p.z)**2)
+    : Math.hypot(tp.x - p.x, tp.z - p.z);
   st.grazeHeading = Math.atan2(tp.z - p.z, tp.x - p.x);
 
   if (dist <= range) {
@@ -3653,9 +3709,23 @@ function povTick(dt) {
   const speed = getCreatureSpeed(st);
   const eyeH = getCreatureEyeHeight(st);
 
-  // Movement from WASD relative to yaw.
-  const fwd = new THREE.Vector3(-Math.sin(povYaw), 0, -Math.cos(povYaw));
-  const right = new THREE.Vector3(-Math.cos(povYaw), 0, Math.sin(povYaw));
+  const isFish = st.species === 'fish' || SPECIES[st.species]?.list === fishes;
+  const isBirdFlying = (SPECIES[st.species]?.list === birds) && st.mode === 'fly';
+
+  // Movement from WASD relative to yaw (and pitch for fish).
+  let fwd, right;
+  if (isFish) {
+    // Fish forward includes pitch so looking down + W dives.
+    fwd = new THREE.Vector3(
+      -Math.sin(povYaw) * Math.cos(povPitch),
+      -Math.sin(povPitch),
+      -Math.cos(povYaw) * Math.cos(povPitch)
+    );
+    right = new THREE.Vector3(-Math.cos(povYaw), 0, Math.sin(povYaw));
+  } else {
+    fwd = new THREE.Vector3(-Math.sin(povYaw), 0, -Math.cos(povYaw));
+    right = new THREE.Vector3(-Math.cos(povYaw), 0, Math.sin(povYaw));
+  }
   const move = new THREE.Vector3();
   if (povKeys.w) move.add(fwd);
   if (povKeys.s) move.sub(fwd);
@@ -3668,25 +3738,27 @@ function povTick(dt) {
   let nz = Math.max(-agentBoundZ, Math.min(agentBoundZ, mesh.position.z + move.z));
   let ny;
 
-  const isFish = st.species === 'fish' || SPECIES[st.species]?.list === fishes;
-  const isBirdFlying = (SPECIES[st.species]?.list === birds) && st.mode === 'fly';
-
   if (isFish) {
-    // Stay submerged: cruise below water surface.
+    // 3D depth control: clamp between seabed and water surface.
     const depth = water.level - sampleHeight(nx, nz);
-    if (depth < FISH.height) { nx = mesh.position.x; nz = mesh.position.z; } // can't go there
-    ny = Math.max(sampleHeight(nx, nz) + FISH.height / 2, water.level - FISH.cruiseDraft);
+    if (depth < FISH.height) { nx = mesh.position.x; nz = mesh.position.z; }
+    const floorY = sampleHeight(nx, nz) + FISH.height / 2 + 0.1;
+    const ceilY  = water.level - FISH.height / 2 - 0.1;
+    ny = Math.max(floorY, Math.min(ceilY, mesh.position.y + move.y));
+    st.pitch = povPitch * 0.7; // damped visual pitch
   } else if (isBirdFlying) {
-    // Maintain altitude, allow pitch to adjust height.
-    ny = mesh.position.y + move.y; // no vertical WASD yet, keep current
+    ny = mesh.position.y + move.y;
     ny = Math.max(sampleHeight(nx, nz) + eyeH, ny);
   } else {
-    // Ground creature (frog, walking bird, insect on ground).
     ny = sampleHeight(nx, nz) + eyeH / 2;
   }
 
   mesh.position.set(nx, ny, nz);
-  mesh.rotation.y = povYaw;
+  if (isFish) {
+    orientFish(mesh, povYaw, st.pitch, dt);
+  } else {
+    mesh.rotation.y = povYaw;
+  }
   st.heading = povYaw;
 
   // Camera at eye level.
