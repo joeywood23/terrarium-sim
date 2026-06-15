@@ -29,8 +29,7 @@ import { CONFIG } from '../config/world.js';
  *  18  HUNGER       reserves, hunger bars, starvation
  *  19  CREATURE PLACEMENT   dropdown + Place tool
  *  20  POPULATION LOG + CHART
- *  21  PLAYER       WASD avatar for ground POV
- *  22  VIEW SNAPPING        camera presets + POV
+ *  21  VIEW SNAPPING        camera presets
  *  23  READOUT + RESIZE
  *  24  LOOP         animate() + startup spawns
  * ============================================================ */
@@ -753,7 +752,6 @@ document.getElementById('new-world').addEventListener('click', () => {
 
 window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
-  if (playerFollow && 'wasd'.includes(k)) return; // WASD drives the player in POV mode
   if (k === 'w') setBrushMode('raise');
   if (k === 'e') setBrushMode('lower');
   if (k === 'r') setBrushMode('smooth');
@@ -3332,87 +3330,6 @@ function populationTick(simDt, realDt) {
 }
 
 /* ============================================================
- * PLAYER  —  a low-poly avatar you drive with WASD while in the
- * ground POV. The follow camera rides along (and you can still
- * orbit/zoom around yourself). WASD is captured only in POV mode,
- * so outside it the same keys remain brush shortcuts.
- * ============================================================ */
-const PLAYER = CONFIG.player;
-let player = null;
-let playerFollow = false;
-const keysDown = new Set();
-const _camFwd = new THREE.Vector3();
-const _moveDelta = new THREE.Vector3();
-
-function ensurePlayer() {
-  if (player) return;
-  const g = new THREE.Group();
-  const body = new THREE.Mesh(
-    new THREE.ConeGeometry(PLAYER.bodyR, PLAYER.bodyH, 6), // 6-sided low-poly body
-    new THREE.MeshStandardMaterial({ color: PLAYER.color, emissive: 0x3a0019, emissiveIntensity: 0.5, roughness: 0.5 })
-  );
-  body.position.y = PLAYER.bodyH / 2; // base at the group origin (feet)
-  body.castShadow = true;
-  g.add(body);
-  const nose = new THREE.Mesh(
-    new THREE.ConeGeometry(PLAYER.bodyR * 0.42, PLAYER.bodyR * 1.5, 4),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 })
-  );
-  nose.rotation.x = Math.PI / 2;                 // point +Z (forward)
-  nose.position.set(0, PLAYER.bodyH * 0.6, PLAYER.bodyR * 0.85);
-  g.add(nose);
-  platformGroup.add(g);
-  const y0 = sampleHeight(0, 0);
-  player = {
-    mesh: g,
-    pos: new THREE.Vector3(0, y0, 0),
-    prevPos: new THREE.Vector3(0, y0, 0),
-    heading: 0,
-  };
-  g.position.copy(player.pos);
-}
-
-/* Walk the player on the terrain, relative to where the camera faces. */
-function playerMoveTick(dt) {
-  if (!playerFollow || !player || tween) return;
-  camera.getWorldDirection(_camFwd); _camFwd.y = 0;
-  if (_camFwd.lengthSq() < 1e-6) _camFwd.set(0, 0, -1);
-  _camFwd.normalize();
-  const rx = -_camFwd.z, rz = _camFwd.x; // right = forward x up
-  let mx = 0, mz = 0;
-  if (keysDown.has('w')) { mx += _camFwd.x; mz += _camFwd.z; }
-  if (keysDown.has('s')) { mx -= _camFwd.x; mz -= _camFwd.z; }
-  if (keysDown.has('d')) { mx += rx; mz += rz; }
-  if (keysDown.has('a')) { mx -= rx; mz -= rz; }
-  const len = Math.hypot(mx, mz);
-  if (len > 1e-4) {
-    mx /= len; mz /= len;
-    player.pos.x = Math.max(-agentBoundX, Math.min(agentBoundX, player.pos.x + mx * PLAYER.speed * dt));
-    player.pos.z = Math.max(-agentBoundZ, Math.min(agentBoundZ, player.pos.z + mz * PLAYER.speed * dt));
-    player.heading = Math.atan2(mx, mz);
-    player.mesh.rotation.y = player.heading;
-  }
-  player.pos.y = sampleHeight(player.pos.x, player.pos.z); // feet on the ground
-  player.mesh.position.copy(player.pos);
-}
-
-/* Slide the camera by the player's per-frame movement so the offset (and thus
- * the orbit) is preserved while following. */
-function cameraFollowTick() {
-  if (!playerFollow || !player || tween) return;
-  _moveDelta.subVectors(player.pos, player.prevPos);
-  camera.position.add(_moveDelta);
-  controls.target.set(player.pos.x, player.pos.y + povH, player.pos.z);
-  player.prevPos.copy(player.pos);
-}
-
-window.addEventListener('keydown', e => {
-  const k = e.key.toLowerCase();
-  if (playerFollow && 'wasd'.includes(k)) { keysDown.add(k); e.preventDefault(); }
-});
-window.addEventListener('keyup', e => keysDown.delete(e.key.toLowerCase()));
-
-/* ============================================================
  * VIEW SNAPPING  —  standard orthographic-style camera presets
  * ============================================================ */
 const VIEWS = {
@@ -3427,19 +3344,17 @@ const VIEWS = {
 
 let activeView = 'iso';
 let tween = null; // { fromPos, toPos, fromTgt, toTgt, start }
-let povH = CONFIG.camera.povHeight;
 const _tmpTgt = new THREE.Vector3();
 
 function setActiveUI(name) {
   document.querySelectorAll('#views button').forEach(b =>
     b.classList.toggle('active', b.dataset.view === name)
   );
-  document.getElementById('cam-pov-btn').classList.toggle('active', name === 'pov');
   document.getElementById('r-view').textContent = name;
 }
 
 /* Start a tween of both the eye position and the orbit target, so standard
- * views recentre on FOCUS while the POV drops the pivot down to ground level. */
+ * views recentre on FOCUS. */
 function startTween(toPos, toTgt, name) {
   tween = {
     fromPos: camera.position.clone(), toPos: toPos.clone(),
@@ -3455,35 +3370,7 @@ function snapTo(name) {
   const dir = VIEWS[name];
   if (!dir) return;
   controls.maxPolarAngle = Math.PI * 0.495; // keep overhead views above the ground plane
-  playerFollow = false; keysDown.clear();    // leaving player mode: WASD returns to brushes
   startTween(FOCUS.clone().addScaledVector(dir, R), FOCUS, name);
-}
-
-/* Ground POV: a third-person camera behind the player avatar at eye height.
- * The orbit pivot tracks the player, so the camera follows as you walk (WASD)
- * and you can still orbit/zoom around yourself. */
-function snapToPOV(instant) {
-  controls.maxPolarAngle = Math.PI * 0.92; // allow horizontal & upward looking at ground level
-  ensurePlayer();
-  const px = player.pos.x, py = player.pos.y, pz = player.pos.z;
-  const fx = Math.sin(player.heading), fz = Math.cos(player.heading); // facing
-  const dist = PLAYER.camDist;
-  const ex = Math.max(-agentBoundX, Math.min(agentBoundX, px - fx * dist)); // stand behind
-  const ez = Math.max(-agentBoundZ, Math.min(agentBoundZ, pz - fz * dist));
-  const eye = new THREE.Vector3(ex, sampleHeight(ex, ez) + povH + PLAYER.camLift, ez);
-  const tgt = new THREE.Vector3(px, py + povH, pz);
-  playerFollow = true;
-  player.prevPos.copy(player.pos);
-  if (instant) {
-    camera.position.copy(eye);
-    controls.target.copy(tgt);
-    camera.lookAt(tgt);
-    controls.update();
-    activeView = 'pov';
-    setActiveUI('pov');
-  } else {
-    startTween(eye, tgt, 'pov');
-  }
 }
 
 const smoothstep = t => t * t * (3 - 2 * t);
@@ -3493,25 +3380,11 @@ const viewOrder = ['top', 'front', 'back', 'left', 'right', 'iso'];
 document.getElementById('views').addEventListener('click', e => {
   const btn = e.target.closest('button');
   if (!btn) return;
-  if (btn.dataset.view === 'pov') snapToPOV(false);
-  else snapTo(btn.dataset.view);
+  snapTo(btn.dataset.view);
 });
-document.getElementById('cam-pov-btn').addEventListener('click', () => snapToPOV(false));
 window.addEventListener('keydown', e => {
-  if (e.key === 'g' || e.key === 'G') { snapToPOV(false); return; }
   const i = parseInt(e.key, 10) - 1;
   if (i >= 0 && i < viewOrder.length) snapTo(viewOrder[i]);
-});
-
-// Eye-height slider: live vertical nudge while in POV, otherwise just stored.
-bindSlider('cam-pov-h', v => {
-  const delta = v - povH;
-  povH = v;
-  if (delta !== 0 && activeView === 'pov' && !tween) {
-    controls.target.y += delta; // raise/lower eye + pivot together
-    camera.position.y += delta;
-    controls.update();
-  }
 });
 
 /* ============================================================
@@ -3571,9 +3444,6 @@ function animate() {
 
   populationTick(simDt, dt); // log every 15 sim-s, live-redraw the chart
   vegVisualTick();           // GPU instance writes: once per frame, changed plants only
-
-  playerMoveTick(dt);   // WASD walk (real-time, POV only)
-  cameraFollowTick();   // follow camera rides along
 
   controls.update();
   renderer.render(scene, camera);

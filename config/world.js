@@ -162,15 +162,6 @@ export const CONFIG = {
     far: 2000,
     // distance multiplier applied to the platform's bounding radius for snap views
     fit: 1.9,
-    povHeight: 3, // default eye height above the surface for the ground POV
-  },
-  player: {
-    speed:    16,     // walk speed, units/sec
-    color:    0xff2d95, // hot pink — unmistakably the player
-    bodyH:    3.0,    // avatar height
-    bodyR:    0.9,    // avatar base radius
-    camDist:  7,      // third-person standoff behind the player
-    camLift:  0.6,    // extra camera height above eye level
   },
   tween: { duration: 650 }, // ms for view-snap transitions
 };

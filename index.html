@@ -57,8 +57,6 @@
     <button data-view="right">Right</button>
     <span class="sep"></span>
     <button data-view="iso" class="active">Iso</button>
-    <span class="sep"></span>
-    <button id="cam-pov" data-view="pov" title="Snap to ground-level POV (G)">POV</button>
   </div>
 
   <!-- Live readout -->
@@ -139,18 +137,13 @@
     </div>
     <label class="slider"><span>volume</span><input id="music-vol" type="range" min="0" max="1" step="0.05" value="0.5"><b id="music-vol-v">0.50</b></label>
     <label class="slider"><span>sim speed</span><input id="time-scale" type="range" min="1" max="100" step="1" value="1"><b id="time-scale-v">1×</b></label>
-    <div class="title title-gap" style="margin-top:14px">Camera</div>
-    <div class="btn-row">
-      <button id="cam-pov-btn">Ground POV</button>
-    </div>
-    <label class="slider"><span>eye height</span><input id="cam-pov-h" type="range" min="0.3" max="30" step="0.1" value="3"><b id="cam-pov-h-v">3.0</b></label>
   </div>
 
   <!-- Controls hint -->
   <div class="hud hint">
     <div><kbd>L-drag</kbd> paint &nbsp; <kbd>M-drag</kbd> orbit &nbsp; <kbd>R-drag</kbd> pan &nbsp; <kbd>scroll</kbd> zoom</div>
     <div><kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> brushes &nbsp; <kbd>Z</kbd> egg zone &nbsp; <kbd>P</kbd> plant &nbsp; <kbd>T</kbd> place &nbsp; <kbd>[</kbd> <kbd>]</kbd> radius</div>
-    <div><kbd>Shift</kbd> invert brush / erase zone &nbsp; <kbd>Alt</kbd> hold to orbit &nbsp; <kbd>1</kbd>–<kbd>6</kbd> views &nbsp; <kbd>G</kbd> ground POV &nbsp; <kbd>WASD</kbd> walk (in POV)</div>
+    <div><kbd>Shift</kbd> invert brush / erase zone &nbsp; <kbd>Alt</kbd> hold to orbit &nbsp; <kbd>1</kbd>–<kbd>6</kbd> views</div>
   </div>
 
 <script type="module" src="src/main.js"></script>
