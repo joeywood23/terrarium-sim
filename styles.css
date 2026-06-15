@@ -235,6 +235,36 @@
   /* In-sim button to return to the setup menu */
   #new-world { /* inherits .panel button styling */ }
 
+  /* ---------- Minimize toggles ---------- */
+  .min-toggle {
+    display: inline-block;
+    color: var(--hud-dim);
+    cursor: pointer;
+    font-size: 11px;
+    margin-left: 4px;
+    transition: color .15s ease;
+    vertical-align: middle;
+  }
+  .min-toggle:hover { color: var(--hud-text); }
+
+  /* Readout collapse */
+  .readout .title { display: flex; justify-content: space-between; align-items: center; }
+  .readout.collapsed .readout-body { display: none; }
+
+  /* Panel collapse */
+  .panel > .title { display: flex; justify-content: space-between; align-items: center; }
+  .panel.collapsed .panel-body { display: none; }
+
+  /* Views collapse — show only the toggle */
+  .views .min-toggle { line-height: 1; padding: 0 2px; }
+  .views.collapsed > button,
+  .views.collapsed > .sep { display: none; }
+
+  /* Hint collapse */
+  .hint-toggle { text-align: right; }
+  .hint.collapsed .hint-body { display: none; }
+  .hint .min-toggle { font-size: 12px; font-weight: 600; }
+
   /* ---------- Creature context menu ---------- */
   .creature-menu {
     position: fixed;

@@ -57,20 +57,24 @@
     <button data-view="right">Right</button>
     <span class="sep"></span>
     <button data-view="iso" class="active">Iso</button>
+    <span class="sep"></span>
+    <span class="min-toggle" data-collapse="views" title="Minimize">▾</span>
   </div>
 
   <!-- Live readout -->
   <div class="hud readout" id="readout">
-    <div class="title">Viewport</div>
-    <div class="row"><span>view</span><b id="r-view">iso</b></div>
-    <div class="row"><span>tool</span><b id="r-mode">raise</b></div>
-    <div class="row"><span>fish</span><b id="r-fish">0</b></div>
-    <div class="row"><span>frogs</span><b id="r-frogs">0</b></div>
-    <div class="row"><span>fliers</span><b id="r-birds">0</b></div>
-    <div class="row"><span>eggs</span><b id="r-eggs">0</b></div>
-    <div class="row"><span>plants</span><b id="r-plants">0</b></div>
-    <div class="row"><span>platform</span><b id="r-size">—</b></div>
-    <div class="row"><span>fps</span><b id="r-fps">—</b></div>
+    <div class="title">Viewport <span class="min-toggle" data-collapse="readout">▾</span></div>
+    <div class="readout-body">
+      <div class="row"><span>view</span><b id="r-view">iso</b></div>
+      <div class="row"><span>tool</span><b id="r-mode">raise</b></div>
+      <div class="row"><span>fish</span><b id="r-fish">0</b></div>
+      <div class="row"><span>frogs</span><b id="r-frogs">0</b></div>
+      <div class="row"><span>fliers</span><b id="r-birds">0</b></div>
+      <div class="row"><span>eggs</span><b id="r-eggs">0</b></div>
+      <div class="row"><span>plants</span><b id="r-plants">0</b></div>
+      <div class="row"><span>platform</span><b id="r-size">—</b></div>
+      <div class="row"><span>fps</span><b id="r-fps">—</b></div>
+    </div>
   </div>
 
   <!-- Population chart -->
@@ -90,60 +94,65 @@
 
   <!-- Terrain + brush controls -->
   <div class="hud panel" id="terrain-panel">
-    <div class="title">Terrain</div>
-    <div class="btn-row">
-      <button id="gen-island">Generate island</button>
-      <button id="flatten">Flatten</button>
-      <button id="new-world" title="Return to the world setup menu">New world…</button>
+    <div class="title">Terrain <span class="min-toggle" data-collapse="terrain-panel">▾</span></div>
+    <div class="panel-body">
+      <div class="btn-row">
+        <button id="gen-island">Generate island</button>
+        <button id="flatten">Flatten</button>
+        <button id="new-world" title="Return to the world setup menu">New world…</button>
+      </div>
+      <label class="slider"><span>amplitude</span><input id="island-amp" type="range" min="0" max="100" step="0.5" value="12"><b id="island-amp-v">12.0</b></label>
+      <div class="title title-gap" style="margin-top:14px">Water</div>
+      <label class="slider"><span>level</span><input id="water-level" type="range" min="0" max="100" step="0.1" value="3"><b id="water-level-v">3.00</b></label>
+      <div class="title title-gap" style="margin-top:14px">Brush</div>
+      <div class="btn-row" id="brush-modes">
+        <button data-mode="raise" class="active">Raise</button>
+        <button data-mode="lower">Lower</button>
+        <button data-mode="smooth">Smooth</button>
+        <button data-mode="zone">Egg zone</button>
+      </div>
+      <label class="slider"><span>radius</span><input id="brush-radius" type="range" min="1" max="30" step="0.5" value="8"><b id="brush-radius-v">8.0</b></label>
+      <label class="slider"><span>strength</span><input id="brush-strength" type="range" min="0.05" max="1" step="0.05" value="0.5"><b id="brush-strength-v">0.50</b></label>
+      <div class="title title-gap" style="margin-top:14px">Creatures</div>
+      <div class="btn-row">
+        <select id="creature-select" aria-label="Creature to place">
+          <option value="fish">Fish</option>
+          <option value="frog">Frog</option>
+          <option value="insect">Insect</option>
+        </select>
+        <button data-mode="place">Place</button>
+      </div>
+      <div class="title title-gap" style="margin-top:14px">Vegetation</div>
+      <div class="btn-row">
+        <select id="plant-select" aria-label="Plant to paint"></select>
+        <button data-mode="plant">Plant</button>
+      </div>
+      <label class="slider"><span>density</span><input id="veg-density" type="range" min="0" max="1" step="0.05" value="0.5"><b id="veg-density-v">0.50</b></label>
+      <label class="slider"><span>radius</span><input id="veg-radius" type="range" min="2" max="30" step="0.5" value="8"><b id="veg-radius-v">8.0</b></label>
+      <label class="slider"><span>growth</span><input id="veg-growth" type="range" min="-0.05" max="0.1" step="0.0002" value="0.05"><b id="veg-growth-v">0.0500</b></label>
+      <label class="slider"><span>max size</span><input id="veg-maxsize" type="range" min="0.3" max="4" step="0.1" value="1.8"><b id="veg-maxsize-v">1.8</b></label>
+      <label class="slider"><span>germination</span><input id="veg-seed" type="range" min="0" max="0.3" step="0.005" value="0.03"><b id="veg-seed-v">0.030</b></label>
+      <div class="title title-gap" style="margin-top:14px">Display</div>
+      <div class="btn-row">
+        <button id="toggle-bars" class="active">Hunger bars</button>
+        <button id="toggle-art" class="active" title="Detailed models vs. primitive boxes">Detailed art</button>
+      </div>
+      <div class="btn-row">
+        <button id="toggle-music" title="Generative ambient music">♪ Music: off</button>
+      </div>
+      <label class="slider"><span>volume</span><input id="music-vol" type="range" min="0" max="1" step="0.05" value="0.5"><b id="music-vol-v">0.50</b></label>
+      <label class="slider"><span>sim speed</span><input id="time-scale" type="range" min="1" max="100" step="1" value="1"><b id="time-scale-v">1×</b></label>
     </div>
-    <label class="slider"><span>amplitude</span><input id="island-amp" type="range" min="0" max="100" step="0.5" value="12"><b id="island-amp-v">12.0</b></label>
-    <div class="title title-gap" style="margin-top:14px">Water</div>
-    <label class="slider"><span>level</span><input id="water-level" type="range" min="0" max="100" step="0.1" value="3"><b id="water-level-v">3.00</b></label>
-    <div class="title title-gap" style="margin-top:14px">Brush</div>
-    <div class="btn-row" id="brush-modes">
-      <button data-mode="raise" class="active">Raise</button>
-      <button data-mode="lower">Lower</button>
-      <button data-mode="smooth">Smooth</button>
-      <button data-mode="zone">Egg zone</button>
-    </div>
-    <label class="slider"><span>radius</span><input id="brush-radius" type="range" min="1" max="30" step="0.5" value="8"><b id="brush-radius-v">8.0</b></label>
-    <label class="slider"><span>strength</span><input id="brush-strength" type="range" min="0.05" max="1" step="0.05" value="0.5"><b id="brush-strength-v">0.50</b></label>
-    <div class="title title-gap" style="margin-top:14px">Creatures</div>
-    <div class="btn-row">
-      <select id="creature-select" aria-label="Creature to place">
-        <option value="fish">Fish</option>
-        <option value="frog">Frog</option>
-        <option value="insect">Insect</option>
-      </select>
-      <button data-mode="place">Place</button>
-    </div>
-    <div class="title title-gap" style="margin-top:14px">Vegetation</div>
-    <div class="btn-row">
-      <select id="plant-select" aria-label="Plant to paint"></select>
-      <button data-mode="plant">Plant</button>
-    </div>
-    <label class="slider"><span>density</span><input id="veg-density" type="range" min="0" max="1" step="0.05" value="0.5"><b id="veg-density-v">0.50</b></label>
-    <label class="slider"><span>radius</span><input id="veg-radius" type="range" min="2" max="30" step="0.5" value="8"><b id="veg-radius-v">8.0</b></label>
-    <label class="slider"><span>growth</span><input id="veg-growth" type="range" min="-0.05" max="0.1" step="0.0002" value="0.05"><b id="veg-growth-v">0.0500</b></label>
-    <label class="slider"><span>max size</span><input id="veg-maxsize" type="range" min="0.3" max="4" step="0.1" value="1.8"><b id="veg-maxsize-v">1.8</b></label>
-    <label class="slider"><span>germination</span><input id="veg-seed" type="range" min="0" max="0.3" step="0.005" value="0.03"><b id="veg-seed-v">0.030</b></label>
-    <div class="title title-gap" style="margin-top:14px">Display</div>
-    <div class="btn-row">
-      <button id="toggle-bars" class="active">Hunger bars</button>
-      <button id="toggle-art" class="active" title="Detailed models vs. primitive boxes">Detailed art</button>
-    </div>
-    <div class="btn-row">
-      <button id="toggle-music" title="Generative ambient music">♪ Music: off</button>
-    </div>
-    <label class="slider"><span>volume</span><input id="music-vol" type="range" min="0" max="1" step="0.05" value="0.5"><b id="music-vol-v">0.50</b></label>
-    <label class="slider"><span>sim speed</span><input id="time-scale" type="range" min="1" max="100" step="1" value="1"><b id="time-scale-v">1×</b></label>
   </div>
 
   <!-- Controls hint -->
-  <div class="hud hint">
-    <div><kbd>L-drag</kbd> paint &nbsp; <kbd>M-drag</kbd> orbit &nbsp; <kbd>R-drag</kbd> pan &nbsp; <kbd>scroll</kbd> zoom</div>
-    <div><kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> brushes &nbsp; <kbd>Z</kbd> egg zone &nbsp; <kbd>P</kbd> plant &nbsp; <kbd>T</kbd> place &nbsp; <kbd>[</kbd> <kbd>]</kbd> radius</div>
-    <div><kbd>Shift</kbd> invert brush / erase zone &nbsp; <kbd>Alt</kbd> hold to orbit &nbsp; <kbd>1</kbd>–<kbd>6</kbd> views</div>
+  <div class="hud hint" id="hint">
+    <div class="hint-toggle"><span class="min-toggle" data-collapse="hint" title="Minimize">?</span></div>
+    <div class="hint-body">
+      <div><kbd>L-drag</kbd> paint &nbsp; <kbd>M-drag</kbd> orbit &nbsp; <kbd>R-drag</kbd> pan &nbsp; <kbd>scroll</kbd> zoom</div>
+      <div><kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> brushes &nbsp; <kbd>Z</kbd> egg zone &nbsp; <kbd>P</kbd> plant &nbsp; <kbd>T</kbd> place &nbsp; <kbd>[</kbd> <kbd>]</kbd> radius</div>
+      <div><kbd>Shift</kbd> invert brush / erase zone &nbsp; <kbd>Alt</kbd> hold to orbit &nbsp; <kbd>1</kbd>–<kbd>6</kbd> views</div>
+    </div>
   </div>
 
   <!-- Right-click creature context menu -->

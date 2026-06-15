@@ -3415,6 +3415,21 @@ document.getElementById('chart-clear').addEventListener('click', () => {
 window.addEventListener('resize', () => { chartW = 0; }); // re-measure on next draw
 sizeChart();
 
+/* Generic minimize toggles — any .min-toggle with data-collapse="<id>"
+ * toggles .collapsed on the target element and flips its own arrow. */
+document.addEventListener('click', e => {
+  const toggle = e.target.closest('.min-toggle');
+  if (!toggle) return;
+  const id = toggle.dataset.collapse;
+  if (!id) return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('collapsed');
+  // Flip arrow text (▾ ↔ ▸), except for the hint "?" which stays.
+  if (toggle.textContent === '▾') toggle.textContent = '▸';
+  else if (toggle.textContent === '▸') toggle.textContent = '▾';
+});
+
 let chartAccum = 0; // throttle live redraws (real time)
 function populationTick(simDt, realDt) {
   simElapsed += simDt;
