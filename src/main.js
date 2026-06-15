@@ -3741,7 +3741,7 @@ function povTick(dt) {
     const sinPitch = Math.sin(clampedPitch);
     const fwd = new THREE.Vector3(
       -Math.sin(povYaw) * cosPitch,
-      -sinPitch,
+      sinPitch,
       -Math.cos(povYaw) * cosPitch
     );
     const throttle = povKeys.w ? 1 : 0;
