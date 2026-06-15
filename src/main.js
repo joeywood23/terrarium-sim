@@ -3430,6 +3430,63 @@ document.addEventListener('click', e => {
   else if (toggle.textContent === '▸') toggle.textContent = '▾';
 });
 
+/* Draggable HUD panels — drag by title bars (.drag-handle) or any
+ * non-interactive area. On first drag, pins the panel to left/top
+ * and clears right/bottom so it can be freely positioned. */
+const DRAGGABLE_IDS = ['readout', 'terrain-panel', 'chart-panel', 'views', 'hint'];
+{
+  let dragEl = null, dragOffX = 0, dragOffY = 0;
+
+  function pinToLeftTop(el) {
+    if (el.dataset.pinned) return;
+    const r = el.getBoundingClientRect();
+    el.style.left = r.left + 'px';
+    el.style.top  = r.top + 'px';
+    el.style.right  = 'auto';
+    el.style.bottom = 'auto';
+    el.classList.add('draggable');
+    el.dataset.pinned = '1';
+  }
+
+  function isInteractive(target) {
+    const tag = target.tagName;
+    return tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'LABEL'
+      || target.classList.contains('min-toggle') || target.classList.contains('ctl');
+  }
+
+  document.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    if (isInteractive(e.target)) return;
+    // Find a drag handle or the HUD itself.
+    const handle = e.target.closest('.drag-handle');
+    const hud = e.target.closest('.hud');
+    if (!hud || !DRAGGABLE_IDS.includes(hud.id)) return;
+    // For panels with a drag-handle, only drag from the handle.
+    // For panels without (views, hint), drag from anywhere non-interactive.
+    if (hud.querySelector('.drag-handle') && !handle) return;
+    pinToLeftTop(hud);
+    dragEl = hud;
+    const r = hud.getBoundingClientRect();
+    dragOffX = e.clientX - r.left;
+    dragOffY = e.clientY - r.top;
+    hud.classList.add('dragging');
+    e.preventDefault();
+  });
+
+  document.addEventListener('pointermove', e => {
+    if (!dragEl) return;
+    const x = Math.max(0, Math.min(window.innerWidth - 40, e.clientX - dragOffX));
+    const y = Math.max(0, Math.min(window.innerHeight - 20, e.clientY - dragOffY));
+    dragEl.style.left = x + 'px';
+    dragEl.style.top  = y + 'px';
+  });
+
+  document.addEventListener('pointerup', () => {
+    if (dragEl) dragEl.classList.remove('dragging');
+    dragEl = null;
+  });
+}
+
 let chartAccum = 0; // throttle live redraws (real time)
 function populationTick(simDt, realDt) {
   simElapsed += simDt;
