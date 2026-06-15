@@ -1,0 +1,46 @@
+# Automatically publish the terrarium to GitHub Pages on every push to main.
+#
+# One-time setup (do this once in the repo):
+#   Settings -> Pages -> Build and deployment -> Source: select "GitHub Actions".
+# After that, every push to main rebuilds and deploys; watch progress under the
+# Actions tab. The live URL is shown on the deploy job and in Settings -> Pages.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]      # change if your default branch has another name
+  workflow_dispatch:       # also lets you run it manually from the Actions tab
+
+# Permissions the deploy needs (OIDC token + Pages write).
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push supersedes an in-progress run.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      # No build step: the site is plain HTML/CSS/JS + JSON. Upload the repo as-is.
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
