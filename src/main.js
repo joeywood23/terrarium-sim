@@ -3732,54 +3732,61 @@ function povTick(dt) {
   const isFish = st.species === 'fish' || SPECIES[st.species]?.list === fishes;
   const isBirdFlying = (SPECIES[st.species]?.list === birds) && st.mode === 'fly';
 
-  // Movement from WASD relative to yaw (and pitch for fish).
-  let fwd, right;
+  let nx, ny, nz;
+
   if (isFish) {
-    // Fish forward includes pitch so looking down + W dives.
-    fwd = new THREE.Vector3(
-      -Math.sin(povYaw) * Math.cos(povPitch),
-      -Math.sin(povPitch),
-      -Math.cos(povYaw) * Math.cos(povPitch)
+    // Fish POV: mouse steers yaw + pitch, W is forward thrust, S does nothing.
+    const clampedPitch = Math.max(-FISH.pitchMax, Math.min(FISH.pitchMax, povPitch));
+    const cosPitch = Math.cos(clampedPitch);
+    const sinPitch = Math.sin(clampedPitch);
+    const fwd = new THREE.Vector3(
+      -Math.sin(povYaw) * cosPitch,
+      -sinPitch,
+      -Math.cos(povYaw) * cosPitch
     );
-    right = new THREE.Vector3(Math.cos(povYaw), 0, -Math.sin(povYaw));
-  } else {
-    fwd = new THREE.Vector3(-Math.sin(povYaw), 0, -Math.cos(povYaw));
-    right = new THREE.Vector3(Math.cos(povYaw), 0, -Math.sin(povYaw));
-  }
-  const move = new THREE.Vector3();
-  if (povKeys.w) move.add(fwd);
-  if (povKeys.s) move.sub(fwd);
-  if (povKeys.d) move.add(right);
-  if (povKeys.a) move.sub(right);
-  if (move.lengthSq() > 0) move.normalize().multiplyScalar(speed * dt);
+    const throttle = povKeys.w ? 1 : 0;
+    nx = mesh.position.x + fwd.x * speed * throttle * dt;
+    ny = mesh.position.y + fwd.y * speed * throttle * dt;
+    nz = mesh.position.z + fwd.z * speed * throttle * dt;
 
-  // Apply movement, constrain to bounds.
-  let nx = Math.max(-agentBoundX, Math.min(agentBoundX, mesh.position.x + move.x));
-  let nz = Math.max(-agentBoundZ, Math.min(agentBoundZ, mesh.position.z + move.z));
-  let ny;
-
-  if (isFish) {
-    // 3D depth control: clamp between seabed and water surface.
+    // Clamp to navigable water volume.
+    nx = Math.max(-agentBoundX, Math.min(agentBoundX, nx));
+    nz = Math.max(-agentBoundZ, Math.min(agentBoundZ, nz));
     const depth = water.level - sampleHeight(nx, nz);
     if (depth < FISH.height) { nx = mesh.position.x; nz = mesh.position.z; }
     const floorY = sampleHeight(nx, nz) + FISH.height / 2 + 0.1;
     const ceilY  = water.level - FISH.height / 2 - 0.1;
-    ny = Math.max(floorY, Math.min(ceilY, mesh.position.y + move.y));
-    st.pitch = povPitch * 0.7; // damped visual pitch
-  } else if (isBirdFlying) {
-    ny = mesh.position.y + move.y;
-    ny = Math.max(sampleHeight(nx, nz) + eyeH, ny);
-  } else {
-    ny = sampleHeight(nx, nz) + eyeH / 2;
-  }
+    ny = Math.max(floorY, Math.min(ceilY, ny));
 
-  mesh.position.set(nx, ny, nz);
-  if (isFish) {
+    st.pitch = clampedPitch;
+    st.heading = povYaw;
+    mesh.position.set(nx, ny, nz);
     orientFish(mesh, povYaw, st.pitch, dt);
   } else {
+    // Ground/air creatures: standard WASD.
+    const fwd = new THREE.Vector3(-Math.sin(povYaw), 0, -Math.cos(povYaw));
+    const right = new THREE.Vector3(Math.cos(povYaw), 0, -Math.sin(povYaw));
+    const move = new THREE.Vector3();
+    if (povKeys.w) move.add(fwd);
+    if (povKeys.s) move.sub(fwd);
+    if (povKeys.d) move.add(right);
+    if (povKeys.a) move.sub(right);
+    if (move.lengthSq() > 0) move.normalize().multiplyScalar(speed * dt);
+
+    nx = Math.max(-agentBoundX, Math.min(agentBoundX, mesh.position.x + move.x));
+    nz = Math.max(-agentBoundZ, Math.min(agentBoundZ, mesh.position.z + move.z));
+
+    if (isBirdFlying) {
+      ny = mesh.position.y + move.y;
+      ny = Math.max(sampleHeight(nx, nz) + eyeH, ny);
+    } else {
+      ny = sampleHeight(nx, nz) + eyeH / 2;
+    }
+
+    st.heading = povYaw;
+    mesh.position.set(nx, ny, nz);
     mesh.rotation.y = povYaw;
   }
-  st.heading = povYaw;
 
   // Camera at eye level.
   camera.position.set(nx, ny + eyeH / 2, nz);
