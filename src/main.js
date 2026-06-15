@@ -3734,10 +3734,10 @@ function povTick(dt) {
       -Math.sin(povPitch),
       -Math.cos(povYaw) * Math.cos(povPitch)
     );
-    right = new THREE.Vector3(-Math.cos(povYaw), 0, Math.sin(povYaw));
+    right = new THREE.Vector3(Math.cos(povYaw), 0, -Math.sin(povYaw));
   } else {
     fwd = new THREE.Vector3(-Math.sin(povYaw), 0, -Math.cos(povYaw));
-    right = new THREE.Vector3(-Math.cos(povYaw), 0, Math.sin(povYaw));
+    right = new THREE.Vector3(Math.cos(povYaw), 0, -Math.sin(povYaw));
   }
   const move = new THREE.Vector3();
   if (povKeys.w) move.add(fwd);
