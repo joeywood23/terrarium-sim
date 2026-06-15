@@ -39,6 +39,8 @@ export const CONFIG = {
     flopVert: 6.5,     // vertical flop impulse, units/s
     diveSpeed: 6,      // vertical approach rate when navigating to a depth target
     pitchMax: 0.7,     // max nose-up/down angle in radians (~40°)
+    depthDrift: 2.5,   // how fast the idle depth target wanders, units/s
+    depthBias: 0.35,   // 0 = hug floor, 1 = hug surface; 0.35 = slightly bottom-heavy
   },
   breeding: {
     // Shared defaults; each species below overrides only what differs.

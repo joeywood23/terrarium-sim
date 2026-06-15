@@ -1378,7 +1378,8 @@ function spawnFish(x, z, opts = {}) {
     grounded: false,
     seekTime: 0,           // how long it's been trying to reach the zone
     pitch: 0,              // nose-up/down angle for 3D swimming
-    targetDepthY: null,    // null = cruise depth; set when diving to food
+    targetDepthY: null,    // null = wander depth; set when diving to food
+    wanderDepthY: null,    // slowly drifting idle depth target (initialized on first tick)
     color,                 // genetic color trait
   }, !!opts.newborn, color);
   if (fishNavigable(x, z)) {
@@ -1518,7 +1519,7 @@ function swimTick(a, dt) {
     st.targetDepthY = st.forage ? forageY(st.forage) : null;
     seeking = true;
   } else {
-    st.targetDepthY = null; // idle: return to cruise depth
+    st.targetDepthY = null; // idle: use wandering depth
     // Not grazing: breeding / wander as before. The reproduction gate also
     // stops a starved fish from spending its time seeking the egg zone.
     const wantsToLay = st.mature && st.layTimer <= 0 && canReproduce(st, BREED_F.layCost);
@@ -1561,22 +1562,33 @@ function swimTick(a, dt) {
     if (!turned) st.heading += Math.PI; // boxed in: about-face
   }
 
-  // Advance, rejecting any step that would leave navigable water.
-  const nx = p.x + Math.cos(st.heading) * FISH.speed * dt;
-  const nz = p.z + Math.sin(st.heading) * FISH.speed * dt;
+  // Advance along the 3D heading; horizontal speed scales with cos(pitch)
+  // so diving fish don't also move at full horizontal speed.
+  const hSpeed = FISH.speed * Math.cos(st.pitch);
+  const nx = p.x + Math.cos(st.heading) * hSpeed * dt;
+  const nz = p.z + Math.sin(st.heading) * hSpeed * dt;
   if (fishNavigable(nx, nz)) { p.x = nx; p.z = nz; }
 
-  // Depth keeping: dive to food or cruise just under the surface.
+  // Depth keeping: wander depth when idle, dive to food when foraging.
   const floor = sampleHeight(p.x, p.z) + FISH.height / 2 + 0.1;
   const ceil  = water.level - FISH.height / 2 - 0.1;
-  const cruiseY = Math.max(floor, Math.min(ceil, water.level - FISH.cruiseDraft));
+
+  // Idle depth wandering: a slowly drifting target that explores the water column.
+  if (st.wanderDepthY === null) {
+    // Initialize: random position biased by depthBias (0=floor, 1=surface).
+    st.wanderDepthY = floor + (ceil - floor) * (FISH.depthBias + (Math.random() - 0.5) * 0.4);
+  }
+  // Drift the wander target with smooth noise.
+  st.wanderDepthY += (Math.random() - 0.5) * FISH.depthDrift * dt;
+  st.wanderDepthY = Math.max(floor, Math.min(ceil, st.wanderDepthY));
+
   const targetY = st.targetDepthY != null
     ? Math.max(floor, Math.min(ceil, st.targetDepthY))
-    : cruiseY;
+    : st.wanderDepthY;
   const dy = targetY - p.y;
   p.y += dy * Math.min(1, dt * FISH.diveSpeed);
 
-  // Pitch from vertical movement
+  // Pitch from vertical movement direction.
   const desiredPitch = Math.atan2(dy, FISH.speed * dt + 0.01);
   const clampedPitch = Math.max(-FISH.pitchMax, Math.min(FISH.pitchMax, desiredPitch));
   st.pitch += (clampedPitch - st.pitch) * Math.min(1, dt * 4);
@@ -1615,6 +1627,7 @@ function beachedTick(a, dt) {
     st.mode = 'swim';
     st.pitch = 0;
     st.targetDepthY = null;
+    st.wanderDepthY = null; // re-initialize on next swim tick
     return;
   }
 
