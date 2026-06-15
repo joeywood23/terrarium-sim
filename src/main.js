@@ -691,6 +691,77 @@ renderer.domElement.addEventListener('pointerleave', () => {
 });
 
 /* ------------------------------------------------------------
+ * CREATURE CONTEXT MENU — right-click a creature to interact.
+ * ------------------------------------------------------------ */
+const creatureMenu = document.getElementById('creature-menu');
+let menuAgent = null; // the agent under the context menu
+const _creatureNdc = new THREE.Vector2();
+
+function castCreature(clientX, clientY) {
+  _creatureNdc.set(
+    (clientX / window.innerWidth) * 2 - 1,
+    -(clientY / window.innerHeight) * 2 + 1
+  );
+  raycaster.setFromCamera(_creatureNdc, camera);
+  const meshes = [...fishes, ...frogs, ...birds].map(a => a.mesh);
+  const hits = raycaster.intersectObjects(meshes, true);
+  for (const h of hits) {
+    let obj = h.object;
+    while (obj) {
+      if (obj.userData && obj.userData.agent) return obj.userData.agent;
+      obj = obj.parent;
+    }
+  }
+  return null;
+}
+
+function showCreatureMenu(x, y, agent) {
+  menuAgent = agent;
+  creatureMenu.style.left = x + 'px';
+  creatureMenu.style.top = y + 'px';
+  creatureMenu.classList.add('visible');
+}
+
+function hideCreatureMenu() {
+  creatureMenu.classList.remove('visible');
+  menuAgent = null;
+}
+
+// Suppress browser context menu on the canvas.
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+// Track right-click vs right-drag.
+let _rmbDown = null;
+let _rmbDrag = 0;
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  if (e.button === 2) {
+    _rmbDown = { x: e.clientX, y: e.clientY };
+    _rmbDrag = 0;
+  }
+  // Any left-click hides the menu.
+  if (e.button === 0) hideCreatureMenu();
+});
+
+renderer.domElement.addEventListener('pointermove', e => {
+  if (_rmbDown) {
+    _rmbDrag += Math.abs(e.clientX - _rmbDown.x) + Math.abs(e.clientY - _rmbDown.y);
+    _rmbDown = { x: e.clientX, y: e.clientY };
+  }
+});
+
+window.addEventListener('pointerup', e => {
+  if (e.button === 2 && _rmbDown) {
+    if (_rmbDrag < 6 && !possessed) {
+      const agent = castCreature(e.clientX, e.clientY);
+      if (agent && !agent.st.dead) showCreatureMenu(e.clientX, e.clientY, agent);
+      else hideCreatureMenu();
+    }
+    _rmbDown = null;
+  }
+});
+
+/* ------------------------------------------------------------
  * bindSlider — single pattern for every range input in the HUD.
  * Wires <input id> to its value label <id+'-v'>, parses the float,
  * formats the label, and calls apply(v). Runs once at startup so
@@ -752,6 +823,11 @@ document.getElementById('new-world').addEventListener('click', () => {
 
 window.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
+  // POV mode captures WASD and Escape.
+  if (possessed) {
+    if (k in povKeys) { povKeys[k] = true; e.preventDefault(); }
+    return;
+  }
   if (k === 'w') setBrushMode('raise');
   if (k === 'e') setBrushMode('lower');
   if (k === 'r') setBrushMode('smooth');
@@ -771,6 +847,8 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Alt')   { brush.alt = true; syncControlButtons(); castBrush(); e.preventDefault(); }
 });
 window.addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k in povKeys) povKeys[k] = false;
   if (e.key === 'Shift') brush.shift = false;
   if (e.key === 'Alt')   { brush.alt = false; syncControlButtons(); brush.needRecast = true; }
 });
@@ -1159,6 +1237,7 @@ function rebuildCreatureVisuals() {
     platformGroup.remove(old);
     platformGroup.add(next);
     a.mesh = next;
+    next.userData.agent = a;
   };
   for (const a of fishes) swap(a, a.st.species, RENDER_KIT[a.st.species].geo, RENDER_KIT[a.st.species].mat);
   for (const a of frogs)  swap(a, a.st.species, RENDER_KIT[a.st.species].geo, RENDER_KIT[a.st.species].mat);
@@ -1180,7 +1259,9 @@ function createAgent(species, br, geo, primitiveMat, extraState, newborn, tint) 
     layTimer: randomLayInterval(br),
   }, extraState);
   if (newborn) mesh.scale.setScalar(br.juvenileScale); // grows to 1.0 over maturation
-  return { mesh, st };
+  const agent = { mesh, st };
+  mesh.userData.agent = agent;
+  return agent;
 }
 
 /* Land-species drop-in: spawn above the surface (or above the water line if
@@ -1519,6 +1600,7 @@ function fishTick(dt) {
   for (const a of fishes) {
     const st = a.st;
     if (st.dead) continue; // corpse: handled by the decay pass
+    if (st.aiSuspended) continue;
 
     maturationStep(a, BREED_F, dt);
     (st.mode === 'swim' ? swimTick : beachedTick)(a, dt);
@@ -2430,6 +2512,7 @@ function frogTick(dt) {
   const br = BREEDING.frog;
   for (const a of frogs) {
     if (a.st.dead) continue;
+    if (a.st.aiSuspended) continue;
     maturationStep(a, br, dt);
     (a.st.mode === 'land' ? frogLandTick : frogSwampedTick)(a, dt);
     layStep(a, br, dt, a.st.mode === 'land' && a.st.grounded); // lay on land, standing
@@ -2816,6 +2899,7 @@ function birdSwimTick(a, dt) {
 function birdTick(dt) {
   for (const a of birds) {
     if (a.st.dead) continue;
+    if (a.st.aiSuspended) continue;
     const br = BREEDING[a.st.species];
     maturationStep(a, br, dt);
     if (a.st.mode === 'walk') birdWalkTick(a, dt);
@@ -3383,9 +3467,151 @@ document.getElementById('views').addEventListener('click', e => {
   snapTo(btn.dataset.view);
 });
 window.addEventListener('keydown', e => {
+  if (possessed) return;
   const i = parseInt(e.key, 10) - 1;
   if (i >= 0 && i < viewOrder.length) snapTo(viewOrder[i]);
 });
+
+/* ============================================================
+ * CREATURE POV  —  first-person possession of a creature.
+ * Right-click a creature → "POV" → camera snaps to its eye
+ * level, WASD drives it, mouse-look via pointer lock.
+ * ============================================================ */
+let possessed = null;       // agent { mesh, st } being possessed
+let povYaw = 0;
+let povPitch = 0;
+const povKeys = { w: false, a: false, s: false, d: false };
+let savedCamera = null;
+
+function getCreatureEyeHeight(st) {
+  if (st.species === 'fish' || SPECIES[st.species]?.list === fishes) return FISH.height;
+  if (st.species === 'frog' || SPECIES[st.species]?.list === frogs)  return FROG.height;
+  const fl = FLIERS[st.species];
+  return fl ? fl.cfg.height : CONFIG.bird.height;
+}
+
+function getCreatureSpeed(st) {
+  if (st.species === 'fish' || SPECIES[st.species]?.list === fishes) return FISH.speed;
+  if (st.species === 'frog' || SPECIES[st.species]?.list === frogs)  return FROG.hopHoriz;
+  const fl = FLIERS[st.species];
+  if (fl) return st.mode === 'fly' ? fl.cfg.flySpeed : fl.cfg.walkSpeed;
+  return CONFIG.bird.walkSpeed;
+}
+
+function enterPOV(agent) {
+  hideCreatureMenu();
+  possessed = agent;
+  agent.st.aiSuspended = true;
+  povYaw = agent.st.heading;
+  povPitch = 0;
+  savedCamera = {
+    position: camera.position.clone(),
+    target: controls.target.clone(),
+    maxPolarAngle: controls.maxPolarAngle,
+  };
+  controls.enabled = false;
+  activeView = 'pov';
+  setActiveUI('pov');
+  document.body.classList.add('pov-active');
+  renderer.domElement.requestPointerLock();
+}
+
+function exitPOV() {
+  if (!possessed) return;
+  possessed.st.aiSuspended = false;
+  possessed = null;
+  Object.keys(povKeys).forEach(k => povKeys[k] = false);
+  if (document.pointerLockElement) document.exitPointerLock();
+  if (savedCamera) {
+    camera.position.copy(savedCamera.position);
+    controls.target.copy(savedCamera.target);
+    controls.maxPolarAngle = savedCamera.maxPolarAngle;
+  }
+  controls.enabled = true;
+  document.body.classList.remove('pov-active');
+  activeView = 'iso';
+  setActiveUI('iso');
+}
+
+// Handle pointer lock loss (e.g. user presses Escape via browser).
+document.addEventListener('pointerlockchange', () => {
+  if (!document.pointerLockElement && possessed) exitPOV();
+});
+
+// Mouse look while pointer-locked.
+document.addEventListener('mousemove', e => {
+  if (!possessed) return;
+  povYaw   -= e.movementX * 0.002;
+  povPitch -= e.movementY * 0.002;
+  povPitch  = Math.max(-Math.PI * 0.47, Math.min(Math.PI * 0.47, povPitch));
+});
+
+// Menu "POV" button.
+creatureMenu.addEventListener('click', e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  if (btn.dataset.action === 'pov' && menuAgent && !menuAgent.st.dead) {
+    enterPOV(menuAgent);
+  }
+  hideCreatureMenu();
+});
+
+/* Per-frame POV update — called from animate(). Drives the possessed
+ * creature with WASD and positions the camera at its eye level. */
+function povTick(dt) {
+  if (!possessed) return;
+  if (possessed.st.dead) { exitPOV(); return; }
+
+  const mesh = possessed.mesh;
+  const st = possessed.st;
+  const speed = getCreatureSpeed(st);
+  const eyeH = getCreatureEyeHeight(st);
+
+  // Movement from WASD relative to yaw.
+  const fwd = new THREE.Vector3(-Math.sin(povYaw), 0, -Math.cos(povYaw));
+  const right = new THREE.Vector3(-Math.cos(povYaw), 0, Math.sin(povYaw));
+  const move = new THREE.Vector3();
+  if (povKeys.w) move.add(fwd);
+  if (povKeys.s) move.sub(fwd);
+  if (povKeys.d) move.add(right);
+  if (povKeys.a) move.sub(right);
+  if (move.lengthSq() > 0) move.normalize().multiplyScalar(speed * dt);
+
+  // Apply movement, constrain to bounds.
+  let nx = Math.max(-agentBoundX, Math.min(agentBoundX, mesh.position.x + move.x));
+  let nz = Math.max(-agentBoundZ, Math.min(agentBoundZ, mesh.position.z + move.z));
+  let ny;
+
+  const isFish = st.species === 'fish' || SPECIES[st.species]?.list === fishes;
+  const isBirdFlying = (SPECIES[st.species]?.list === birds) && st.mode === 'fly';
+
+  if (isFish) {
+    // Stay submerged: cruise below water surface.
+    const depth = water.level - sampleHeight(nx, nz);
+    if (depth < FISH.height) { nx = mesh.position.x; nz = mesh.position.z; } // can't go there
+    ny = Math.max(sampleHeight(nx, nz) + FISH.height / 2, water.level - FISH.cruiseDraft);
+  } else if (isBirdFlying) {
+    // Maintain altitude, allow pitch to adjust height.
+    ny = mesh.position.y + move.y; // no vertical WASD yet, keep current
+    ny = Math.max(sampleHeight(nx, nz) + eyeH, ny);
+  } else {
+    // Ground creature (frog, walking bird, insect on ground).
+    ny = sampleHeight(nx, nz) + eyeH / 2;
+  }
+
+  mesh.position.set(nx, ny, nz);
+  mesh.rotation.y = povYaw;
+  st.heading = povYaw;
+
+  // Camera at eye level.
+  camera.position.set(nx, ny + eyeH / 2, nz);
+  const lookDir = new THREE.Vector3(
+    -Math.sin(povYaw) * Math.cos(povPitch),
+    Math.sin(povPitch),
+    -Math.cos(povYaw) * Math.cos(povPitch)
+  );
+  camera.lookAt(camera.position.clone().add(lookDir));
+}
 
 /* ============================================================
  * READOUT  +  RESIZE
@@ -3445,7 +3671,9 @@ function animate() {
   populationTick(simDt, dt); // log every 15 sim-s, live-redraw the chart
   vegVisualTick();           // GPU instance writes: once per frame, changed plants only
 
-  controls.update();
+  povTick(dt);               // POV possession: real-time dt, not sim-scaled
+
+  if (!possessed) controls.update();
   renderer.render(scene, camera);
 
   // FPS counter (updated ~once/sec)

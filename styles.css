@@ -235,6 +235,62 @@
   /* In-sim button to return to the setup menu */
   #new-world { /* inherits .panel button styling */ }
 
+  /* ---------- Creature context menu ---------- */
+  .creature-menu {
+    position: fixed;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    min-width: 100px;
+    padding: 4px;
+    background: var(--hud-bg);
+    border: 1px solid var(--hud-edge);
+    border-radius: 8px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-family: var(--mono);
+  }
+  .creature-menu.visible {
+    display: flex;
+  }
+  .creature-menu button {
+    appearance: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--hud-text);
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    cursor: pointer;
+    text-align: left;
+  }
+  .creature-menu button:hover {
+    color: var(--accent);
+    background: rgba(95,179,212,0.08);
+  }
+
+  /* ---------- POV mode ---------- */
+  body.pov-active .hud { display: none; }
+  body.pov-active .creature-menu { display: none; }
+  .pov-hint {
+    display: none;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    font-size: 12px;
+    background: var(--hud-bg);
+    border: 1px solid var(--hud-edge);
+    border-radius: 8px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
+  body.pov-active .pov-hint { display: block; }
+
   /* ---------- Small screens / touch ---------- */
   #setup .card { max-height: 92vh; overflow-y: auto; }
   @media (max-width: 760px), (max-height: 520px) {
