@@ -3736,9 +3736,9 @@ function povTick(dt) {
 
   if (isFish) {
     // Fish POV: mouse steers yaw + pitch, W is forward thrust, S does nothing.
-    const clampedPitch = Math.max(-FISH.pitchMax, Math.min(FISH.pitchMax, povPitch));
-    const cosPitch = Math.cos(clampedPitch);
-    const sinPitch = Math.sin(clampedPitch);
+    // Use full camera pitch (not clamped to pitchMax) for responsive control.
+    const cosPitch = Math.cos(povPitch);
+    const sinPitch = Math.sin(povPitch);
     const fwd = new THREE.Vector3(
       -Math.sin(povYaw) * cosPitch,
       sinPitch,
@@ -3758,7 +3758,7 @@ function povTick(dt) {
     const ceilY  = water.level - FISH.height / 2 - 0.1;
     ny = Math.max(floorY, Math.min(ceilY, ny));
 
-    st.pitch = clampedPitch;
+    st.pitch = povPitch;
     st.heading = povYaw;
     mesh.position.set(nx, ny, nz);
     orientFish(mesh, povYaw, st.pitch, dt);
