@@ -1383,7 +1383,8 @@ function swimTick(a, dt) {
   }
 
   // Grazing/hunting takes priority over breeding when the reserve is low.
-  // Fish eat submerged vegetation and hunt insects that are over the water.
+  // Fish eat submerged vegetation and hunt any flier (insects, beetles, ...)
+  // whose position is over the water — every species in the `birds` array.
   const graze = grazeControl(a, dt, {
     plant: plantInWater,
     prey: { lists: [birds], reach: pos => waterDepthAt(pos.x, pos.z) >= fishMinDepth },
@@ -2014,7 +2015,10 @@ function nearestCreature(x, z, maxR, lists, filter) {
  * insect ticks scavenge corpses from `fishes`/`frogs`). */
 function consumeAgent(a) {
   a.st.consumed = true;
-  const list = a.st.species === 'fish' ? fishes
+  // Remove from the agent's real array (works for built-ins and JSON species).
+  const reg = SPECIES[a.st.species];
+  const list = reg ? reg.list
+             : a.st.species === 'fish' ? fishes
              : a.st.species === 'frog' ? frogs : birds;
   const i = list.indexOf(a);
   if (i >= 0) list.splice(i, 1);
@@ -2374,7 +2378,8 @@ function frogLandTick(a, dt) {
   }
 
   // Grazing/hunting: hop toward food when hungry; stand still while feeding.
-  // Frogs eat land vegetation and snap up insects within reach on land/shallows.
+  // Frogs eat land vegetation and snap up any flier (insects, beetles, ...)
+  // within reach on land/shallows — every species in the `birds` array.
   const graze = grazeControl(a, dt, {
     plant: plantOnFrogLand,
     prey: { lists: [birds], reach: pos => waterDepthAt(pos.x, pos.z) <= FROG.maxWade },
@@ -2660,8 +2665,8 @@ function birdWalkTick(a, dt) {
     return;
   }
 
-  // Insects are scavengers: they feed only on dead fish and frogs (carrion),
-  // wandering/flying between corpses. They no longer graze vegetation.
+  // Fliers (insects, beetles, ...) are scavengers: they feed only on dead fish
+  // and frogs (carrion), wandering/flying between corpses, not on vegetation.
   const graze = grazeControl(a, dt, {
     carrion: { lists: [fishes, frogs] },
   });
