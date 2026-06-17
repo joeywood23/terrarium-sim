@@ -95,8 +95,8 @@ export const CONFIG = {
   },
   predation: {          // the food web: live prey + carrion scavenging
     searchRadius: 48,   // predators/scavengers look a bit farther than grazers
-    eatRange:     2.5,  // contact distance to seize prey / feed on a corpse
-    catchDuration: 2,   // seconds to catch & swallow a live insect (one gulp)
+    eatRange:     2.5,  // contact distance to feed on a corpse (carrion); live-prey
+                        // catch uses each predator's own cfg.contactRadius instead
     preyGain:     16,   // reserve from eating a whole live insect
     biteDuration: 2.5,  // seconds per scavenging bite on a corpse
     biteGain:     9,    // reserve per corpse bite

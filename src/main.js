@@ -2418,10 +2418,67 @@ function preyDietFor(species) {
   };
 }
 
-/* Unified forage controller. `diet` describes what this species eats:
+/* Per-predator catch tuning, read LIVE from the predator's species cfg (e.g.
+ * frog.json: contactRadius, winThreshold) so it's tunable per predator in the
+ * config editor. Custom species ride their archetype's cfg; anything missing the
+ * fields falls back to shared defaults. */
+function predCfg(species) {
+  if (species === 'fish') return FISH;
+  if (species === 'frog') return FROG;
+  if (FLIERS[species]) return FLIERS[species].cfg;
+  const list = SPECIES[species] && SPECIES[species].list;
+  return list === fishes ? FISH : list === frogs ? FROG : null;
+}
+function huntParams(species) {
+  const cfg = predCfg(species) || {};
+  return {
+    contactRadius: cfg.contactRadius != null ? cfg.contactRadius : PRED.eatRange,
+    winThreshold:  cfg.winThreshold  != null ? cfg.winThreshold  : 0.5,
+  };
+}
+
+/* Prey wins the coin-flip and bolts: an instant leap in a random direction that
+ * clears the predator's contact radius by >2x (so the same approach can't
+ * immediately re-roll). The prey's own tick reseats it onto terrain/water. */
+function preyEscape(prey, contactRadius) {
+  const p = prey.mesh.position;
+  const ang = Math.random() * Math.PI * 2;
+  const dist = contactRadius * 2 * (1.1 + Math.random() * 0.6); // strictly > 2x contact radius
+  p.x = Math.max(-agentBoundX, Math.min(agentBoundX, p.x + Math.cos(ang) * dist));
+  p.z = Math.max(-agentBoundZ, Math.min(agentBoundZ, p.z + Math.sin(ang) * dist));
+}
+
+/* Contact predation — the single, simple resolution for catching live prey,
+ * kept separate from grazing so dense vegetation can't mask it. Each tick: if a
+ * huntable prey (per the predator's DIETS row) sits within this predator's
+ * contactRadius, roll once. r > winThreshold kills it and feeds the predator
+ * (hunger capped); otherwise the prey escapes with a leap clear of the radius.
+ * contactRadius + winThreshold are per-predator (species cfg, see huntParams).
+ * Returns true on a kill. */
+function predationContactStep(a) {
+  const st = a.st;
+  const diet = preyDietFor(st.species);
+  if (!diet) return false;
+  const hp = huntParams(st.species);
+  const p = a.mesh.position;
+  const prey = nearestCreature(p.x, p.z, hp.contactRadius, diet.lists,
+    c => !c.st.dead && !c.st.consumed && diet.reach(c.mesh.position)
+         && (!diet.eats || diet.eats(c)));
+  if (!prey) return false;
+  if (Math.random() > hp.winThreshold) {           // win → kill + feed
+    st.hunger = Math.min(st.maxHunger, (st.hunger || 0) + PRED.preyGain);
+    feedGrowth(st, PRED.preyGain);
+    consumeAgent(prey);
+    return true;
+  }
+  preyEscape(prey, hp.contactRadius);              // loss → prey bolts away
+  return false;
+}
+
+/* Unified forage controller. `diet` describes what this species GRAZES/scavenges:
  *   { plant: predicate,                         // grazeable plants (reach test)
- *     prey:    { lists, reach },                 // live creatures it hunts+kills
  *     carrion: { lists } }                       // corpses it scavenges
+ * (Live prey is handled separately by predationContactStep, above.)
  * Returns 'none' | 'move' | 'eat' and drives st.grazeHeading exactly as before,
  * so the species ticks need no changes. The current target is polymorphic
  * (st.forage = { type, ref }); it's re-acquired as the nearest edible thing of
@@ -2472,25 +2529,13 @@ function grazeControl(a, dt, diet) {
         if (d < candD) { cand = pl; candType = 'plant'; candD = d; }
       }
     }
-    if ((diet.prey || diet.carrion) && st.forageRetry <= 0) {
-      if (diet.prey) {
-        const pr = nearestCreature(p.x, p.z, PRED.searchRadius, diet.prey.lists,
-          c => !c.st.dead && !c.st.consumed && diet.prey.reach(c.mesh.position)
-               && (!diet.prey.eats || diet.prey.eats(c))); // species filter: only named prey
-        if (pr) {
-          let d = (pr.mesh.position.x-p.x)**2 + (pr.mesh.position.z-p.z)**2;
-          if (diet.use3D) d += (pr.mesh.position.y - p.y) ** 2;
-          if (d < candD) { cand = pr; candType = 'prey'; candD = d; }
-        }
-      }
-      if (diet.carrion) {
-        const ca = nearestCreature(p.x, p.z, PRED.searchRadius, diet.carrion.lists,
-          c => c.st.dead && !c.st.consumed && c.st.meat > 0);
-        if (ca) {
-          let d = (ca.mesh.position.x-p.x)**2 + (ca.mesh.position.z-p.z)**2;
-          if (diet.use3D) d += (ca.mesh.position.y - p.y) ** 2;
-          if (d < candD) { cand = ca; candType = 'carrion'; candD = d; }
-        }
+    if (diet.carrion && st.forageRetry <= 0) {
+      const ca = nearestCreature(p.x, p.z, PRED.searchRadius, diet.carrion.lists,
+        c => c.st.dead && !c.st.consumed && c.st.meat > 0);
+      if (ca) {
+        let d = (ca.mesh.position.x-p.x)**2 + (ca.mesh.position.z-p.z)**2;
+        if (diet.use3D) d += (ca.mesh.position.y - p.y) ** 2;
+        if (d < candD) { cand = ca; candType = 'carrion'; candD = d; }
       }
       if (!cand) st.forageRetry = PRED.retryDelay; // nothing found: back off the scan
     }
@@ -2518,13 +2563,6 @@ function grazeControl(a, dt, diet) {
         st.forage = null; st.eatTimer = 0;
         vegMesh.instanceMatrix.needsUpdate = true;
         if (vegMesh.instanceColor) vegMesh.instanceColor.needsUpdate = true;
-      }
-    } else if (f.type === 'prey') {
-      if (st.eatTimer >= PRED.catchDuration) { // caught & swallowed whole
-        st.hunger = Math.min(st.maxHunger, st.hunger + PRED.preyGain);
-        feedGrowth(st, PRED.preyGain);
-        consumeAgent(f.ref);
-        st.forage = null; st.eatTimer = 0;
       }
     } else { // carrion: bite, draining the corpse's meat; remove when stripped
       if (st.eatTimer >= PRED.biteDuration) {
@@ -2662,14 +2700,12 @@ function frogLandTick(a, dt) {
     return;
   }
 
-  // Feeding & hunger stay with the shared forager: frogs eat land vegetation and
-  // snap up their named prey (see DIETS — the frog hunts beetles) within reach on
-  // land/shallows. It still owns eat-on-contact and the energy economy; the
-  // predator state machine below governs only HOW the frog moves between meals.
-  const graze = grazeControl(a, dt, {
-    plant: plantOnFrogLand,
-    prey: preyDietFor(st.species),
-  });
+  // Grazing & hunger: frogs eat land vegetation through the shared forager (this
+  // owns plant eat-on-contact and the energy economy). Catching live prey is
+  // handled separately by predationContactStep — a contact coin-flip that doesn't
+  // compete with grazing — so dense plants can't crowd the beetle out of the scan.
+  const graze = grazeControl(a, dt, { plant: plantOnFrogLand });
+  predationContactStep(a); // see DIETS — the frog hunts beetles
 
   // Predator state machine: resting | exploring | hunting (switches at random,
   // dwelling ~PREDATOR.meanStateTime game-seconds, normally distributed).

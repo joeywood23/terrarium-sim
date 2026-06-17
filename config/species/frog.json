@@ -1,5 +1,5 @@
 {
-  "_comment": "Built-in terrestrial creature. Defines the TERRESTRIAL archetype base: other terrestrial species ride this cfg/breeding. Visuals/model are built-in. cfg = hitbox + hop/wade physics; breeding overrides the shared breeding._default in world.js. (Predator state-machine + diet tuning live in world.js predator block / the DIETS table.)",
+  "_comment": "Built-in terrestrial creature. Defines the TERRESTRIAL archetype base: other terrestrial species ride this cfg/breeding. Visuals/model are built-in. cfg = hitbox + hop/wade physics; breeding overrides the shared breeding._default in world.js. (Predator state-machine + diet tuning live in world.js predator block / the DIETS table.) Predation is a coin-flip on contact: when within cfg.contactRadius of prey, roll [0,1) — a roll > winThreshold kills the prey (predator feeds), otherwise the prey escapes.",
   "id": "frog",
   "name": "Frog",
   "behavior": "terrestrial",
@@ -14,7 +14,9 @@
     "hopWaitMax": 2.2,
     "maxWade": 0.6,
     "paddleSpeed": 4,
-    "gravity": 25
+    "gravity": 25,
+    "contactRadius": 2.5,
+    "winThreshold": 0.25
   },
   "breeding": {
     "mtbLayEgg": 32,
