@@ -16,7 +16,7 @@
     "paddleSpeed": 4,
     "gravity": 25,
     "contactRadius": 2.5,
-    "winThreshold": 0.25
+    "winThreshold": 0.9
   },
   "breeding": {
     "mtbLayEgg": 32,

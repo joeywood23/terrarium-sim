@@ -2459,6 +2459,9 @@ function predationContactStep(a) {
   const st = a.st;
   const diet = preyDietFor(st.species);
   if (!diet) return false;
+  // Only strike when hungry enough — reserve at/below the forage threshold
+  // (i.e. >50% hungry). A well-fed predator ignores prey it touches.
+  if (!st.maxHunger || st.hunger > GRAZE.threshold * st.maxHunger) return false;
   const hp = huntParams(st.species);
   const p = a.mesh.position;
   const prey = nearestCreature(p.x, p.z, hp.contactRadius, diet.lists,
