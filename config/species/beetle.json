@@ -1,5 +1,5 @@
 {
-  "_comment": "Aerial creature. Flight is fully tunable via cfg. model.parts is a declarative primitive model (shape/pos/rot/scale/color).",
+  "_comment": "Aerial creature. Flight is fully tunable via cfg. model.parts is a declarative primitive model (shape/pos/rot/scale/color). Deliberately sluggish so frogs can catch it: 10x slower walk than the bird base (3.5 -> 0.35) and takes flight 10x less often (walk/swim flight waits x10).",
   "id": "beetle",
   "name": "Beetle",
   "behavior": "aerial",
@@ -9,7 +9,12 @@
     "length": 1.3,
     "width": 1.1,
     "height": 0.8,
-    "altMin": 2
+    "altMin": 2,
+    "walkSpeed": 0.35,
+    "walkFlightMin": 60,
+    "walkFlightMax": 160,
+    "swimFlightMin": 40,
+    "swimFlightMax": 100
   },
   "model": {
     "parts": [

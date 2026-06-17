@@ -2303,6 +2303,59 @@ function vegVisualTick() {
  * ============================================================ */
 const GRAZE = CONFIG.grazing;
 const PRED = CONFIG.predation;
+const PREDATOR = CONFIG.predator;
+
+/* ── Predator state machine ────────────────────────────────────────────────
+ * A predator cycles through three behaviour states at random:
+ *   resting   — sit still
+ *   exploring — hop off in a random direction
+ *   hunting   — path-seek the nearest prey (see seekNearestPrey) and close on it
+ * It dwells in each state for a normally distributed span of game-seconds
+ * (mean PREDATOR.meanStateTime), then switches to one of the OTHER two. State
+ * lives on st.predState / st.predStateTimer and is lazily seeded on first tick,
+ * so it covers built-in frogs and JSON terrestrial predators alike. */
+const PRED_STATES = ['resting', 'exploring', 'hunting'];
+
+// Standard normal via Box–Muller, scaled to (mean, std).
+function gaussian(mean, std) {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return mean + std * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+const rollStateDuration = () =>
+  Math.max(PREDATOR.minStateTime, gaussian(PREDATOR.meanStateTime, PREDATOR.stateTimeStd));
+function nextPredatorState(cur) {
+  let s; do { s = PRED_STATES[(Math.random() * PRED_STATES.length) | 0]; } while (s === cur);
+  return s;
+}
+function predatorStateStep(st, dt) {
+  if (st.predState == null) {                       // lazy seed: random start state
+    st.predState = PRED_STATES[(Math.random() * PRED_STATES.length) | 0];
+    st.predStateTimer = rollStateDuration();
+  }
+  st.predStateTimer -= dt;
+  if (st.predStateTimer <= 0) {
+    st.predState = nextPredatorState(st.predState);
+    st.predStateTimer = rollStateDuration();
+  }
+}
+
+/* Path seeking: the nearest live prey of this predator's diet within `radius`.
+ * Returns { ref, heading, dist } (heading is the planar bearing to it), or null
+ * when nothing edible is in range. Pure query — callers decide what to do. */
+function seekNearestPrey(a, radius) {
+  const diet = preyDietFor(a.st.species);
+  if (!diet) return null;
+  const p = a.mesh.position;
+  const pr = nearestCreature(p.x, p.z, radius, diet.lists,
+    c => !c.st.dead && !c.st.consumed && diet.reach(c.mesh.position)
+         && (!diet.eats || diet.eats(c)));
+  if (!pr) return null;
+  const tp = pr.mesh.position;
+  return { ref: pr, heading: Math.atan2(tp.z - p.z, tp.x - p.x),
+           dist: Math.hypot(tp.x - p.x, tp.z - p.z) };
+}
 
 /* ── Per-species diet table ────────────────────────────────────────────────
  * Who hunts whom, keyed by PREDATOR species id. Hardcoded for now; the shape
@@ -2521,9 +2574,9 @@ function spawnFrogRandom() {
 
 /* One hop: wander-drift the heading, but reject hops whose landing
  * zone is deep water or out of bounds. */
-function frogHop(a) {
+function frogHop(a, jitter = 1.4) {
   const p = a.mesh.position, st = a.st;
-  let h = st.heading + (Math.random() - 0.5) * 1.4;
+  let h = st.heading + (Math.random() - 0.5) * jitter;
   const landingOk = (ang) => frogValidLanding(p.x + Math.cos(ang) * 3, p.z + Math.sin(ang) * 3);
   if (!landingOk(h)) {
     const offsets = [0.6, -0.6, 1.2, -1.2, 1.9, -1.9, 2.6, -2.6, Math.PI];
@@ -2576,21 +2629,36 @@ function frogLandTick(a, dt) {
     return;
   }
 
-  // Grazing/hunting: hop toward food when hungry; stand still while feeding.
-  // Frogs eat land vegetation and snap up their named prey (see DIETS — the
-  // frog hunts beetles) within reach on land/shallows. Driven by st.species,
-  // so a terrestrial species with its own DIETS row hunts its own prey.
+  // Feeding & hunger stay with the shared forager: frogs eat land vegetation and
+  // snap up their named prey (see DIETS — the frog hunts beetles) within reach on
+  // land/shallows. It still owns eat-on-contact and the energy economy; the
+  // predator state machine below governs only HOW the frog moves between meals.
   const graze = grazeControl(a, dt, {
     plant: plantOnFrogLand,
     prey: preyDietFor(st.species),
   });
 
-  // Grounded: idle, then hop (unless standing to feed).
+  // Predator state machine: resting | exploring | hunting (switches at random,
+  // dwelling ~PREDATOR.meanStateTime game-seconds, normally distributed).
+  predatorStateStep(st, dt);
+
+  // Path seeking (every tick): find the nearest prey within huntRadius and point
+  // at it. Resting/hunting frogs face the prey; only a hunting frog advances on it.
+  const prey = seekNearestPrey(a, PREDATOR.huntRadius);
+  if (prey && st.predState !== 'exploring') st.heading = prey.heading;
+
+  // Grounded: idle, then hop (unless standing to feed). The state picks the hop.
   if (st.grounded && graze !== 'eat') {
     st.hopTimer -= dt;
     if (st.hopTimer <= 0) {
-      if (graze === 'move') st.heading = st.grazeHeading; // aim the hop at the plant
-      frogHop(a);
+      if (st.predState === 'hunting') {
+        if (prey) { st.heading = prey.heading; frogHop(a, 0.3); } // close on the prey
+        else frogHop(a);                                          // none seen: prowl
+      } else if (st.predState === 'exploring') {
+        frogHop(a);                                               // wander at random
+      } else {
+        st.hopTimer = FROG.hopWaitMin;                            // resting: sit still
+      }
     }
   }
   if (graze === 'eat' && st.grounded) {

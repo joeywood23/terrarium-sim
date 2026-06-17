@@ -4,26 +4,18 @@
  * Edit values here; comments explain each. Imported by src/main.js.
  * ============================================================ */
 export const CONFIG = {
-  platform: {
-    width:  480,  // X extent  (chunked terrain makes larger maps affordable)
-    depth:  320,  // Z extent
-    height: 1.2,  // Y thickness of the slab
-  },
-  grid: {
-    enabled: true,
-    divisions: 4, // cells per world unit-ish; computed against platform below
+  streaming: {
+    chunkSize: 32,      // world units per chunk side (and heightfield cells)
+    loadRadius: 5,      // chunk ring radius to keep loaded around camera
+    activeRadius: 3,    // inner ring where creatures tick
+    genPerFrame: 2,     // max new chunks generated per frame (amortize cost)
   },
   terrain: {
-    segX: 480,      // heightfield resolution along X (1-unit cells)
-    segZ: 320,      // heightfield resolution along Z
-    chunk: 32,      // cells per render-chunk side; brush edits rebuild only touched chunks
-    featureFreq: 3.12 / 240, // worldgen noise frequency in absolute world units, so a
-                             // bigger map gets MORE hills/coves, not scaled-up ones
-    brushSpeed: 5,  // world units / sec at full strength, brush centre
-  },
-  fence: {
-    thickness: 1,      // wall thickness, world units
-    waterFactor: 1.05, // wall top = water level x this, to retain the fill
+    featureFreq: 3.12 / 240, // detail noise frequency in absolute world units
+    islandFreq:  0.006,       // large-scale noise for island/ocean basins
+    islandThreshold: 0.08,    // noise > this = land; below = ocean floor
+    oceanDepth: 4,            // depth of ocean floor below datum
+    brushSpeed: 5,            // world units / sec at full strength, brush centre
   },
   fish: {
     length: 2.6,       // hitbox X (local), world units
@@ -60,7 +52,7 @@ export const CONFIG = {
       useEggZone:      false,// route to the painted egg zone before laying
       seekTimeout:     20,   // give up routing to the zone after this long
     },
-    fish:    { mtbLayEgg: 25, fertRadius: 3, useEggZone: true },
+    fish:    { mtbLayEgg: 25, fertRadius: 3, useEggZone: false },
     frog:    { mtbLayEgg: 32, fertRadius: 3 },
     insect:  { mtbLayEgg: 14, fertRadius: 2, growthFood: 14, juvenileScale: 0.5 },
   },
@@ -83,8 +75,8 @@ export const CONFIG = {
     seedSpacing:  1.3,   // a landing within this of an existing plant counts as "occupied"
     seedMaxDepth: 0.4,   // seeds only take on land / waterline (max water depth to germinate)
   },
-  vegGen: {              // procedural vegetation layer, regenerated with the island
-    attempts:    45000,  // dart throws over the map; each accepted by local density
+  vegGen: {              // procedural vegetation layer, per-chunk generation
+    attemptsPerChunk: 200, // dart throws per chunk; each accepted by local density
     coastBand:   6,      // world units from the waterline where density stays at peak
     inlandReach: 60,     // shore distance at which land density has faded to the floor
     deepReach:   10,     // distance into water where aquatic plants stop (fish food)
@@ -119,6 +111,12 @@ export const CONFIG = {
     biteGain:     9,    // reserve per corpse bite
     corpseMeat:   28,   // total scavengeable "meat" a fresh corpse holds
     retryDelay:   0.6,  // wait after a failed prey search before scanning again
+  },
+  predator: {           // predator behaviour state machine (resting | exploring | hunting)
+    meanStateTime: 60,  // average game-seconds spent in a state before switching
+    stateTimeStd:  18,  // std dev of the (normally distributed) per-state dwell time
+    minStateTime:  6,   // floor so a small/negative normal sample can't thrash states
+    huntRadius:    40,  // prey-search radius (n units) for the hunting path-seek
   },
   death: {
     starveTime: 60,   // seconds at 0 reserve before death
@@ -163,8 +161,6 @@ export const CONFIG = {
     fov: 45,
     near: 0.1,
     far: 2000,
-    // distance multiplier applied to the platform's bounding radius for snap views
-    fit: 1.9,
   },
   tween: { duration: 650 }, // ms for view-snap transitions
 };
