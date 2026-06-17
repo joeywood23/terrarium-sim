@@ -133,6 +133,57 @@
   }
   .panel select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
+  /* Live config editor (top-right, left of the terrain panel) */
+  .config-panel { right: 244px; top: 16px; width: 250px; }
+  .config-panel .panel-body { max-height: 64vh; overflow-y: auto; overflow-x: hidden; }
+  .config-panel select { width: 100%; }
+  .config-note {
+    color: var(--hud-dim); font-size: 9px; line-height: 1.5;
+    margin: 8px 0 4px; letter-spacing: 0.02em;
+  }
+  .config-status {
+    color: var(--accent); font-size: 9px; min-height: 12px;
+    margin-top: 8px; letter-spacing: 0.02em; word-break: break-word;
+  }
+  /* Collapsible section per top-level config key */
+  .cfg-sec { margin-top: 8px; border-top: 1px solid var(--hud-edge); padding-top: 6px; }
+  .cfg-sec-h {
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--hud-text); font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.1em; cursor: pointer; padding: 2px 0;
+  }
+  .cfg-sec-h::after { content: '▾'; color: var(--hud-dim); font-size: 9px; }
+  .cfg-sec.collapsed > .cfg-sec-h::after { content: '▸'; }
+  .cfg-sec.collapsed > .cfg-sec-body { display: none; }
+  .cfg-sec-body { padding-left: 6px; }
+  /* Leaf row: label + editor */
+  .cfg-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 5px; color: var(--hud-dim); font-size: 10px;
+  }
+  .cfg-row > span {
+    flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; letter-spacing: 0.03em;
+  }
+  .cfg-in {
+    flex: 0 0 84px;
+    font-family: var(--mono); font-size: 10px; color: var(--hud-text);
+    background: #1a212a; border: 1px solid var(--hud-edge);
+    border-radius: 5px; padding: 4px 6px;
+  }
+  .cfg-in[type=checkbox] { flex-basis: auto; width: 15px; height: 15px; accent-color: var(--accent); }
+  .cfg-in[type=color] { flex-basis: 40px; padding: 0; height: 22px; cursor: pointer; }
+  .cfg-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+  .cfg-json {
+    width: 100%; height: 280px; resize: vertical; margin-top: 8px;
+    font-family: var(--mono); font-size: 10px; line-height: 1.45;
+    color: var(--hud-text); background: #1a212a;
+    border: 1px solid var(--hud-edge); border-radius: 6px; padding: 8px;
+    white-space: pre; overflow: auto;
+  }
+  .cfg-json:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+  .config-panel .btn-row { margin-top: 8px; }
+
   /* Population chart (top-left, below the readout) */
   .chart-panel {
     left: 16px; top: 212px;

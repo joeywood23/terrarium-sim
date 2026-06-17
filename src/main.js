@@ -2785,6 +2785,8 @@ function spawnArchetypeTerrestrial(def, x, z, opts = {}) {
   updateCreatureReadout();
 }
 
+const RAW_SPECIES = []; // [{ file, def }] — populated by loadCustomSpecies for the config editor
+
 async function loadCustomSpecies() {
   // Species are individual JSON files listed in config/species/manifest.json.
   let files = [];
@@ -2794,7 +2796,11 @@ async function loadCustomSpecies() {
   } catch (e) { console.warn('species manifest load failed —', e.message); return; }
   const defs = [];
   for (const f of files) {
-    try { defs.push(await (await fetch('config/species/' + f)).json()); }
+    try {
+      const def = await (await fetch('config/species/' + f)).json();
+      defs.push(def);
+      RAW_SPECIES.push({ file: f, def }); // keep the raw JSON for the live config editor
+    }
     catch (e) { console.warn('species file "' + f + '" failed to load —', e.message); }
   }
   const select = document.getElementById('creature-select');
@@ -3607,7 +3613,7 @@ document.addEventListener('click', e => {
 /* Draggable HUD panels — drag by title bars (.drag-handle) or any
  * non-interactive area. On first drag, pins the panel to left/top
  * and clears right/bottom so it can be freely positioned. */
-const DRAGGABLE_IDS = ['readout', 'terrain-panel', 'chart-panel', 'views', 'hint'];
+const DRAGGABLE_IDS = ['readout', 'terrain-panel', 'chart-panel', 'views', 'hint', 'config-panel'];
 {
   let dragEl = null, dragOffX = 0, dragOffY = 0;
 
@@ -4082,9 +4088,210 @@ function populatePlantPicker() {
 
 // Species/config files load asynchronously (served over http), so boot once
 // they're in. Built-ins still work even if custom species fail to load.
+/* ============================================================
+ * LIVE CONFIG EDITOR
+ *
+ * An expandable HUD panel that exposes world.js (CONFIG) and every
+ * config/species/*.json for live tweaking — no edit/push/redeploy loop.
+ *
+ *  - World knobs mutate CONFIG in place. Because the engine reads most
+ *    tuning by reference each tick (FROG = CONFIG.frog, PRED, etc.),
+ *    these take effect immediately. Structural knobs (platform / grid /
+ *    terrain size / fence / camera) are baked into geometry at startup,
+ *    so they only re-apply after "New world…".
+ *  - Species edits re-apply numeric cfg/breeding to the engine's live
+ *    objects (FLIERS[id].cfg is shared by reference with spawned fliers,
+ *    so flight/walk changes hit existing creatures too). Color, model and
+ *    hitbox are built at load and need a reload to change.
+ *  - "Copy" yields text you can paste back into the real file to persist;
+ *    nothing here writes to disk (it's a static site).
+ * ============================================================ */
+const CONFIG_STRUCTURAL = new Set(['platform', 'grid', 'terrain', 'fence', 'camera']);
+let CONFIG_BASELINE = null; // deep snapshot for the World "Reset" button
+
+function deepAssign(target, src) {
+  for (const k of Object.keys(src)) {
+    const sv = src[k];
+    if (sv && typeof sv === 'object' && !Array.isArray(sv)
+        && target[k] && typeof target[k] === 'object' && !Array.isArray(target[k])) {
+      deepAssign(target[k], sv);
+    } else {
+      target[k] = Array.isArray(sv) ? sv.slice() : sv;
+    }
+  }
+}
+
+function setConfigStatus(msg) {
+  const el = document.getElementById('config-status');
+  if (el) el.textContent = msg || '';
+}
+
+async function copyToClipboard(text, okMsg) {
+  try { await navigator.clipboard.writeText(text); setConfigStatus(okMsg || 'Copied to clipboard.'); }
+  catch { setConfigStatus('Copy failed — select the text and copy manually.'); }
+}
+
+// One editable row for a primitive leaf; mutates obj[key] live on input.
+function configLeafRow(obj, key) {
+  const v = obj[key];
+  const row = document.createElement('label');
+  row.className = 'cfg-row';
+  const name = document.createElement('span');
+  name.textContent = key;
+  name.title = key;
+  row.appendChild(name);
+
+  const input = document.createElement('input');
+  input.className = 'cfg-in';
+  if (typeof v === 'boolean') {
+    input.type = 'checkbox';
+    input.checked = v;
+    input.addEventListener('change', () => { obj[key] = input.checked; });
+  } else if (typeof v === 'number' && /colou?r/i.test(key)) {
+    input.type = 'color';
+    input.value = '#' + (v & 0xffffff).toString(16).padStart(6, '0');
+    input.addEventListener('input', () => { obj[key] = parseInt(input.value.slice(1), 16); });
+  } else if (typeof v === 'number') {
+    input.type = 'number';
+    input.step = 'any';
+    input.value = String(v);
+    input.addEventListener('input', () => {
+      const n = parseFloat(input.value);
+      if (Number.isFinite(n)) obj[key] = n;
+    });
+  } else {
+    input.type = 'text';
+    input.value = v == null ? '' : String(v);
+    input.addEventListener('change', () => { obj[key] = input.value; });
+  }
+  row.appendChild(input);
+  return row;
+}
+
+// Recursively render a plain object into collapsible sections + leaf rows.
+function renderConfigObject(obj, container, structuralHint = false) {
+  for (const key of Object.keys(obj)) {
+    const val = obj[key];
+    if (val && typeof val === 'object' && !Array.isArray(val)) {
+      const sec = document.createElement('div');
+      sec.className = 'cfg-sec';
+      const head = document.createElement('div');
+      head.className = 'cfg-sec-h';
+      head.textContent = structuralHint && CONFIG_STRUCTURAL.has(key) ? key + ' (New world)' : key;
+      const body = document.createElement('div');
+      body.className = 'cfg-sec-body';
+      head.addEventListener('click', () => sec.classList.toggle('collapsed'));
+      sec.append(head, body);
+      sec.classList.add('collapsed'); // start folded; the panel can get tall
+      container.appendChild(sec);
+      renderConfigObject(val, body);
+    } else if (typeof val !== 'object') {
+      container.appendChild(configLeafRow(obj, key));
+    }
+  }
+}
+
+function renderWorldEditor(body, note) {
+  note.textContent = 'world.js — most knobs apply live. Structural groups (platform, grid, '
+    + 'terrain, fence, camera) take effect after New world…';
+  renderConfigObject(CONFIG, body, true);
+  const tools = document.createElement('div');
+  tools.className = 'btn-row';
+  const reset = document.createElement('button');
+  reset.textContent = 'Reset';
+  reset.title = 'Restore the values this session started with';
+  reset.addEventListener('click', () => {
+    if (CONFIG_BASELINE) deepAssign(CONFIG, CONFIG_BASELINE);
+    renderConfigTarget('world'); // rebuild inputs to show restored values
+    setConfigStatus('Reset to session start.');
+  });
+  const copy = document.createElement('button');
+  copy.textContent = 'Copy JSON';
+  copy.title = 'Copy the full CONFIG as JSON to paste back into world.js';
+  copy.addEventListener('click', () => copyToClipboard(JSON.stringify(CONFIG, null, 2), 'CONFIG copied as JSON.'));
+  tools.append(reset, copy);
+  body.appendChild(tools);
+}
+
+function renderSpeciesEditor(body, note, entry) {
+  note.textContent = entry.file + ' — edit JSON, then Apply. Numeric cfg/breeding apply live; '
+    + 'color/model/hitbox need a reload.';
+  const ta = document.createElement('textarea');
+  ta.className = 'cfg-json';
+  ta.spellcheck = false;
+  ta.value = JSON.stringify(entry.def, null, 2);
+  body.appendChild(ta);
+
+  const tools = document.createElement('div');
+  tools.className = 'btn-row';
+  const apply = document.createElement('button');
+  apply.textContent = 'Apply live';
+  apply.addEventListener('click', () => {
+    let parsed;
+    try { parsed = JSON.parse(ta.value); }
+    catch (e) { setConfigStatus('JSON error: ' + e.message); return; }
+    entry.def = parsed;
+    const id = parsed.id;
+    // Only aerial species own a dedicated cfg/breeding object (FLIERS[id].cfg is
+    // shared by reference with their spawned fliers). Aquatic/terrestrial species
+    // ride the shared archetype breeding (BREED_F / BREEDING.frog) — mutating that
+    // would hit every species on the archetype, so we don't live-apply it; tune
+    // the archetype itself under World > fish/frog instead.
+    const isAerial = id && FLIERS[id];
+    let touched = [];
+    if (isAerial && parsed.cfg) { deepAssign(FLIERS[id].cfg, parsed.cfg); touched.push('cfg'); }
+    if (isAerial && parsed.breeding && BREEDING[id]) { deepAssign(BREEDING[id], parsed.breeding); touched.push('breeding'); }
+    setConfigStatus(touched.length
+      ? 'Applied ' + touched.join(' + ') + ' live. Color/model/hitbox need a reload.'
+      : (isAerial ? 'Saved. Color/model/hitbox need a reload.'
+                  : 'Saved for copy. ' + (id || 'this species') + ' rides the shared archetype — '
+                    + 'tune it under World, or reload to apply structural fields.'));
+  });
+  const copy = document.createElement('button');
+  copy.textContent = 'Copy JSON';
+  copy.addEventListener('click', () => copyToClipboard(ta.value, entry.file + ' copied.'));
+  tools.append(apply, copy);
+  body.appendChild(tools);
+}
+
+function renderConfigTarget(target) {
+  const body = document.getElementById('config-body');
+  const note = document.getElementById('config-note');
+  if (!body || !note) return;
+  body.innerHTML = '';
+  setConfigStatus('');
+  if (target === 'world') {
+    renderWorldEditor(body, note);
+  } else {
+    const entry = RAW_SPECIES.find(e => e.file === target);
+    if (entry) renderSpeciesEditor(body, note, entry);
+  }
+}
+
+function initConfigEditor() {
+  const select = document.getElementById('config-target');
+  if (!select) return;
+  CONFIG_BASELINE = (typeof structuredClone === 'function')
+    ? structuredClone(CONFIG)
+    : JSON.parse(JSON.stringify(CONFIG));
+  const worldOpt = document.createElement('option');
+  worldOpt.value = 'world';
+  worldOpt.textContent = 'World (world.js)';
+  select.appendChild(worldOpt);
+  for (const entry of RAW_SPECIES) {
+    const o = document.createElement('option');
+    o.value = entry.file;
+    o.textContent = (entry.def && (entry.def.name || entry.def.id)) || entry.file;
+    select.appendChild(o);
+  }
+  select.addEventListener('change', () => renderConfigTarget(select.value));
+  renderConfigTarget('world');
+}
+
 async function boot() {
   await loadCustomSpecies();   // fetch + register any JSON-defined species
   populatePlantPicker();
+  initConfigEditor();          // wire up the live config panel (needs RAW_SPECIES)
   if (SETUP.go) {
     setupEl.classList.add('hidden');
     startSimulation();
