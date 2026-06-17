@@ -2304,6 +2304,34 @@ function vegVisualTick() {
 const GRAZE = CONFIG.grazing;
 const PRED = CONFIG.predation;
 
+/* ── Per-species diet table ────────────────────────────────────────────────
+ * Who hunts whom, keyed by PREDATOR species id. Hardcoded for now; the shape
+ * (a plain record per predator) is deliberately extensible — add a row per new
+ * predator today, or later populate it from the species JSON. `hunts` is the
+ * set of PREY species ids this predator will pursue, layered as a species
+ * filter on top of the array scan, so we stop treating "every flier in `birds`"
+ * as edible and instead target named prey. `reach(pos)` is the positional
+ * catchability test (e.g. prey must be over water the predator can reach). */
+const DIETS = {
+  frog: {
+    hunts: ['beetle'],
+    reach: pos => waterDepthAt(pos.x, pos.z) <= FROG.maxWade, // catchable on land/shallows
+  },
+};
+
+/* Build the `prey` sub-diet grazeControl expects from a predator's DIETS row.
+ * Returns null when the species has no hunting behavior (it'll just graze). */
+function preyDietFor(species) {
+  const d = DIETS[species];
+  if (!d || !d.hunts || !d.hunts.length) return null;
+  const hunts = new Set(d.hunts);
+  return {
+    lists: [birds],                          // candidate pool: all fliers...
+    reach: d.reach || (() => true),          // ...filtered by where they can be caught...
+    eats:  c => hunts.has(c.st.species),     // ...and by named prey species.
+  };
+}
+
 /* Unified forage controller. `diet` describes what this species eats:
  *   { plant: predicate,                         // grazeable plants (reach test)
  *     prey:    { lists, reach },                 // live creatures it hunts+kills
@@ -2361,7 +2389,8 @@ function grazeControl(a, dt, diet) {
     if ((diet.prey || diet.carrion) && st.forageRetry <= 0) {
       if (diet.prey) {
         const pr = nearestCreature(p.x, p.z, PRED.searchRadius, diet.prey.lists,
-          c => !c.st.dead && !c.st.consumed && diet.prey.reach(c.mesh.position));
+          c => !c.st.dead && !c.st.consumed && diet.prey.reach(c.mesh.position)
+               && (!diet.prey.eats || diet.prey.eats(c))); // species filter: only named prey
         if (pr) {
           let d = (pr.mesh.position.x-p.x)**2 + (pr.mesh.position.z-p.z)**2;
           if (diet.use3D) d += (pr.mesh.position.y - p.y) ** 2;
@@ -2548,11 +2577,12 @@ function frogLandTick(a, dt) {
   }
 
   // Grazing/hunting: hop toward food when hungry; stand still while feeding.
-  // Frogs eat land vegetation and snap up any flier (insects, beetles, ...)
-  // within reach on land/shallows — every species in the `birds` array.
+  // Frogs eat land vegetation and snap up their named prey (see DIETS — the
+  // frog hunts beetles) within reach on land/shallows. Driven by st.species,
+  // so a terrestrial species with its own DIETS row hunts its own prey.
   const graze = grazeControl(a, dt, {
     plant: plantOnFrogLand,
-    prey: { lists: [birds], reach: pos => waterDepthAt(pos.x, pos.z) <= FROG.maxWade },
+    prey: preyDietFor(st.species),
   });
 
   // Grounded: idle, then hop (unless standing to feed).
