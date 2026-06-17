@@ -1,0 +1,23 @@
+{
+  "_comment": "Built-in terrestrial creature. Defines the TERRESTRIAL archetype base: other terrestrial species ride this cfg/breeding. Visuals/model are built-in. cfg = hitbox + hop/wade physics; breeding overrides the shared breeding._default in world.js. (Predator state-machine + diet tuning live in world.js predator block / the DIETS table.)",
+  "id": "frog",
+  "name": "Frog",
+  "behavior": "terrestrial",
+  "chartColor": "#36d65a",
+  "cfg": {
+    "length": 1.6,
+    "width": 2.2,
+    "height": 0.9,
+    "hopHoriz": 5,
+    "hopVert": 5.5,
+    "hopWaitMin": 0.8,
+    "hopWaitMax": 2.2,
+    "maxWade": 0.6,
+    "paddleSpeed": 4,
+    "gravity": 25
+  },
+  "breeding": {
+    "mtbLayEgg": 32,
+    "fertRadius": 3
+  }
+}

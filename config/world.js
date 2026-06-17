@@ -1,7 +1,10 @@
 /* ============================================================
- * world.js — simulation tuning. All the dials for terrain, water,
- * creatures, breeding, vegetation, grazing, predation and the player.
- * Edit values here; comments explain each. Imported by src/main.js.
+ * world.js — WORLD + shared simulation tuning: the platform/grid/fence,
+ * terrain, camera, and cross-species mechanic DEFAULTS (hunger, grazing,
+ * predation, death, predator AI, the breeding base, vegetation growth/
+ * seeding). Per-creature and per-plant specifics now live in their own
+ * config/species/*.json files (cfg/breeding/appearance), which override
+ * these shared defaults at load. Imported by src/main.js.
  * ============================================================ */
 export const CONFIG = {
   platform: {
@@ -25,24 +28,9 @@ export const CONFIG = {
     thickness: 1,      // wall thickness, world units
     waterFactor: 1.05, // wall top = water level x this, to retain the fill
   },
-  fish: {
-    length: 2.6,       // hitbox X (local), world units
-    width:  0.9,       // hitbox Z
-    height: 0.5,       // hitbox Y
-    speed: 9,          // cruise speed, units/sec
-    yawNoise: 1.5,     // wander, radians/sec of random yaw drift
-    pitchNoise: 0.6,   // wander, radians/sec of random pitch drift
-    pitchMax: 0.7,     // max nose-up/down angle in radians (~40°)
-    steerRate: 3,      // radians/sec yaw/pitch correction toward a target
-    lookAhead: 7,      // obstacle probe distance
-    depthMargin: 0.25, // extra water depth required beyond hitbox height
-    surfaceMargin: 0.3,// how close to the surface fish cruise before pitching down
-    gravity: 25,       // fall acceleration when beached, units/s^2
-    flopHoriz: 6,      // horizontal flop impulse, units/s
-    flopVert: 6.5,     // vertical flop impulse, units/s
-  },
   breeding: {
-    // Shared defaults; each species below overrides only what differs.
+    // Shared breeding defaults. Per-species overrides live in each species' JSON
+    // (config/species/<id>.json "breeding"), merged onto these at load.
     _default: {
       mtbLayEgg:       30,   // mean seconds between layings
       layEggSpread:    0.5,  // +/- fraction of the mean for the random interval
@@ -60,9 +48,6 @@ export const CONFIG = {
       useEggZone:      false,// route to the painted egg zone before laying
       seekTimeout:     20,   // give up routing to the zone after this long
     },
-    fish:    { mtbLayEgg: 25, fertRadius: 3, useEggZone: true },
-    frog:    { mtbLayEgg: 32, fertRadius: 3 },
-    insect:  { mtbLayEgg: 14, fertRadius: 2, growthFood: 14, juvenileScale: 0.5 },
   },
   vegetation: {
     cap:          10000, // INITIAL plant buffer; grows on demand, no hard limit
@@ -71,8 +56,6 @@ export const CONFIG = {
     sprayAttempts: 14,   // placement tries per frame while painting
     spaceSparse:  5,     // min plant spacing at density 0
     spaceDense:   0.7,   // min plant spacing at density 1
-    colorYoung:   0x9bd66a, // light green (stripped/young)
-    colorOld:     0x214d16, // dark green (lush)
     maxFood:      10,    // grazings a full plant can sustain before dying
     foodRegrow:   0.05,  // food/sec from sunlight. Slider -0.05..0.1: positive
                          // regrows, 0 freezes food (finite), negative starves
@@ -130,40 +113,6 @@ export const CONFIG = {
     starveTime: 60,   // seconds at 0 reserve before death
     decayTime:  120,  // seconds for a corpse to fade from full to gone
     sinkRate:   2,    // how fast a corpse settles to the bottom, units/s blend
-  },
-  frog: {
-    length: 1.6,       // hitbox X (local) — shorter than it is wide
-    width:  2.2,       // hitbox Z — squat frog footprint
-    height: 0.9,       // hitbox Y
-    hopHoriz: 5,       // horizontal hop impulse, units/s
-    hopVert: 5.5,      // vertical hop impulse, units/s
-    hopWaitMin: 0.8,   // idle between hops, seconds
-    hopWaitMax: 2.2,
-    maxWade: 0.6,      // deepest water it can stand in before it's swimming
-    paddleSpeed: 4,    // surface paddling speed when swamped
-    gravity: 25,
-  },
-  bird: {
-    length: 4.5,       // hitbox X (local) — 3x scale
-    width:  2.4,       // hitbox Z
-    height: 3.0,       // hitbox Y
-    walkSpeed: 3.5,    // ground wander speed, units/s
-    swimSpeed: 2.5,    // paddling speed — deliberately slower than the fish
-    flySpeed: 11,      // cruise speed in flight
-    maxWade: 0.4,      // deeper than this and it's swimming
-    lookAhead: 4,      // walking obstacle probe distance
-    turnNoise: 1.2,    // walking wander, radians/s
-    walkFlightMin: 6,  // seconds on land between flights
-    walkFlightMax: 16,
-    swimFlightMin: 4,  // birds get impatient on water sooner
-    swimFlightMax: 10,
-    flightDurMin: 5,   // how long a flight lasts before it seeks a landing
-    flightDurMax: 14,
-    altMin: 3,         // altitude band above the local surface
-    altMax: 35,        //   ... up to properly high
-    altDrift: 18,      // how fast the altitude target wanders, units/s
-    maxTurn: 1.2,      // cap on wander turn rate, rad/s
-    loopChance: 0.25,  // probability per second of committing to a full loop
   },
   camera: {
     fov: 45,

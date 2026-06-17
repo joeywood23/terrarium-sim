@@ -923,7 +923,48 @@ bindSlider('water-opacity', v => {
  *           flops toward the deepest nearby water until it can
  *           swim again.
  * ============================================================ */
-const FISH = CONFIG.fish;
+/* ── Species data ──────────────────────────────────────────────────────────
+ * Load every config/species/*.json BEFORE the engine's synchronous init, so the
+ * built-in fish/frog/insect/plant can be defined from data just like the custom
+ * species (top-level await — main.js is an ES module). SPECIES_DEFS is keyed by
+ * id; RAW_SPECIES preserves manifest order for registration + the config editor.
+ * world.js now holds only world structure and shared, cross-species defaults
+ * (hunger, grazing, predation, death, predator, breeding._default, vegetation). */
+const RAW_SPECIES = []; // [{ file, def }]
+async function loadSpeciesData() {
+  const byId = {};
+  let files = [];
+  try {
+    const mani = await (await fetch('config/species/manifest.json')).json();
+    files = Array.isArray(mani.files) ? mani.files : [];
+  } catch (e) { console.error('species manifest load failed —', e.message); }
+  for (const f of files) {
+    try {
+      const def = await (await fetch('config/species/' + f)).json();
+      RAW_SPECIES.push({ file: f, def });
+      if (def && def.id) byId[def.id] = def;
+    } catch (e) { console.error('species file "' + f + '" failed to load —', e.message); }
+  }
+  return byId;
+}
+const SPECIES_DEFS = await loadSpeciesData();
+
+/* A core built-in species file is missing/corrupt — surface it instead of a
+ * blank screen (the engine can't size hitboxes/breeding without these). */
+function requireDef(id) {
+  const d = SPECIES_DEFS[id];
+  if (!d || !d.cfg) {
+    const msg = 'Config error: missing or invalid config/species/' + id + '.json';
+    document.body.insertAdjacentHTML('afterbegin',
+      '<div style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;'
+      + 'justify-content:center;background:#0e1116;color:#ff6b6b;font:14px ui-monospace,monospace;'
+      + 'text-align:center;padding:24px">' + msg + '</div>');
+    throw new Error(msg);
+  }
+  return d;
+}
+
+const FISH = requireDef('fish').cfg;
 const fishGeo = new THREE.BoxGeometry(FISH.length, FISH.height, FISH.width);
 const fishMat = new THREE.MeshStandardMaterial({
   color: 0xff3b30,            // bright primary red — reads through the water
@@ -945,7 +986,7 @@ let nextCreatureId = 1; // unique id across ALL creatures (egg fertilization nee
  * shared default. Add a species here (or rely on the default) to extend. */
 const BREEDING = {};
 for (const key of ['fish', 'frog', 'insect']) {
-  BREEDING[key] = Object.assign({}, CONFIG.breeding._default, CONFIG.breeding[key]);
+  BREEDING[key] = Object.assign({}, CONFIG.breeding._default, requireDef(key).breeding);
 }
 const BREED_F = BREEDING.fish; // fish keeps its own handle (zone-seeking logic)
 
@@ -1847,27 +1888,19 @@ vegMesh.frustumCulled = false;
 platformGroup.add(vegMesh);
 
 const plants = [];                 // { x, z, age, grown, food, ... }
-const vegYoung = new THREE.Color(VEG.colorYoung);
-const vegOld   = new THREE.Color(VEG.colorOld);
 
 /* ---- Plant species registry --------------------------------------------
  * Like creatures, plants are data-driven. Each plant species carries its own
  * young->lush color gradient, full size, and habitat rules (where it may
- * germinate and where it may grow). The built-in "plant" reproduces the
- * original green shore flora exactly. JSON entries with behavior "plant" add
- * more — e.g. a sea plant that only germinates and grows underwater. */
+ * germinate and where it may grow). All of them — including the default green
+ * shore flora ("plant", in config/species/plant.json) — are registered from
+ * JSON via registerSpecies(); shared plant mechanics stay in world.js. */
 const PLANT_SPECIES = {};
 const PLANT_SERIES  = []; // chart series (right axis), one per plant species
 function registerPlantSpecies(def) {
   PLANT_SPECIES[def.id] = def;
   PLANT_SERIES.push({ key: def.id, label: def.label, color: def.chartColor });
 }
-registerPlantSpecies({
-  id: 'plant', label: 'Plants', chartColor: '#9be36b',
-  young: vegYoung, old: vegOld, maxR: VEG.maxRadius, habitat: 'land',
-  canGerminate: (x, z) => waterDepthAt(x, z) <= VEG.seedMaxDepth, // land / waterline
-  canGrow: () => true,                                            // grows anywhere
-});
 const _vegM4 = new THREE.Matrix4();
 const _vegColor = new THREE.Color();
 const _vegPos = new THREE.Vector3();    // rustle composition temps
@@ -2532,7 +2565,7 @@ const plantOnFrogLand = pl => waterDepthAt(pl.x, pl.z) <= FROG.maxWade;
  *           floats to the surface and paddles toward the
  *           shallowest direction until it can stand.
  * ============================================================ */
-const FROG = CONFIG.frog;
+const FROG = requireDef('frog').cfg;
 const frogGeo = new THREE.BoxGeometry(FROG.length, FROG.height, FROG.width);
 const frogMat = new THREE.MeshStandardMaterial({
   color: 0x2ecc40,            // bright primary green
@@ -2710,13 +2743,16 @@ function frogTick(dt) {
 /* ============================================================
  * FLIERS  —  the flighted species (currently just the insect),
  * sharing one set of mechanics (walk / wandering flight / swim
- * on water, slower than fish). CONFIG.bird remains the shared
- * flier base config that each flier derives from.
+ * on water, slower than fish). FLIER_BASE (from insect.json) is the
+ * shared flier base config that each flier derives from.
  *
  *  insect:  black 1 x 1 x 1 cube, comfortable low to the deck
  * ============================================================ */
+// The aerial archetype base now comes from insect.json (the canonical flier);
+// every flier — including the built-in insect — merges its own cfg over it.
+const FLIER_BASE = requireDef('insect').cfg;
 function makeFlierSpecies(overrides, matOpts) {
-  const cfg = Object.assign({}, CONFIG.bird, overrides);
+  const cfg = Object.assign({}, FLIER_BASE, overrides);
   return {
     cfg,
     geo: new THREE.BoxGeometry(cfg.length, cfg.height, cfg.width),
@@ -2725,7 +2761,7 @@ function makeFlierSpecies(overrides, matOpts) {
 }
 const FLIERS = {
   insect: makeFlierSpecies(
-    { length: 1, width: 1, height: 1, altMin: 2 },
+    {},                                   // insect IS the aerial base (cfg from insect.json)
     { color: 0x111111, roughness: 0.7 }   // matte black cube
   ),
 };
@@ -2733,14 +2769,14 @@ const FLIERS = {
 /* ============================================================
  * JSON-DEFINED SPECIES
  *
- * New species are declared in the <script type="application/json"
- * id="species-defs"> block. Each picks a behavior archetype
- * (aquatic | terrestrial | aerial) and rides that archetype's
- * existing physics, diet, and breeding unchanged — so the built-in
- * fish/frog/insect are completely unaffected — while supplying its
- * own name, color (optionally genetic), 3D model, chart color, and
- * egg style from data. Aerial species may also tune flight via cfg,
- * since that archetype is fully parameterized.
+ * Every species — the built-in fish/frog/insect/plant AND the custom
+ * ones — is declared in config/species/*.json (listed in manifest.json).
+ * Each picks a behavior archetype (aquatic | terrestrial | aerial |
+ * plant) and rides that archetype's physics, diet, and breeding,
+ * supplying its own name, color (optionally genetic), 3D model, chart
+ * color, egg style, and any cfg/breeding overrides. The built-in trio
+ * keep their dedicated spawn paths + visuals and are skipped here (they
+ * already hold SPECIES entries); this registers the rest.
  * ============================================================ */
 // Per-species model assets, looked up by id when (re)building visuals.
 const RENDER_KIT = {
@@ -2785,28 +2821,16 @@ function spawnArchetypeTerrestrial(def, x, z, opts = {}) {
   updateCreatureReadout();
 }
 
-const RAW_SPECIES = []; // [{ file, def }] — populated by loadCustomSpecies for the config editor
-
-async function loadCustomSpecies() {
-  // Species are individual JSON files listed in config/species/manifest.json.
-  let files = [];
-  try {
-    const mani = await (await fetch('config/species/manifest.json')).json();
-    files = Array.isArray(mani.files) ? mani.files : [];
-  } catch (e) { console.warn('species manifest load failed —', e.message); return; }
-  const defs = [];
-  for (const f of files) {
-    try {
-      const def = await (await fetch('config/species/' + f)).json();
-      defs.push(def);
-      RAW_SPECIES.push({ file: f, def }); // keep the raw JSON for the live config editor
-    }
-    catch (e) { console.warn('species file "' + f + '" failed to load —', e.message); }
-  }
+/* Register all species from the already-loaded RAW_SPECIES (the fetch ran up top
+ * in loadSpeciesData, before engine init). Built-in fish/frog/insect are skipped
+ * here — they already have SPECIES entries and dedicated spawn/visuals; this
+ * wires up the custom creatures and every plant, including the default "plant". */
+function registerSpecies() {
+  const defs = RAW_SPECIES.map(e => e.def);
   const select = document.getElementById('creature-select');
 
   for (const d of defs) {
-    if (!d || !d.id || SPECIES[d.id] || PLANT_SPECIES[d.id]) continue; // skip malformed / collisions
+    if (!d || !d.id || SPECIES[d.id] || PLANT_SPECIES[d.id]) continue; // skip malformed / collisions / built-ins
 
     // ---- Plants ----------------------------------------------------------
     if (d.behavior === 'plant') {
@@ -3753,7 +3777,7 @@ function getCreatureEyeHeight(st) {
   if (st.species === 'fish' || SPECIES[st.species]?.list === fishes) return FISH.height;
   if (st.species === 'frog' || SPECIES[st.species]?.list === frogs)  return FROG.height;
   const fl = FLIERS[st.species];
-  return fl ? fl.cfg.height : CONFIG.bird.height;
+  return fl ? fl.cfg.height : FLIER_BASE.height;
 }
 
 function getCreatureSpeed(st) {
@@ -3761,7 +3785,7 @@ function getCreatureSpeed(st) {
   if (st.species === 'frog' || SPECIES[st.species]?.list === frogs)  return FROG.hopHoriz;
   const fl = FLIERS[st.species];
   if (fl) return st.mode === 'fly' ? fl.cfg.flySpeed : fl.cfg.walkSpeed;
-  return CONFIG.bird.walkSpeed;
+  return FLIER_BASE.walkSpeed;
 }
 
 function enterPOV(agent) {
@@ -4095,7 +4119,7 @@ function populatePlantPicker() {
  * config/species/*.json for live tweaking — no edit/push/redeploy loop.
  *
  *  - World knobs mutate CONFIG in place. Because the engine reads most
- *    tuning by reference each tick (FROG = CONFIG.frog, PRED, etc.),
+ *    tuning by reference each tick (FROG, FISH, PRED, etc.),
  *    these take effect immediately. Structural knobs (platform / grid /
  *    terrain size / fence / camera) are baked into geometry at startup,
  *    so they only re-apply after "New world…".
@@ -4232,20 +4256,22 @@ function renderSpeciesEditor(body, note, entry) {
     catch (e) { setConfigStatus('JSON error: ' + e.message); return; }
     entry.def = parsed;
     const id = parsed.id;
-    // Only aerial species own a dedicated cfg/breeding object (FLIERS[id].cfg is
-    // shared by reference with their spawned fliers). Aquatic/terrestrial species
-    // ride the shared archetype breeding (BREED_F / BREEDING.frog) — mutating that
-    // would hit every species on the archetype, so we don't live-apply it; tune
-    // the archetype itself under World > fish/frog instead.
-    const isAerial = id && FLIERS[id];
-    let touched = [];
-    if (isAerial && parsed.cfg) { deepAssign(FLIERS[id].cfg, parsed.cfg); touched.push('cfg'); }
-    if (isAerial && parsed.breeding && BREEDING[id]) { deepAssign(BREEDING[id], parsed.breeding); touched.push('breeding'); }
+    // Live-apply numeric tuning to the objects the engine reads by reference:
+    //  - fish/frog: FISH / FROG (their cfg IS the aquatic/terrestrial base)
+    //  - any flier (insect, beetle, …): FLIERS[id].cfg, shared with spawned bugs
+    // Aquatic/terrestrial CUSTOM species (e.g. koi) ride the archetype's shared
+    // objects, so we don't mutate those from here — edit the base species or
+    // reload. Color/model/hitbox are built at load and always need a reload.
+    const liveCfg = id === 'fish' ? FISH
+                  : id === 'frog' ? FROG
+                  : (id && FLIERS[id]) ? FLIERS[id].cfg : null;
+    const ownsBreeding = ['fish', 'frog', 'insect'].includes(id) || !!(id && FLIERS[id]);
+    const touched = [];
+    if (liveCfg && parsed.cfg) { deepAssign(liveCfg, parsed.cfg); touched.push('cfg'); }
+    if (ownsBreeding && parsed.breeding && BREEDING[id]) { deepAssign(BREEDING[id], parsed.breeding); touched.push('breeding'); }
     setConfigStatus(touched.length
       ? 'Applied ' + touched.join(' + ') + ' live. Color/model/hitbox need a reload.'
-      : (isAerial ? 'Saved. Color/model/hitbox need a reload.'
-                  : 'Saved for copy. ' + (id || 'this species') + ' rides the shared archetype — '
-                    + 'tune it under World, or reload to apply structural fields.'));
+      : 'Saved for copy. These fields need a reload to take effect.');
   });
   const copy = document.createElement('button');
   copy.textContent = 'Copy JSON';
@@ -4288,8 +4314,8 @@ function initConfigEditor() {
   renderConfigTarget('world');
 }
 
-async function boot() {
-  await loadCustomSpecies();   // fetch + register any JSON-defined species
+function boot() {
+  registerSpecies();           // register custom creatures + plants (defs already loaded up top)
   populatePlantPicker();
   initConfigEditor();          // wire up the live config panel (needs RAW_SPECIES)
   if (SETUP.go) {

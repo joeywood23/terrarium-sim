@@ -1,0 +1,28 @@
+{
+  "_comment": "Built-in aquatic creature. Defines the AQUATIC archetype base: other aquatic species (e.g. koi) ride this cfg/breeding. Visuals/model are built-in. cfg = hitbox + swim/steer physics; breeding overrides the shared breeding._default in world.js.",
+  "id": "fish",
+  "name": "Fish",
+  "behavior": "aquatic",
+  "chartColor": "#ff5a4d",
+  "cfg": {
+    "length": 2.6,
+    "width": 0.9,
+    "height": 0.5,
+    "speed": 9,
+    "yawNoise": 1.5,
+    "pitchNoise": 0.6,
+    "pitchMax": 0.7,
+    "steerRate": 3,
+    "lookAhead": 7,
+    "depthMargin": 0.25,
+    "surfaceMargin": 0.3,
+    "gravity": 25,
+    "flopHoriz": 6,
+    "flopVert": 6.5
+  },
+  "breeding": {
+    "mtbLayEgg": 25,
+    "fertRadius": 3,
+    "useEggZone": true
+  }
+}

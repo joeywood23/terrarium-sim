@@ -1,0 +1,35 @@
+{
+  "_comment": "Built-in aerial creature. Defines the AERIAL archetype base: other fliers (e.g. beetle) merge their own cfg over this one. Visuals = matte-black cube (built-in). cfg = hitbox + full flight tuning; breeding overrides the shared breeding._default in world.js.",
+  "id": "insect",
+  "name": "Insect",
+  "behavior": "aerial",
+  "chartColor": "#6fd0ff",
+  "cfg": {
+    "length": 1,
+    "width": 1,
+    "height": 1,
+    "walkSpeed": 3.5,
+    "swimSpeed": 2.5,
+    "flySpeed": 11,
+    "maxWade": 0.4,
+    "lookAhead": 4,
+    "turnNoise": 1.2,
+    "walkFlightMin": 6,
+    "walkFlightMax": 16,
+    "swimFlightMin": 4,
+    "swimFlightMax": 10,
+    "flightDurMin": 5,
+    "flightDurMax": 14,
+    "altMin": 2,
+    "altMax": 35,
+    "altDrift": 18,
+    "maxTurn": 1.2,
+    "loopChance": 0.25
+  },
+  "breeding": {
+    "mtbLayEgg": 14,
+    "fertRadius": 2,
+    "growthFood": 14,
+    "juvenileScale": 0.5
+  }
+}

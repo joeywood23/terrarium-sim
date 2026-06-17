@@ -1,0 +1,10 @@
+{
+  "_comment": "Built-in default land plant — the green shore flora painted by default and seeded across the island at world generation. colorYoung/colorOld are the stripped->lush gradient. Plant mechanics (growth, seeding, spacing, food, default size) live in world.js vegetation/vegGen.",
+  "id": "plant",
+  "name": "Plants",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#9bd66a",
+  "colorOld": "#214d16",
+  "chartColor": "#9be36b"
+}
