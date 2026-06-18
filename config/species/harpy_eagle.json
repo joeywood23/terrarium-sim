@@ -2,6 +2,7 @@
   "_comment": "Jungle L4 APEX predator (aerial). Rides the insect/flier archetype with eagle-scale cfg. Strikes terrestrial prey from the air via DIETS: hunts monkey, sloth, macaw, boa (reach = on land). Large, fast, soars high.",
   "id": "harpy_eagle",
   "sizeScale": 5.5,
+  "pov": { "forward": 0.85, "height": 0.22 },
   "name": "Harpy Eagle",
   "behavior": "aerial",
   "color": "#5a5a5a",

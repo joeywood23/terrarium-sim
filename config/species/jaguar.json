@@ -2,6 +2,7 @@
   "_comment": "Jungle L4 APEX predator (terrestrial). Rides the frog/terrestrial archetype for movement; cfg.contactRadius/winThreshold tune its catch (low winThreshold = high catch rate). Diet wired in src/main.js DIETS: hunts capybara, peccary, agouti, monkey, boa.",
   "id": "jaguar",
   "sizeScale": 6.0,
+  "pov": { "forward": 1.5, "height": 0.4 },
   "name": "Jaguar",
   "behavior": "terrestrial",
   "color": "#c9a23f",

@@ -2,6 +2,7 @@
   "_comment": "Jungle L1 prey (aerial archetype, but a sluggish ground bug like the beetle — rarely takes flight). The base of the insectivore food chain. Eaten by dart_frog, frog (tree frog), anole, monkey.",
   "id": "ant",
   "sizeScale": 0.7,
+  "pov": { "forward": -0.33, "height": 0.42, "lateral": -0.01, "pitch": -33.1, "yaw": 20.9, "roll": -8 },
   "name": "Leaf-cutter Ant",
   "behavior": "aerial",
   "color": "#3a2a1a",

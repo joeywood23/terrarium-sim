@@ -2,6 +2,7 @@
   "_comment": "Jungle L1 herbivore (terrestrial, semi-aquatic). Grazes land + waterline vegetation via the shared terrestrial forager. Pure prey (no DIETS row). Eaten by jaguar, black_caiman, boa.",
   "id": "capybara",
   "sizeScale": 5.0,
+  "pov": { "forward": 1.42, "height": 0.3 },
   "name": "Capybara",
   "behavior": "terrestrial",
   "color": "#8d6e63",

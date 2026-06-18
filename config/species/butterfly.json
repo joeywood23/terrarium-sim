@@ -2,6 +2,7 @@
   "_comment": "Jungle L1 prey (aerial). Light, flitting flier (frequent loops, low altitude). Eaten by tree frog (frog), insect_bat.",
   "id": "butterfly",
   "sizeScale": 1.5,
+  "pov": { "forward": 0.3, "height": 0.06 },
   "name": "Butterfly",
   "behavior": "aerial",
   "color": "#ff7043",

@@ -1,5 +1,10 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { CONFIG } from '../config/world.js';
 
 /* ============================================================
@@ -142,6 +147,23 @@ const camera = new THREE.PerspectiveCamera(
   CONFIG.camera.near,
   CONFIG.camera.far
 );
+
+/* Horizontal-FOV lock. Three's camera.fov is the VERTICAL field of view, so a
+ * narrow window crops the sides and the lateral framing drifts with width. We
+ * instead treat the configured fov as a vertical fov at a reference aspect, then
+ * derive the actual vertical fov from the live aspect so the HORIZONTAL field of
+ * view stays constant — the lateral view is identical at any browser width. */
+const FOV_REF_ASPECT = 16 / 9;     // aspect at which a configured fov reads as-is
+let designFov = CONFIG.camera.fov; // intended vertical fov (at the reference aspect)
+function fovForAspect(vfovDeg, aspect) {
+  const hFov = 2 * Math.atan(Math.tan(vfovDeg * Math.PI / 180 / 2) * FOV_REF_ASPECT);
+  return 2 * Math.atan(Math.tan(hFov / 2) / aspect) * 180 / Math.PI;
+}
+function applyFov() {
+  camera.fov = fovForAspect(designFov, camera.aspect);
+  camera.updateProjectionMatrix();
+}
+applyFov(); // seat the initial fov for the starting aspect
 
 /* Bounding radius of the platform footprint — used to frame snap views. */
 const P = CONFIG.platform;
@@ -1144,7 +1166,7 @@ function buildFishDetailed(tint) {
  * species' 3D model is fully data-driven. `color` may be a hex, or the roles
  * "body"/"bodyDark"/"accent" which resolve against the species' base/gene color
  * (so a tinted/genetic species recolors automatically). */
-function buildPartsModel(parts, baseColor, tint) {
+function buildPartsModel(parts, baseColor, tint, pov) {
   const g = new THREE.Group();
   const bodyCol = tint || new THREE.Color(baseColor != null ? baseColor : 0xffffff);
   for (const part of (parts || [])) {
@@ -1178,7 +1200,37 @@ function buildPartsModel(parts, baseColor, tint) {
     m.castShadow = true;
     g.add(m);
   }
+  addEyeAnchor(g, parts, pov);
   return g;
+}
+
+/* First-person camera anchor: an empty Object3D at the creature's eye point in
+ * MODEL-LOCAL space (forward = +X, height = +Y, laterally centred). Parented to
+ * the model group, so its world position tracks every transform — sizeScale,
+ * the terrestrial foot-pin, heading, and fish pitch — and POV can snap the
+ * camera straight to it. Source of the point, in priority order:
+ *   1. the species' explicit `pov: { forward, height }` (config/species/*.json)
+ *   2. the model's `eyes` part position (most models carry one)
+ *   3. a fallback near the front-top of the bounding box (e.g. the butterfly). */
+function addEyeAnchor(g, parts, pov) {
+  let fwd, up;
+  const lat = (pov && pov.lateral != null) ? pov.lateral : 0; // side offset (local Z)
+  if (pov && (pov.forward != null || pov.height != null)) {
+    fwd = pov.forward != null ? pov.forward : 0;
+    up  = pov.height  != null ? pov.height  : 0;
+  } else {
+    const eye = (parts || []).find(p => p.shape === 'eyes' && p.pos);
+    if (eye) { fwd = eye.pos[0]; up = eye.pos[1]; }
+    else {
+      const box = new THREE.Box3().setFromObject(g);
+      fwd = box.max.x * 0.9;                 // just shy of the nose
+      up  = box.min.y + (box.max.y - box.min.y) * 0.75; // upper body
+    }
+  }
+  const a = new THREE.Object3D();
+  a.name = 'eyeAnchor';
+  a.position.set(fwd, up, lat);
+  g.add(a);
 }
 
 /* Wrap a detailed-model builder so its output is scaled by `s` (real-world size
@@ -1225,6 +1277,7 @@ function buildFrogDetailed() {
     g.add(leg);
   }
   g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  addEyeAnchor(g, null, { forward: FROG.length * 0.34, height: FROG.height * 0.6 }); // POV at the frog's eyes
   return g;
 }
 
@@ -1270,6 +1323,7 @@ function buildFlierDetailed(type) {
     g.add(wing);
   }
   g.add(eyePair(L * 0.5, H * 0.2, H * 0.12, H * 0.12));
+  addEyeAnchor(g, null, { forward: L * 0.5, height: H * 0.2 }); // POV at the flier's eyes
   g.traverse(o => { if (o.isMesh && !o.material.transparent) o.castShadow = true; });
   return g;
 }
@@ -1555,16 +1609,30 @@ function swimTick(a, dt) {
   const SR = FISH.steerRate;
   let seeking = false;
 
-  if (graze === 'eat') {
+  // Aquatic ambush predator (cfg.ambush, e.g. caiman): when hungry, stalk the
+  // nearest reachable prey instead of drifting/grazing — steer toward its
+  // bearing (the fish navigability clamp keeps it in water, so it hugs the bank
+  // nearest the prey) and sink low to lurk. The wide contactRadius strike then
+  // lands across the shallow margin. Overrides the plant/idle steering below.
+  let stalkHeading = null;
+  if ((predCfg(st.species) || {}).ambush &&
+      st.maxHunger && st.hunger <= GRAZE.threshold * st.maxHunger) {
+    const pr = seekNearestPrey(a, FISH.lookAhead * 4);
+    if (pr) stalkHeading = pr.heading;
+  }
+
+  if (stalkHeading !== null) {
+    st.heading += angDiff(stalkHeading, st.heading) * Math.min(1, dt * SR);
+    st.pitch   += angDiff(-0.12, st.pitch) * Math.min(1, dt * SR); // lurk low
+    seeking = true;
+  } else if (graze === 'eat') {
     // Hold station: face the food, bob, don't advance.
     st.heading += angDiff(st.grazeHeading, st.heading) * Math.min(1, dt * SR);
     st.pitch += (0 - st.pitch) * Math.min(1, dt * SR);
     p.y += eatBob(st, FISH.height);
     orientFish(a.mesh, st.heading, st.pitch, dt);
     return;
-  }
-
-  if (graze === 'move') {
+  } else if (graze === 'move') {
     // Steer yaw toward food's XZ bearing.
     st.heading += angDiff(st.grazeHeading, st.heading) * Math.min(1, dt * SR);
     // Steer pitch toward food's 3D elevation angle.
@@ -2406,15 +2474,19 @@ function seekNearestPrey(a, radius) {
  * as edible and instead target named prey. `reach(pos)` is the positional
  * catchability test (e.g. prey must be over water the predator can reach). */
 // Shared positional catchability tests (reach), by where the PREY sits:
-const onLand    = pos => waterDepthAt(pos.x, pos.z) <= FROG.maxWade;   // land/shallows
-const inWater   = pos => waterDepthAt(pos.x, pos.z) >= fishMinDepth;   // open water
-const nearWater = pos => waterDepthAt(pos.x, pos.z) >= 0.4;            // waterline + water (ambush)
+const onLand     = pos => waterDepthAt(pos.x, pos.z) <= FROG.maxWade;   // land/shallows
+const inWater    = pos => waterDepthAt(pos.x, pos.z) >= fishMinDepth;   // open water
+// Waterline ambush band: all water PLUS the shore strip within 0.8 above the
+// waterline. An aquatic ambush predator (caiman) can grab prey standing here —
+// capybara never wade deep, so a deep-water-only reach (the old >=0.4) meant it
+// could never count them; this catches prey at the bank.
+const shoreOrWater = pos => waterDepthAt(pos.x, pos.z) >= -0.8;
 
 const DIETS = {
   // ── L4 apex ──────────────────────────────────────────────────────────────
   jaguar:       { hunts: ['capybara', 'peccary', 'agouti', 'monkey', 'boa'], reach: onLand },
   harpy_eagle:  { hunts: ['monkey', 'sloth', 'macaw', 'boa'],                reach: onLand },
-  black_caiman: { hunts: ['piranha', 'fish', 'capybara', 'frog', 'macaw'],   reach: nearWater },
+  black_caiman: { hunts: ['piranha', 'fish', 'capybara', 'frog', 'macaw'],   reach: shoreOrWater },
   // ── L3 mesopredators ─────────────────────────────────────────────────────
   boa:          { hunts: ['agouti', 'frog', 'anole', 'macaw'],               reach: onLand },
   ocelot:       { hunts: ['agouti', 'anole', 'frog', 'dart_frog', 'macaw'],  reach: onLand },
@@ -2937,7 +3009,7 @@ function registerSpecies() {
     // Detailed model builder: declarative parts, a named built-in, else the
     // archetype's built-in shape recolored.
     DETAILED_BUILDERS[d.id] = (d.model && d.model.parts)
-      ? (t) => buildPartsModel(d.model.parts, d.color, d.geneticColor ? t : undefined)
+      ? (t) => buildPartsModel(d.model.parts, d.color, d.geneticColor ? t : undefined, d.pov)
       : (d.model && d.model.builtin && DETAILED_BUILDERS[d.model.builtin])
         ? (t) => DETAILED_BUILDERS[d.model.builtin](d.geneticColor ? t : new THREE.Color(d.color != null ? d.color : 0xffffff))
         : (t) => DETAILED_BUILDERS[archBuiltin](d.geneticColor ? t : new THREE.Color(d.color != null ? d.color : 0xffffff));
@@ -3850,6 +3922,40 @@ let povYaw = 0;
 let povPitch = 0;
 const povKeys = { w: false, a: false, s: false, d: false };
 let savedCamera = null;
+let povCfg = null;          // resolved per-creature camera params for the active POV
+const POV_DEG = Math.PI / 180;
+
+/* Per-creature POV camera params (config/species/<id>.json "pov"). forward/
+ * height/lateral place the eye anchor (handled at build time); pitch/yaw/roll
+ * tilt the look (radians here), fov is the lens, and dof/vignette/fog drive the
+ * post effects. Missing fields fall back to a neutral, effect-free camera. */
+function povParams(species) {
+  const pv = (SPECIES_DEFS[species] && SPECIES_DEFS[species].pov) || {};
+  return {
+    pitch: (pv.pitch || 0) * POV_DEG,
+    yaw:   (pv.yaw   || 0) * POV_DEG,
+    roll:  (pv.roll  || 0) * POV_DEG,
+    fov:   pv.fov != null ? pv.fov : CONFIG.camera.fov,
+    dof:   pv.dof || 0,
+    vignette: pv.vignette || 0,
+    fog:   pv.fog || 0,
+  };
+}
+
+/* Lazy postprocessing chain, only built/used while a creature with DoF or
+ * vignette is possessed (normal play renders straight through renderer.render). */
+let povComposer = null, povBokeh = null, povVignette = null;
+function ensurePovComposer() {
+  if (povComposer) return;
+  povComposer = new EffectComposer(renderer);
+  povComposer.addPass(new RenderPass(scene, camera));
+  povBokeh = new BokehPass(scene, camera, { focus: 5, aperture: 0, maxblur: 0.012 });
+  povVignette = new ShaderPass(VignetteShader);
+  povVignette.uniforms.offset.value = 1.1;
+  povComposer.addPass(povBokeh);
+  povComposer.addPass(povVignette);
+  povComposer.setSize(window.innerWidth, window.innerHeight);
+}
 
 function getCreatureEyeHeight(st) {
   if (st.species === 'fish' || SPECIES[st.species]?.list === fishes) return FISH.height;
@@ -3872,11 +3978,18 @@ function enterPOV(agent) {
   agent.st.aiSuspended = true;
   povYaw = agent.st.heading;
   povPitch = 0;
+  povCfg = povParams(agent.st.species);
   savedCamera = {
     position: camera.position.clone(),
     target: controls.target.clone(),
     maxPolarAngle: controls.maxPolarAngle,
+    designFov: designFov,
+    fogNear: scene.fog ? scene.fog.near : null,
+    fogFar: scene.fog ? scene.fog.far : null,
   };
+  designFov = povCfg.fov;
+  applyFov();
+  if (povCfg.dof > 0 || povCfg.vignette > 0) ensurePovComposer();
   controls.enabled = false;
   activeView = 'pov';
   setActiveUI('pov');
@@ -3894,7 +4007,14 @@ function exitPOV() {
     camera.position.copy(savedCamera.position);
     controls.target.copy(savedCamera.target);
     controls.maxPolarAngle = savedCamera.maxPolarAngle;
+    designFov = savedCamera.designFov;
+    applyFov();
+    if (scene.fog && savedCamera.fogNear != null) {
+      scene.fog.near = savedCamera.fogNear; scene.fog.far = savedCamera.fogFar;
+    }
   }
+  camera.up.set(0, 1, 0);   // clear any POV roll
+  povCfg = null;
   controls.enabled = true;
   document.body.classList.remove('pov-active');
   activeView = 'iso';
@@ -3909,7 +4029,7 @@ document.addEventListener('pointerlockchange', () => {
 // Mouse look while pointer-locked.
 document.addEventListener('mousemove', e => {
   if (!possessed) return;
-  povYaw   -= e.movementX * 0.002;
+  povYaw   += e.movementX * 0.002; // mouse right → look right (H=(cos,0,sin) convention)
   povPitch -= e.movementY * 0.002;
   povPitch  = Math.max(-Math.PI * 0.47, Math.min(Math.PI * 0.47, povPitch));
 });
@@ -3946,9 +4066,9 @@ function povTick(dt) {
     const cosPitch = Math.cos(povPitch);
     const sinPitch = Math.sin(povPitch);
     const fwd = new THREE.Vector3(
-      -Math.sin(povYaw) * cosPitch,
+      Math.cos(povYaw) * cosPitch,
       sinPitch,
-      -Math.cos(povYaw) * cosPitch
+      Math.sin(povYaw) * cosPitch
     );
     const throttle = povKeys.w ? 1 : 0;
     nx = mesh.position.x + fwd.x * speed * throttle * dt;
@@ -3969,9 +4089,11 @@ function povTick(dt) {
     mesh.position.set(nx, ny, nz);
     orientFish(mesh, povYaw, st.pitch, dt);
   } else {
-    // Ground/air creatures: standard WASD.
-    const fwd = new THREE.Vector3(-Math.sin(povYaw), 0, -Math.cos(povYaw));
-    const right = new THREE.Vector3(Math.cos(povYaw), 0, -Math.sin(povYaw));
+    // Ground/air creatures: standard WASD. Forward is the heading direction
+    // H=(cos,0,sin) — the same convention as orientFish and normal movement —
+    // so the snout, the camera look, and W all point the same way.
+    const fwd = new THREE.Vector3(Math.cos(povYaw), 0, Math.sin(povYaw));
+    const right = new THREE.Vector3(-Math.sin(povYaw), 0, Math.cos(povYaw));
     const move = new THREE.Vector3();
     if (povKeys.w) move.add(fwd);
     if (povKeys.s) move.sub(fwd);
@@ -3991,17 +4113,33 @@ function povTick(dt) {
 
     st.heading = povYaw;
     mesh.position.set(nx, ny, nz);
-    mesh.rotation.y = povYaw;
+    mesh.rotation.y = -povYaw; // snout (+X) points along H=(cos,0,sin), matching the look dir
   }
 
-  // Camera at eye level.
-  camera.position.set(nx, ny + eyeH / 2, nz);
+  // Camera at the creature's eye point: snap to the model's eyeAnchor (placed at
+  // the per-species eye/head position, so it tracks scale + seating + heading),
+  // falling back to the old body-centre estimate for primitive-art / anchorless
+  // models.
+  const anchor = mesh.getObjectByName('eyeAnchor');
+  if (anchor) {
+    mesh.updateWorldMatrix(true, true);
+    anchor.getWorldPosition(camera.position);
+  } else {
+    camera.position.set(nx, ny + eyeH / 2, nz);
+  }
+  // Look along the heading, plus the creature's per-species pitch/yaw offsets;
+  // roll tilts the horizon by rolling the up-vector about the view axis.
+  const yaw   = povYaw   + (povCfg ? povCfg.yaw   : 0);
+  const pitch = povPitch + (povCfg ? povCfg.pitch : 0);
   const lookDir = new THREE.Vector3(
-    -Math.sin(povYaw) * Math.cos(povPitch),
-    Math.sin(povPitch),
-    -Math.cos(povYaw) * Math.cos(povPitch)
+    Math.cos(yaw) * Math.cos(pitch),
+    Math.sin(pitch),
+    Math.sin(yaw) * Math.cos(pitch)
   );
+  camera.up.set(0, 1, 0);
   camera.lookAt(camera.position.clone().add(lookDir));
+  const roll = povCfg ? povCfg.roll : 0;
+  if (roll) camera.rotateZ(roll); // tilt horizon, same convention as the editor's grab
 }
 
 /* ============================================================
@@ -4011,8 +4149,9 @@ document.getElementById('r-size').textContent = `${P.width}×${P.depth}`;
 
 function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
+  applyFov(); // keep horizontal FOV constant across widths (updates projection)
   renderer.setSize(window.innerWidth, window.innerHeight);
+  if (povComposer) povComposer.setSize(window.innerWidth, window.innerHeight);
 }
 window.addEventListener('resize', onResize);
 
@@ -4077,12 +4216,38 @@ function animate() {
     scene.fog.near = 20 - 19 * uw;    // 20 → 1
     scene.fog.far  = 200 - 180 * uw;  // 200 → 20
   }
-  renderer.render(scene, camera);
+  // POV distance haze: pull the fog in (on top of the normal range) so it reads
+  // as atmosphere from the creature's eye. Skipped while underwater (water owns
+  // the fog then).
+  let povFog = false;
+  if (possessed && povCfg && povCfg.fog > 0 && !camUnderwater) {
+    scene.fog.far = THREE.MathUtils.lerp(fogFar, fogNear + 4, povCfg.fog);
+    povFog = true;
+  }
+  // Route through the post composer only when a possessed creature actually has
+  // DoF or vignette; everything else renders straight (no overhead).
+  if (possessed && povCfg && povComposer && (povCfg.dof > 0 || povCfg.vignette > 0)) {
+    try {
+      povBokeh.enabled = povCfg.dof > 0;
+      if (povCfg.dof > 0) {
+        povBokeh.uniforms['focus'].value = 6;
+        povBokeh.uniforms['aperture'].value = povCfg.dof * 0.0006;
+        povBokeh.uniforms['maxblur'].value = povCfg.dof * 0.02;
+      }
+      povVignette.enabled = povCfg.vignette > 0;
+      povVignette.uniforms.darkness.value = povCfg.vignette * 1.6;
+      povComposer.render();
+    } catch (e) { renderer.render(scene, camera); }
+  } else {
+    renderer.render(scene, camera);
+  }
   if (camUnderwater) {
     scene.background = bg0;
     scene.fog.color.copy(bg0);
     scene.fog.near = fogNear;
     scene.fog.far  = fogFar;
+  } else if (povFog) {
+    scene.fog.far = fogFar;
   }
 
   // FPS counter (updated ~once/sec)

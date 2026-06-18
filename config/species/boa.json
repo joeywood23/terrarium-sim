@@ -2,6 +2,7 @@
   "_comment": "Jungle L3 mesopredator (terrestrial). Rides the frog archetype. DIETS: hunts agouti, frog (tree frog), anole, macaw.",
   "id": "boa",
   "sizeScale": 3.5,
+  "pov": { "forward": 0, "height": 0.36, "lateral": 0.37, "pitch": -26, "yaw": -1.1 },
   "name": "Boa",
   "behavior": "terrestrial",
   "color": "#6b8e23",

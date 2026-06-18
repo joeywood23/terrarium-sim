@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>POV Camera Editor — Terrarium</title>
+<style>
+  :root { color-scheme: dark; }
+  html,body { margin:0; height:100%; background:#11151c; color:#cdd6e3;
+    font:13px/1.4 system-ui,Segoe UI,Roboto,sans-serif; overflow:hidden; }
+  #c { position:fixed; inset:0; display:block; }
+  #hud { position:fixed; top:14px; left:16px; pointer-events:none; }
+  #hud h1 { margin:0; font-size:20px; font-weight:600; }
+  #hud .sub { opacity:.6; margin-top:2px; }
+  #nav { position:fixed; top:12px; left:50%; transform:translateX(-50%); display:flex; gap:8px; align-items:center; }
+  #ed { position:fixed; left:16px; bottom:16px; width:290px; background:#0c0f15ee; border:1px solid #2a3340;
+    border-radius:10px; padding:12px 14px; max-height:84vh; overflow:auto; }
+  #ed h2 { margin:12px 0 6px; font-size:11px; opacity:.55; font-weight:700; text-transform:uppercase; letter-spacing:.6px; }
+  #ed h2:first-child { margin-top:0; }
+  .row { display:flex; align-items:center; gap:8px; margin:6px 0; }
+  .row label { width:58px; opacity:.8; font-size:12px; }
+  .row input[type=range] { flex:1; min-width:0; }
+  .row .v { width:46px; text-align:right; font-family:ui-monospace,Consolas,monospace; font-size:11px; }
+  .ro { display:flex; justify-content:space-between; margin:4px 0; font-family:ui-monospace,Consolas,monospace; font-size:11px; }
+  .ro span:first-child { opacity:.6; font-family:system-ui; }
+  button { font:600 13px system-ui; padding:7px 12px; border-radius:8px; border:1px solid #333;
+    cursor:pointer; color:#cdd6e3; background:#222a35; }
+  button:hover { background:#2c3744; }
+  .primary { background:#1f8b4c; border-color:#27a05a; color:#fff; }
+  .primary:hover { background:#23a058; }
+  #views { position:fixed; right:16px; bottom:16px; display:flex; flex-direction:column; gap:6px; }
+  #views button { font-size:12px; }
+  #toast { position:fixed; top:54px; left:50%; transform:translateX(-50%); padding:8px 16px; border-radius:8px;
+    background:#1f8b4c; color:#fff; font-weight:600; opacity:0; transition:opacity .2s; pointer-events:none; }
+  .hint { position:fixed; bottom:2px; left:50%; transform:translateX(-50%); opacity:.4; font-size:11px; max-width:64%; text-align:center; }
+  #crosshair { position:fixed; top:50%; left:50%; width:10px; height:10px; margin:-5px 0 0 -5px;
+    border:1px solid #ffffff66; border-radius:50%; pointer-events:none; }
+  .btnrow { display:flex; gap:8px; margin-top:12px; }
+  .btnrow button { flex:1; }
+  #saveState { margin-top:6px; min-height:15px; font-size:11px; opacity:.75; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="crosshair"></div>
+<div id="hud"><h1 id="name">…</h1><div class="sub" id="sub"></div></div>
+<div id="nav">
+  <button onclick="go(-1)">◀ Prev</button>
+  <select id="pick"></select>
+  <button onclick="go(1)">Next ▶</button>
+</div>
+<div id="toast"></div>
+
+<div id="ed">
+  <h2>Camera — grabbed from this view</h2>
+  <div class="ro"><span>Forward</span><span id="forwardV">0</span></div>
+  <div class="ro"><span>Height</span><span id="heightV">0</span></div>
+  <div class="ro"><span>Lateral</span><span id="lateralV">0</span></div>
+  <div class="ro"><span>Pitch</span><span id="pitchV">0°</span></div>
+  <div class="ro"><span>Yaw</span><span id="yawV">0°</span></div>
+  <h2>Roll &amp; lens</h2>
+  <div class="row"><label>Roll°</label><input id="roll" type="range" min="-180" max="180" step="1"><span class="v" id="rollV"></span></div>
+  <div class="row"><label>FOV°</label><input id="fov" type="range" min="20" max="120" step="1"><span class="v" id="fovV"></span></div>
+  <h2>Effects</h2>
+  <div class="row"><label>DoF</label><input id="dof" type="range" min="0" max="1" step="0.01"><span class="v" id="dofV"></span></div>
+  <div class="row"><label>Vignette</label><input id="vignette" type="range" min="0" max="1" step="0.01"><span class="v" id="vignetteV"></span></div>
+  <div class="row"><label>Fog</label><input id="fog" type="range" min="0" max="1" step="0.01"><span class="v" id="fogV"></span></div>
+  <div class="btnrow">
+    <button onclick="reseed()">↺ Reset</button>
+    <button class="primary" onclick="save()">💾 Save current view</button>
+  </div>
+  <div id="saveState"></div>
+</div>
+
+<div id="views">
+  <button onclick="view('side')">Side</button>
+  <button onclick="view('front')">Front</button>
+  <button onclick="view('top')">Top</button>
+  <button onclick="view('iso')">Iso</button>
+</div>
+<div class="hint">drag = look around · <b>WASD</b>/<b>Q·E</b> = move the camera · scroll = zoom · the on-screen view is exactly what saves</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
+
+// ── engine-faithful model builder (mirrors src/main.js buildPartsModel) ──────
+function eyePair(fwd, up, side, r = 0.12) {
+  const g = new THREE.Group();
+  const m = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 });
+  for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), m); e.position.set(fwd, up, s * side); g.add(e); }
+  return g;
+}
+function buildPartsModel(parts, baseColor) {
+  const g = new THREE.Group();
+  const bodyCol = new THREE.Color(baseColor != null ? baseColor : 0xffffff);
+  for (const part of (parts || [])) {
+    if (part.shape === 'eyes') { const p = part.pos || [0.3,0.2,0.2]; g.add(eyePair(p[0],p[1],p[2],part.r||0.1)); continue; }
+    let geo;
+    switch (part.shape) {
+      case 'sphere': geo = new THREE.SphereGeometry(0.5,12,9); break;
+      case 'cone': geo = new THREE.ConeGeometry(0.5,1,10); break;
+      case 'cylinder': geo = new THREE.CylinderGeometry(0.5,0.5,1,10); break;
+      default: geo = new THREE.BoxGeometry(1,1,1);
+    }
+    const spec = part.color;
+    const col = (spec==null||spec==='body') ? bodyCol.clone()
+      : spec==='bodyDark' ? bodyCol.clone().multiplyScalar(0.7)
+      : spec==='accent' ? bodyCol.clone().offsetHSL(0.5,0,0)
+      : new THREE.Color(spec);
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: col, roughness: part.roughness!=null?part.roughness:0.6, metalness: 0,
+      emissive: part.glow ? col.clone().multiplyScalar(0.3) : new THREE.Color(0x000000), emissiveIntensity: part.glow?0.5:0 }));
+    const s = part.scale==null ? [1,1,1] : (Array.isArray(part.scale)?part.scale:[part.scale,part.scale,part.scale]);
+    m.scale.set(s[0],s[1],s[2]);
+    if (part.pos) m.position.set(part.pos[0],part.pos[1],part.pos[2]);
+    if (part.rot) m.rotation.set(part.rot[0],part.rot[1],part.rot[2]);
+    g.add(m);
+  }
+  return g;
+}
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x11151c);
+const baseFog = new THREE.Fog(0x11151c, 5, 60);
+
+const ORBIT_FOV = 45;
+const camera = new THREE.PerspectiveCamera(ORBIT_FOV, 1, 0.001, 20000);
+// Horizontal-FOV lock (mirrors src/main.js): keep horizontal FOV constant across widths.
+const FOV_REF_ASPECT = 16 / 9;
+function fovForAspect(vfovDeg, aspect) {
+  const hFov = 2 * Math.atan(Math.tan(vfovDeg * Math.PI / 180 / 2) * FOV_REF_ASPECT);
+  return 2 * Math.atan(Math.tan(hFov / 2) / aspect) * 180 / Math.PI;
+}
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.minDistance = 0.01;
+controls.maxDistance = 12000;
+controls.zoomSpeed = 1.8;
+
+scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x202018, 0.9));
+const key = new THREE.DirectionalLight(0xffffff, 1.5); key.position.set(3,6,4); key.castShadow = true; scene.add(key);
+const fill = new THREE.DirectionalLight(0xa9c6ff, 0.5); fill.position.set(-4,2,-3); scene.add(fill);
+const grid = new THREE.GridHelper(12, 24, 0x33425a, 0x222c39); scene.add(grid);
+// scenery so DoF / fog / framing read clearly
+for (let i = 0; i < 14; i++) {
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.2, 3, 6),
+    new THREE.MeshStandardMaterial({ color: 0x2e6d2a, roughness: 1 }));
+  const a = i / 14 * Math.PI * 2, r = 4 + (i % 3);
+  post.position.set(Math.cos(a) * r, 1.5, Math.sin(a) * r); scene.add(post);
+}
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bokeh = new BokehPass(scene, camera, { focus: 3, aperture: 0, maxblur: 0.012 });
+const vignettePass = new ShaderPass(VignetteShader);
+vignettePass.uniforms.offset.value = 1.1;
+composer.addPass(bokeh); composer.addPass(vignettePass);
+
+// ── state ───────────────────────────────────────────────────────────────────
+// roll/fov/dof/vignette/fog are user-set; forward/height/lateral/pitch/yaw are
+// READ from the live camera each frame (and on save).
+const P = { roll:0, fov:45, dof:0, vignette:0, fog:0 };
+const grabbed = { forward:0, height:0, lateral:0, pitch:0, yaw:0 };
+let model = null, MODELS = [], idx = 0, def = null, radius = 1, center = new THREE.Vector3();
+const $ = id => document.getElementById(id);
+const SLIDERS = ['roll','fov','dof','vignette','fog'];
+const RAD = Math.PI / 180, DEG = 180 / Math.PI;
+const _dir = new THREE.Vector3();
+
+function readCamera() {
+  grabbed.forward = camera.position.x;
+  grabbed.height  = camera.position.y;
+  grabbed.lateral = camera.position.z;
+  camera.getWorldDirection(_dir);
+  grabbed.yaw   = Math.atan2(_dir.z, _dir.x) * DEG;
+  grabbed.pitch = Math.asin(THREE.MathUtils.clamp(_dir.y, -1, 1)) * DEG;
+  $('forwardV').textContent = grabbed.forward.toFixed(2);
+  $('heightV').textContent  = grabbed.height.toFixed(2);
+  $('lateralV').textContent = grabbed.lateral.toFixed(2);
+  $('pitchV').textContent   = Math.round(grabbed.pitch) + '°';
+  $('yawV').textContent     = Math.round(grabbed.yaw) + '°';
+}
+function applyEffects() {
+  bokeh.enabled = P.dof > 0;
+  if (P.dof > 0) {
+    bokeh.uniforms['aperture'].value = P.dof * 0.0006;
+    bokeh.uniforms['maxblur'].value = P.dof * 0.02;
+    bokeh.uniforms['focus'].value = Math.max(0.5, center.distanceTo(camera.position));
+  }
+  vignettePass.enabled = P.vignette > 0;
+  vignettePass.uniforms.darkness.value = P.vignette * 1.6;
+  scene.fog = P.fog > 0 ? baseFog : null;
+  if (P.fog > 0) { baseFog.near = 0.5; baseFog.far = THREE.MathUtils.lerp(60, 6, P.fog); }
+}
+
+function view(name) {
+  const d = radius * 3.2, h = center.y;
+  if (name === 'side')      camera.position.set(0.001, h + radius*0.1, center.z + d);
+  else if (name === 'front')camera.position.set(center.x + d, h + radius*0.1, 0.001);
+  else if (name === 'top')  camera.position.set(0.001, d, 0.001);
+  else                      camera.position.set(d*0.7, d*0.5, d*0.7);
+  controls.target.copy(center); controls.update();
+}
+window.view = view;
+
+// seed the camera from the model's saved pov (so you tweak an existing one)
+function seedCameraFromPov() {
+  const pv = def.pov || {};
+  let fwd, hgt, lat = pv.lateral || 0;
+  if (pv.forward != null || pv.height != null) { fwd = pv.forward || 0; hgt = pv.height || 0; }
+  else {
+    const eye = (def.model && def.model.parts || []).find(p => p.shape === 'eyes' && p.pos);
+    if (eye) { fwd = eye.pos[0]; hgt = eye.pos[1]; } else { fwd = radius; hgt = radius * 0.5; }
+  }
+  const yaw = (pv.yaw || 0) * RAD, pitch = (pv.pitch || 0) * RAD;
+  const dir = new THREE.Vector3(Math.cos(yaw)*Math.cos(pitch), Math.sin(pitch), Math.sin(yaw)*Math.cos(pitch));
+  camera.position.set(fwd, hgt, lat);
+  controls.target.copy(camera.position).addScaledVector(dir, Math.max(0.5, radius));
+  controls.update();
+}
+function reseed() { seedCameraFromPov(); }
+window.reseed = reseed;
+
+async function loadModel(id) {
+  if (model) { scene.remove(model); model = null; }
+  try { def = await (await fetch('../config/species/' + id + '.json?t=' + Date.now())).json(); }
+  catch (e) { $('name').textContent = id + ' (load failed)'; return; }
+  model = buildPartsModel((def.model && def.model.parts) || [], def.color);
+  scene.add(model);
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  box.getCenter(center);
+  radius = Math.max(size.x, size.y, size.z) * 0.5 || 1;
+
+  const pv = def.pov || {};
+  P.roll = pv.roll || 0; P.fov = pv.fov != null ? pv.fov : 45;
+  P.dof = pv.dof || 0; P.vignette = pv.vignette || 0; P.fog = pv.fog || 0;
+  for (const s of SLIDERS) { $(s).value = P[s]; $(s + 'V').textContent = (s==='roll'||s==='fov') ? Math.round(P[s])+'°' : P[s].toFixed(2); }
+
+  $('name').textContent = def.name || id;
+  const tier = (MODELS[idx] && MODELS[idx].tier) || '';
+  $('sub').textContent = ((def.model&&def.model.parts||[]).length) + ' parts · scale ' + (def.sizeScale||1) + ' · ' + tier;
+  $('saveState').textContent = def.pov ? 'loaded pov from JSON' : 'no pov yet';
+  $('pick').value = id;
+  try { history.replaceState(null, '', '?m=' + id); } catch(e){}
+  seedCameraFromPov();
+}
+function go(d) { idx = (idx + d + MODELS.length) % MODELS.length; loadModel(MODELS[idx].id); }
+window.go = go;
+
+async function save() {
+  $('saveState').textContent = 'saving…';
+  readCamera();
+  const body = {
+    id: def.id,
+    forward: +grabbed.forward.toFixed(3), height: +grabbed.height.toFixed(3), lateral: +grabbed.lateral.toFixed(3),
+    pitch: +grabbed.pitch.toFixed(1), yaw: +grabbed.yaw.toFixed(1), roll: +(+P.roll).toFixed(1),
+    fov: +(+P.fov).toFixed(1), dof: +(+P.dof).toFixed(3), vignette: +(+P.vignette).toFixed(3), fog: +(+P.fog).toFixed(3),
+  };
+  try {
+    const r = await fetch('/save-pov', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const j = await r.json();
+    if (j.ok) {
+      const t = $('toast'); t.textContent = '✓ Saved ' + j.id; t.style.opacity = 1; setTimeout(() => t.style.opacity = 0, 1600);
+      $('saveState').textContent = 'saved to ' + j.id + '.json';
+    } else $('saveState').textContent = 'save failed: ' + (j.error || '?');
+  } catch (e) { $('saveState').textContent = 'save failed (is server.py running?)'; }
+}
+window.save = save;
+
+for (const s of SLIDERS) {
+  $(s).addEventListener('input', e => {
+    P[s] = +e.target.value;
+    $(s + 'V').textContent = (s==='roll'||s==='fov') ? Math.round(P[s])+'°' : P[s].toFixed(2);
+  });
+}
+
+// WASD / Q·E translate the whole orbit rig (camera + target) so you can fly the
+// eye anywhere while drag still orbits and scroll still zooms.
+const keys = {};
+addEventListener('keydown', e => { const k = e.key.toLowerCase(); if ('wasdqe'.includes(k)) { keys[k] = true; e.preventDefault(); } });
+addEventListener('keyup',   e => { keys[e.key.toLowerCase()] = false; });
+function flyTick(dt) {
+  const sp = (radius * 1.5 + 0.5) * dt;
+  camera.getWorldDirection(_dir);
+  const right = new THREE.Vector3().crossVectors(_dir, new THREE.Vector3(0,1,0)).normalize();
+  const mv = new THREE.Vector3();
+  if (keys['w']) mv.addScaledVector(_dir, sp);
+  if (keys['s']) mv.addScaledVector(_dir, -sp);
+  if (keys['d']) mv.addScaledVector(right, sp);
+  if (keys['a']) mv.addScaledVector(right, -sp);
+  if (keys['e']) mv.y += sp;
+  if (keys['q']) mv.y -= sp;
+  if (mv.lengthSq() > 0) { camera.position.add(mv); controls.target.add(mv); }
+}
+
+async function init() {
+  MODELS = (await (await fetch('models.json?t=' + Date.now())).json()).models;
+  const sel = $('pick');
+  MODELS.forEach(m => { const o = document.createElement('option'); o.value = m.id; o.textContent = m.id; sel.appendChild(o); });
+  sel.onchange = () => { idx = MODELS.findIndex(m => m.id === sel.value); loadModel(sel.value); };
+  const q = new URLSearchParams(location.search).get('m');
+  const qi = MODELS.findIndex(m => m.id === q);
+  idx = qi >= 0 ? qi : 0;
+  loadModel(MODELS[idx].id);
+}
+init();
+
+function resize() {
+  const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); composer.setSize(w,h);
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+
+let last = performance.now();
+renderer.setAnimationLoop(() => {
+  const now = performance.now(), dt = Math.min((now - last)/1000, 0.05); last = now;
+  flyTick(dt);
+  controls.update();
+  camera.fov = fovForAspect(P.fov, camera.aspect); camera.updateProjectionMatrix();
+  if (P.roll) camera.rotateZ(P.roll * RAD); // tilt the horizon after orbit sets orientation
+  applyEffects();
+  readCamera();
+  if (P.dof > 0 || P.vignette > 0) composer.render();
+  else renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>

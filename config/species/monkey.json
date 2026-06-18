@@ -2,6 +2,7 @@
   "_comment": "Jungle L3 omnivore (terrestrial). Grazes vegetation via the shared terrestrial forager AND hunts insects via DIETS: hunts beetle, ant. Casual hunter (high winThreshold).",
   "id": "monkey",
   "sizeScale": 3.5,
+  "pov": { "forward": 1.16, "height": 0.4 },
   "name": "Monkey",
   "behavior": "terrestrial",
   "color": "#6e4b32",

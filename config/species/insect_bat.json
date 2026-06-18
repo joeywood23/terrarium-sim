@@ -2,6 +2,7 @@
   "_comment": "Jungle L2 insectivore (aerial). Small, fast flier. DIETS: hunts beetle, butterfly. Eaten by harpy_eagle.",
   "id": "insect_bat",
   "sizeScale": 1.8,
+  "pov": { "forward": -0.75, "height": 0.36, "pitch": -17, "yaw": 17 },
   "name": "Insect Bat",
   "behavior": "aerial",
   "color": "#3e2723",
