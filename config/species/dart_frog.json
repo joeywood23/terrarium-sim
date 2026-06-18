@@ -1,6 +1,7 @@
 {
   "_comment": "Jungle L2 insectivore (terrestrial). Rides the frog archetype. DIETS: hunts ant, beetle. Vivid poison-dart coloring.",
   "id": "dart_frog",
+  "sizeScale": 1.1,
   "name": "Poison Dart Frog",
   "behavior": "terrestrial",
   "color": "#00bcd4",

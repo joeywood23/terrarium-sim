@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Scale Lineup</title>
+<style> html,body{margin:0;height:100%;background:#0e1218;overflow:hidden;} #c{display:block;} </style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+} }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="module">
+import * as THREE from 'three';
+
+function eyePair(fwd, up, side, r = 0.12) {
+  const g = new THREE.Group();
+  const m = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 });
+  for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), m); e.position.set(fwd, up, s * side); g.add(e); }
+  return g;
+}
+function buildPartsModel(parts, baseColor) {
+  const g = new THREE.Group();
+  const bodyCol = new THREE.Color(baseColor != null ? baseColor : 0xffffff);
+  for (const part of (parts || [])) {
+    if (part.shape === 'eyes') { const p = part.pos || [0.3,0.2,0.2]; g.add(eyePair(p[0],p[1],p[2],part.r||0.1)); continue; }
+    let geo;
+    switch (part.shape) {
+      case 'sphere': geo = new THREE.SphereGeometry(0.5,12,9); break;
+      case 'cone': geo = new THREE.ConeGeometry(0.5,1,10); break;
+      case 'cylinder': geo = new THREE.CylinderGeometry(0.5,0.5,1,10); break;
+      default: geo = new THREE.BoxGeometry(1,1,1);
+    }
+    const spec = part.color;
+    const col = (spec==null||spec==='body') ? bodyCol.clone()
+      : spec==='bodyDark' ? bodyCol.clone().multiplyScalar(0.7)
+      : spec==='accent' ? bodyCol.clone().offsetHSL(0.5,0,0)
+      : new THREE.Color(spec);
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: col, roughness: 0.6, metalness: 0 }));
+    const s = part.scale==null ? [1,1,1] : (Array.isArray(part.scale)?part.scale:[part.scale,part.scale,part.scale]);
+    m.scale.set(s[0],s[1],s[2]);
+    if (part.pos) m.position.set(part.pos[0],part.pos[1],part.pos[2]);
+    if (part.rot) m.rotation.set(part.rot[0],part.rot[1],part.rot[2]);
+    g.add(m);
+  }
+  return g;
+}
+function label(text, color, size) {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 48;
+  const x = cv.getContext('2d');
+  x.fillStyle = color || '#cdd6e3'; x.font = 'bold 22px system-ui'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText(text, 128, 24);
+  const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(size*2.2, size*0.42),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+  return m;
+}
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0e1218);
+scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x202018, 1.0));
+const key = new THREE.DirectionalLight(0xffffff, 1.5); key.position.set(5,10,6); scene.add(key);
+const fill = new THREE.DirectionalLight(0xa9c6ff, 0.5); fill.position.set(-4,3,-4); scene.add(fill);
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 2000);
+window.__ready = false;
+
+// frog reference: build the engine's frog body footprint at scale 1 (≈ 2cm).
+// We approximate frog visual height from FROG hitbox used in main (H≈0.9, *1.1 dome).
+async function run() {
+  const order = (await (await fetch('models.json?t='+Date.now())).json()).models;
+  // ground line of all models; spacing scales with width so big ones don't overlap
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 24),
+    new THREE.MeshStandardMaterial({ color: 0x161b24, roughness: 1 }));
+  ground.rotation.x = -Math.PI/2; scene.add(ground);
+
+  let x = 0; const gap = 0.6;
+  let maxH = 1;
+  // include a frog reference marker first
+  const items = [{ id: '__frog__', name: 'Frog (2cm ref)', scale: 1.0 }].concat(order);
+  for (const it of items) {
+    let parts, color, scale, name;
+    if (it.id === '__frog__') {
+      // simple green dome standing in for the frog reference
+      parts = [
+        { shape:'sphere', pos:[0,0.1,0], scale:[1.6,0.99,2.2], color:'body' },
+        { shape:'sphere', pos:[0.5,0.55,0.6], scale:[0.3,0.3,0.3], color:'body' },
+        { shape:'sphere', pos:[0.5,0.55,-0.6], scale:[0.3,0.3,0.3], color:'body' }
+      ];
+      color = '#2ecc40'; scale = 1.0; name = it.name;
+    } else {
+      let def; try { def = await (await fetch('../config/species/'+it.id+'.json?t='+Date.now())).json(); } catch(e){ continue; }
+      if (!def.model || !def.model.parts) continue;
+      parts = def.model.parts; color = def.color; scale = def.sizeScale || 1; name = def.name || it.id;
+    }
+    const g = buildPartsModel(parts, color);
+    g.scale.setScalar(scale);
+    const box = new THREE.Box3().setFromObject(g); const size = box.getSize(new THREE.Vector3());
+    const w = size.x, h = size.y; maxH = Math.max(maxH, h);
+    // place: seat on ground (y=0), center this slot at x + w/2
+    g.position.set(x + w/2, -box.min.y, 0);
+    g.rotation.y = -0.35;
+    scene.add(g);
+    const lb = label(name, color, Math.max(1.4, w*0.6));
+    lb.position.set(x + w/2, -0.05, size.z*0.5 + Math.max(1.4, w*0.6)*0.3 + 0.6);
+    lb.rotation.x = -Math.PI/2; scene.add(lb);
+    x += w + gap;
+  }
+  const totalW = x;
+  // camera frames the whole row: pull back enough that the full width fits the
+  // horizontal FOV, with headroom for the tallest model.
+  const halfFovV = (35 * Math.PI/180) / 2;
+  const aspect = innerWidth / Math.max(1, innerHeight);
+  const halfFovH = Math.atan(Math.tan(halfFovV) * aspect);
+  const distW = (totalW * 0.5 * 1.08) / Math.tan(halfFovH); // fit width
+  const distH = (maxH * 0.6) / Math.tan(halfFovV);          // fit height
+  const dist = Math.max(distW, distH);
+  camera.position.set(totalW*0.5, maxH*0.5, dist);
+  camera.lookAt(totalW*0.5, maxH*0.3, 0);
+  resize();
+  window.__ready = true;
+}
+function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+renderer.setAnimationLoop(() => renderer.render(scene, camera));
+run();
+</script>
+</body>
+</html>

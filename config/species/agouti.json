@@ -1,6 +1,7 @@
 {
   "_comment": "Jungle L1 herbivore rodent (terrestrial). Grazes vegetation. Pure prey. Eaten by jaguar, ocelot, boa.",
   "id": "agouti",
+  "sizeScale": 3.0,
   "name": "Agouti",
   "behavior": "terrestrial",
   "color": "#795548",

@@ -1,6 +1,7 @@
 {
   "_comment": "Jungle L2 omnivore (aerial). Scavenges (flier archetype) and occasionally snaps insects via DIETS: hunts insect (rarely; high winThreshold). Prey itself — eaten by harpy_eagle, boa, ocelot, black_caiman.",
   "id": "macaw",
+  "sizeScale": 4.0,
   "name": "Macaw",
   "behavior": "aerial",
   "color": "#e53935",

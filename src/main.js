@@ -1181,6 +1181,26 @@ function buildPartsModel(parts, baseColor, tint) {
   return g;
 }
 
+/* Wrap a detailed-model builder so its output is scaled by `s` (real-world size
+ * ratio). When `seat` is true (ground animals), the model's bottom is pinned in
+ * place so it grows upward from its feet — scaling never shifts where it sits.
+ * Otherwise it scales about the origin (swimmers/fliers, positioned by centre). */
+function scaleBuilder(buildFn, s, seat) {
+  return (tint) => {
+    const g = buildFn(tint);
+    if (seat) {
+      const minY = new THREE.Box3().setFromObject(g).min.y; // unscaled foot line
+      g.scale.setScalar(s);
+      g.position.y = minY * (1 - s);                        // keep that foot line fixed
+    } else {
+      g.scale.setScalar(s);
+    }
+    const wrap = new THREE.Group();
+    wrap.add(g);
+    return wrap;
+  };
+}
+
 function buildFrogDetailed() {
   const L = FROG.length, H = FROG.height, W = FROG.width;
   const g = new THREE.Group();
@@ -1255,8 +1275,8 @@ function buildFlierDetailed(type) {
 }
 
 const DETAILED_BUILDERS = {
-  fish: buildFishDetailed,
-  frog: buildFrogDetailed,
+  fish: scaleBuilder(buildFishDetailed, 1.4, false), // tetra ~4cm; koi reuses this
+  frog: buildFrogDetailed,                           // 2cm reference (sizeScale 1.0)
   insect: () => buildFlierDetailed('insect'),
 };
 
@@ -2921,6 +2941,12 @@ function registerSpecies() {
       : (d.model && d.model.builtin && DETAILED_BUILDERS[d.model.builtin])
         ? (t) => DETAILED_BUILDERS[d.model.builtin](d.geneticColor ? t : new THREE.Color(d.color != null ? d.color : 0xffffff))
         : (t) => DETAILED_BUILDERS[archBuiltin](d.geneticColor ? t : new THREE.Color(d.color != null ? d.color : 0xffffff));
+    // Real-world size: scale the detailed model by the species' sizeScale.
+    // Ground animals (terrestrial) grow upward from their feet so seating is
+    // preserved; free swimmers/fliers scale about their centre.
+    if (d.sizeScale != null && d.sizeScale !== 1) {
+      DETAILED_BUILDERS[d.id] = scaleBuilder(DETAILED_BUILDERS[d.id], d.sizeScale, arch === 'terrestrial');
+    }
 
     EGG_STYLE[d.id] = d.egg || EGG_STYLE[archBuiltin];           // own egg or the archetype's
     POP_SERIES.push({ key: d.id, label: d.name || d.id, color: d.chartColor || d.color || '#cccccc' });

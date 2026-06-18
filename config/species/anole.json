@@ -1,6 +1,7 @@
 {
   "_comment": "Jungle L2 insectivore lizard (terrestrial). Rides the frog archetype. DIETS: hunts ant, beetle.",
   "id": "anole",
+  "sizeScale": 1.8,
   "name": "Anole Lizard",
   "behavior": "terrestrial",
   "color": "#7cb342",

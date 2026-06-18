@@ -1,6 +1,7 @@
 {
   "_comment": "Jungle L3 predator (aquatic). Rides the fish archetype. cfg.contactRadius/winThreshold tune its catch (low winThreshold = high catch rate). DIETS: hunts fish (tetra), insect. reach restricts catches to open water.",
   "id": "piranha",
+  "sizeScale": 2.2,
   "name": "Piranha",
   "behavior": "aquatic",
   "color": "#8fa3ad",
