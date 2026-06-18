@@ -3217,6 +3217,7 @@ function birdTick(dt) {
  * ============================================================ */
 const HUNGER = CONFIG.hunger;
 const barsGroup = new THREE.Group();
+barsGroup.visible = false; // hunger bars off by default (toggle via the Hunger bars button)
 platformGroup.add(barsGroup);
 
 const barBgGeo = new THREE.PlaneGeometry(1, 1);
