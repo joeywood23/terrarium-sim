@@ -1,0 +1,28 @@
+{
+  "_comment": "Jungle L2 swarm predator (aerial archetype, ground-bound). Army ant — raids in columns, overwhelms prey. DIETS: hunts insect, beetle, termite, ant. reach = on land.",
+  "id": "army_ant",
+  "sizeScale": 0.8,
+  "name": "Army Ant",
+  "behavior": "aerial",
+  "color": "#5a1e10",
+  "chartColor": "#8a3420",
+  "cfg": {
+    "length": 0.5, "width": 0.4, "height": 0.3,
+    "walkSpeed": 0.9, "altMin": 1, "altMax": 3,
+    "walkFlightMin": 120, "walkFlightMax": 300,
+    "contactRadius": 1.2, "winThreshold": 0.5
+  },
+  "breeding": { "mtbLayEgg": 12, "growthFood": 10, "juvenileScale": 0.5 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.28, 0.06, 0], "scale": [0.18, 0.16, 0.16], "color": "body" },
+    { "shape": "sphere", "pos": [0.08, 0.05, 0], "scale": [0.18, 0.16, 0.16], "color": "body" },
+    { "shape": "sphere", "pos": [-0.2, 0.05, 0], "scale": [0.26, 0.22, 0.22], "color": "body" },
+    { "shape": "cone", "pos": [0.42, 0.04, 0.06], "rot": [0, 0, -1.2], "scale": [0.04, 0.16, 0.04], "color": "#3a1208" },
+    { "shape": "cone", "pos": [0.42, 0.04, -0.06], "rot": [0, 0, -1.2], "scale": [0.04, 0.16, 0.04], "color": "#3a1208" },
+    { "shape": "cylinder", "pos": [0.12, -0.05, 0.14], "rot": [0.7, 0, 0], "scale": [0.02, 0.24, 0.02], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.12, -0.05, -0.14], "rot": [-0.7, 0, 0], "scale": [0.02, 0.24, 0.02], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.06, -0.05, 0.14], "rot": [0.9, 0, 0], "scale": [0.02, 0.24, 0.02], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.06, -0.05, -0.14], "rot": [-0.9, 0, 0], "scale": [0.02, 0.24, 0.02], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.32, 0.08, 0.07], "r": 0.025 }
+  ] }
+}

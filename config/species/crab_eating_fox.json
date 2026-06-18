@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L3 mesopredator (terrestrial). Crab-eating fox — grizzled forest canid, bushy tail. DIETS: hunts agouti, acouchi, frog, anole, beetle. reach = on land.",
+  "id": "crab_eating_fox",
+  "sizeScale": 3.0,
+  "name": "Crab-eating Fox",
+  "behavior": "terrestrial",
+  "color": "#7d756a",
+  "chartColor": "#968d80",
+  "cfg": { "contactRadius": 2.8, "winThreshold": 0.45 },
+  "breeding": { "mtbLayEgg": 44, "growthFood": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [1.35, 0.52, 0.54], "color": "body" },
+    { "shape": "sphere", "pos": [0.68, 0.06, 0], "scale": [0.56, 0.5, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [1.0, 0.14, 0], "scale": [0.4, 0.38, 0.4], "color": "body" },
+    { "shape": "cone", "pos": [1.32, 0.08, 0], "rot": [0, 0, -1.5708], "scale": [0.2, 0.36, 0.2], "color": "body" },
+    { "shape": "sphere", "pos": [1.46, 0.06, 0], "scale": [0.1, 0.1, 0.12], "color": "#241810" },
+    { "shape": "cone", "pos": [0.92, 0.42, 0.16], "scale": [0.13, 0.2, 0.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.92, 0.42, -0.16], "scale": [0.13, 0.2, 0.1], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.6, -0.24, 0.24], "scale": [0.1, 0.46, 0.1], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.6, -0.24, -0.24], "scale": [0.1, 0.46, 0.1], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.58, -0.24, 0.26], "scale": [0.1, 0.46, 0.1], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.58, -0.24, -0.26], "scale": [0.1, 0.46, 0.1], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-1.15, 0.18, 0], "rot": [0, 0, 1.4], "scale": [0.16, 0.8, 0.16], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [1.18, 0.18, 0.15], "r": 0.05 }
+  ] }
+}

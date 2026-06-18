@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer. Passionflower vine — purple blooms and fruit at the forest edge.",
+  "id": "passionflower",
+  "name": "Passionflower Vine",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#d9c2ee",
+  "colorOld": "#6a3a9e",
+  "chartColor": "#8e44c0",
+  "maxRadius": 1.1,
+  "seedShare": 0.7
+}

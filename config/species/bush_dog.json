@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L3 mesopredator (terrestrial). Bush dog — stocky short-legged pack hunter. DIETS: hunts agouti, paca, acouchi, capybara. reach = on land.",
+  "id": "bush_dog",
+  "sizeScale": 3.0,
+  "name": "Bush Dog",
+  "behavior": "terrestrial",
+  "color": "#6e4a30",
+  "chartColor": "#8a5f3e",
+  "cfg": { "contactRadius": 3.0, "winThreshold": 0.4 },
+  "breeding": { "mtbLayEgg": 48, "growthFood": 32 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [1.3, 0.6, 0.6], "color": "body" },
+    { "shape": "sphere", "pos": [0.68, 0.06, 0], "scale": [0.58, 0.54, 0.54], "color": "body" },
+    { "shape": "sphere", "pos": [1.0, 0.12, 0], "scale": [0.42, 0.4, 0.42], "color": "body" },
+    { "shape": "box", "pos": [1.28, 0.06, 0], "scale": [0.28, 0.24, 0.26], "color": "body" },
+    { "shape": "sphere", "pos": [1.44, 0.06, 0], "scale": [0.1, 0.1, 0.12], "color": "#241810" },
+    { "shape": "cone", "pos": [0.9, 0.38, 0.16], "scale": [0.13, 0.16, 0.1], "color": "body" },
+    { "shape": "cone", "pos": [0.9, 0.38, -0.16], "scale": [0.13, 0.16, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [0.6, -0.26, 0.26], "scale": [0.12, 0.4, 0.12], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.6, -0.26, -0.26], "scale": [0.12, 0.4, 0.12], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.58, -0.26, 0.28], "scale": [0.12, 0.4, 0.12], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.58, -0.26, -0.28], "scale": [0.12, 0.4, 0.12], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-1.0, 0.14, 0], "rot": [0, 0, 1.3], "scale": [0.1, 0.5, 0.1], "color": "body" },
+    { "shape": "eyes", "pos": [1.18, 0.16, 0.16], "r": 0.05 }
+  ] }
+}

@@ -1,0 +1,30 @@
+{
+  "_comment": "Jungle L2 ground predator (aerial archetype, ground-bound). Bullet ant — large, with the most painful insect sting. DIETS: hunts insect, termite, ant. reach = on land.",
+  "id": "bullet_ant",
+  "sizeScale": 0.9,
+  "name": "Bullet Ant",
+  "behavior": "aerial",
+  "color": "#2a1810",
+  "chartColor": "#5a3420",
+  "cfg": {
+    "length": 0.55, "width": 0.42, "height": 0.32,
+    "walkSpeed": 0.7, "altMin": 1, "altMax": 3,
+    "walkFlightMin": 110, "walkFlightMax": 280,
+    "contactRadius": 1.3, "winThreshold": 0.5
+  },
+  "breeding": { "mtbLayEgg": 14, "growthFood": 11, "juvenileScale": 0.5 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.3, 0.06, 0], "scale": [0.2, 0.18, 0.18], "color": "body" },
+    { "shape": "sphere", "pos": [0.08, 0.05, 0], "scale": [0.2, 0.18, 0.18], "color": "body" },
+    { "shape": "sphere", "pos": [-0.22, 0.05, 0], "scale": [0.3, 0.26, 0.26], "color": "body" },
+    { "shape": "cone", "pos": [0.46, 0.04, 0.06], "rot": [0, 0, -1.2], "scale": [0.04, 0.18, 0.04], "color": "#1a0c06" },
+    { "shape": "cone", "pos": [0.46, 0.04, -0.06], "rot": [0, 0, -1.2], "scale": [0.04, 0.18, 0.04], "color": "#1a0c06" },
+    { "shape": "cylinder", "pos": [0.36, 0.2, 0.05], "rot": [0, 0, 0.6], "scale": [0.02, 0.2, 0.02], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.36, 0.2, -0.05], "rot": [0, 0, 0.6], "scale": [0.02, 0.2, 0.02], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.12, -0.06, 0.15], "rot": [0.7, 0, 0], "scale": [0.025, 0.26, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.12, -0.06, -0.15], "rot": [-0.7, 0, 0], "scale": [0.025, 0.26, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.08, -0.06, 0.15], "rot": [0.9, 0, 0], "scale": [0.025, 0.26, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.08, -0.06, -0.15], "rot": [-0.9, 0, 0], "scale": [0.025, 0.26, 0.025], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.34, 0.09, 0.08], "r": 0.025 }
+  ] }
+}

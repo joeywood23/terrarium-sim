@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L1 prey (aerial). Firefly — a soft drifting flier with a glowing abdomen (glow:true). Pure prey (scavenges by default). Eaten by frogs, bats, mantis, dragonfly.",
+  "id": "firefly",
+  "sizeScale": 1.0,
+  "name": "Firefly",
+  "behavior": "aerial",
+  "color": "#2a2a1a",
+  "chartColor": "#c8e84a",
+  "cfg": {
+    "length": 0.5, "width": 0.5, "height": 0.3,
+    "walkSpeed": 0.8, "flySpeed": 5, "altMin": 1, "altMax": 12,
+    "flightDurMin": 6, "flightDurMax": 18, "loopChance": 0.3
+  },
+  "breeding": { "mtbLayEgg": 14, "growthFood": 10, "juvenileScale": 0.5 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [-0.1, 0.0, 0], "scale": [0.55, 0.3, 0.3], "color": "body" },
+    { "shape": "sphere", "pos": [0.28, 0.02, 0], "scale": [0.2, 0.2, 0.2], "color": "#8a2a1a" },
+    { "shape": "sphere", "pos": [-0.34, 0.0, 0], "scale": [0.26, 0.22, 0.22], "color": "#d8f04a", "glow": true },
+    { "shape": "box", "pos": [-0.05, 0.06, 0.22], "rot": [0, 0.2, 0.1], "scale": [0.34, 0.02, 0.4], "color": "#3a3a2a" },
+    { "shape": "box", "pos": [-0.05, 0.06, -0.22], "rot": [0, -0.2, -0.1], "scale": [0.34, 0.02, 0.4], "color": "#3a3a2a" },
+    { "shape": "cylinder", "pos": [0.34, 0.12, 0.05], "rot": [0, 0, 0.6], "scale": [0.015, 0.16, 0.015], "color": "#1a1a1a" },
+    { "shape": "cylinder", "pos": [0.34, 0.12, -0.05], "rot": [0, 0, 0.6], "scale": [0.015, 0.16, 0.015], "color": "#1a1a1a" },
+    { "shape": "eyes", "pos": [0.32, 0.06, 0.08], "r": 0.03 }
+  ] }
+}

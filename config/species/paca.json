@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L1 herbivore rodent (terrestrial). Paca — large spotted nocturnal rodent. Pure forager, no DIETS row. Prey for jaguar, puma, ocelot, boa, bush_dog, tayra.",
+  "id": "paca",
+  "sizeScale": 3.2,
+  "name": "Paca",
+  "behavior": "terrestrial",
+  "color": "#6e5340",
+  "chartColor": "#8a6850",
+  "breeding": { "mtbLayEgg": 22, "growthFood": 20 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.1, 0], "scale": [1.0, 0.6, 0.56], "color": "body" },
+    { "shape": "sphere", "pos": [-0.35, 0.16, 0], "scale": [0.66, 0.64, 0.58], "color": "body" },
+    { "shape": "sphere", "pos": [0.45, 0.08, 0], "scale": [0.52, 0.5, 0.48], "color": "body" },
+    { "shape": "sphere", "pos": [0.78, 0.12, 0], "scale": [0.4, 0.38, 0.38], "color": "body" },
+    { "shape": "box", "pos": [1.04, 0.08, 0], "scale": [0.26, 0.24, 0.26], "color": "body" },
+    { "shape": "sphere", "pos": [1.18, 0.07, 0], "scale": [0.08, 0.08, 0.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.74, 0.4, 0.13], "scale": [0.08, 0.14, 0.06], "color": "body" },
+    { "shape": "cone", "pos": [0.74, 0.4, -0.13], "scale": [0.08, 0.14, 0.06], "color": "body" },
+    { "shape": "eyes", "pos": [0.92, 0.22, 0.15], "r": 0.055 },
+    { "shape": "cylinder", "pos": [0.42, -0.22, 0.22], "scale": [0.09, 0.4, 0.09], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.42, -0.22, -0.22], "scale": [0.09, 0.4, 0.09], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.4, -0.2, 0.24], "scale": [0.1, 0.44, 0.1], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.4, -0.2, -0.24], "scale": [0.1, 0.44, 0.1], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.0, 0.28, 0.34], "scale": [0.4, 0.06, 0.12], "color": "#d8c8a8" },
+    { "shape": "sphere", "pos": [0.0, 0.28, -0.34], "scale": [0.4, 0.06, 0.12], "color": "#d8c8a8" }
+  ] }
+}

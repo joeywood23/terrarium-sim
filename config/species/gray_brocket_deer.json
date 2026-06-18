@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L1 herbivore (terrestrial). Gray brocket deer — grayish-brown forest deer. Pure forager, no DIETS row. Prey for jaguar, puma, anaconda.",
+  "id": "gray_brocket_deer",
+  "sizeScale": 4.0,
+  "name": "Gray Brocket Deer",
+  "behavior": "terrestrial",
+  "color": "#7c7066",
+  "chartColor": "#948980",
+  "breeding": { "mtbLayEgg": 38, "growthFood": 32 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.1, 0], "scale": [1.25, 0.58, 0.54], "color": "body" },
+    { "shape": "sphere", "pos": [0.68, 0.2, 0], "scale": [0.48, 0.48, 0.46], "color": "body" },
+    { "shape": "cylinder", "pos": [0.96, 0.4, 0], "rot": [0, 0, 0.5], "scale": [0.2, 0.48, 0.22], "color": "body" },
+    { "shape": "sphere", "pos": [1.14, 0.58, 0], "scale": [0.26, 0.26, 0.28], "color": "body" },
+    { "shape": "box", "pos": [1.32, 0.52, 0], "scale": [0.16, 0.13, 0.18], "color": "bodyDark" },
+    { "shape": "cone", "pos": [1.08, 0.8, 0.07], "scale": [0.04, 0.2, 0.04], "color": "#d8ccb8" },
+    { "shape": "cone", "pos": [1.08, 0.8, -0.07], "scale": [0.04, 0.2, 0.04], "color": "#d8ccb8" },
+    { "shape": "cone", "pos": [1.0, 0.74, 0.18], "scale": [0.06, 0.13, 0.06], "color": "body" },
+    { "shape": "cone", "pos": [1.0, 0.74, -0.18], "scale": [0.06, 0.13, 0.06], "color": "body" },
+    { "shape": "cylinder", "pos": [0.58, -0.32, 0.25], "scale": [0.08, 0.58, 0.08], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.58, -0.32, -0.25], "scale": [0.08, 0.58, 0.08], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.58, -0.32, 0.27], "scale": [0.08, 0.58, 0.08], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.58, -0.32, -0.27], "scale": [0.08, 0.58, 0.08], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.82, 0.18, 0], "scale": [0.13, 0.16, 0.11], "color": "#e8e0d4" },
+    { "shape": "eyes", "pos": [1.14, 0.62, 0.15], "r": 0.05 }
+  ] }
+}

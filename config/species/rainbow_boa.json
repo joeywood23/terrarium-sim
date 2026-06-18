@@ -1,0 +1,28 @@
+{
+  "_comment": "Jungle L3 mesopredator (terrestrial). Brazilian rainbow boa — iridescent reddish constrictor. DIETS: hunts agouti, acouchi, anole, frog, opossum. reach = on land.",
+  "id": "rainbow_boa",
+  "sizeScale": 3.0,
+  "name": "Rainbow Boa",
+  "behavior": "terrestrial",
+  "color": "#a8492e",
+  "chartColor": "#c05a38",
+  "cfg": { "contactRadius": 2.8, "winThreshold": 0.45 },
+  "breeding": { "mtbLayEgg": 54, "growthFood": 36 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [1.55, -0.05, 0], "scale": [0.42, 0.28, 0.38], "color": "body" },
+    { "shape": "sphere", "pos": [1.78, -0.06, 0], "scale": [0.18, 0.14, 0.22], "color": "body" },
+    { "shape": "sphere", "pos": [1.28, -0.04, 0.05], "scale": [0.42, 0.38, 0.42], "color": "body" },
+    { "shape": "sphere", "pos": [0.96, -0.04, 0.2], "scale": [0.48, 0.44, 0.48], "color": "body" },
+    { "shape": "sphere", "pos": [0.62, -0.04, 0.26], "scale": [0.5, 0.46, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.28, -0.04, 0.14], "scale": [0.5, 0.46, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [-0.04, -0.04, -0.04], "scale": [0.48, 0.44, 0.48], "color": "body" },
+    { "shape": "sphere", "pos": [-0.36, -0.04, -0.22], "scale": [0.44, 0.4, 0.44], "color": "body" },
+    { "shape": "sphere", "pos": [-0.68, -0.04, -0.28], "scale": [0.38, 0.34, 0.38], "color": "body" },
+    { "shape": "sphere", "pos": [-1.0, -0.04, -0.18], "scale": [0.3, 0.27, 0.3], "color": "body" },
+    { "shape": "sphere", "pos": [-1.26, -0.04, 0.0], "scale": [0.18, 0.16, 0.18], "color": "body" },
+    { "shape": "sphere", "pos": [1.1, 0.1, 0.1], "scale": [0.2, 0.06, 0.2], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.45, 0.1, 0.22], "scale": [0.2, 0.06, 0.2], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.2, 0.1, -0.1], "scale": [0.2, 0.06, 0.2], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [1.66, 0.04, 0.14], "r": 0.045 }
+  ] }
+}

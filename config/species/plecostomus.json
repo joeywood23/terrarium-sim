@@ -1,0 +1,20 @@
+{
+  "_comment": "Jungle L1 herbivore (aquatic). Armored suckermouth catfish — rasps algae off rocks. Pure forager, no DIETS row. Prey for caiman, otter.",
+  "id": "plecostomus",
+  "sizeScale": 2.0,
+  "name": "Armored Catfish",
+  "behavior": "aquatic",
+  "color": "#3e3a30",
+  "chartColor": "#5e5848",
+  "breeding": { "mtbLayEgg": 30, "growthFood": 20 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.3, 0.42, 0.62], "color": "body" },
+    { "shape": "sphere", "pos": [0.78, 0.02, 0], "scale": [0.6, 0.4, 0.66], "color": "body" },
+    { "shape": "sphere", "pos": [1.1, -0.12, 0], "scale": [0.28, 0.18, 0.34], "color": "#6a6450" },
+    { "shape": "box", "pos": [-0.2, 0.34, 0], "scale": [0.7, 0.34, 0.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-1.0, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.4, 0.5, 0.1], "color": "bodyDark" },
+    { "shape": "box", "pos": [0.5, -0.2, 0.4], "rot": [0, 0, 0.3], "scale": [0.5, 0.08, 0.2], "color": "bodyDark" },
+    { "shape": "box", "pos": [0.5, -0.2, -0.4], "rot": [0, 0, 0.3], "scale": [0.5, 0.08, 0.2], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.78, 0.18, 0.24], "r": 0.05 }
+  ] }
+}

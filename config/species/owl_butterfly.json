@@ -1,0 +1,29 @@
+{
+  "_comment": "Jungle L1 prey (aerial). Owl butterfly — large brown wings with intimidating eyespots. Pure prey (scavenges by default). Eaten by birds, frogs, mantis, insect_bat.",
+  "id": "owl_butterfly",
+  "sizeScale": 2.0,
+  "name": "Owl Butterfly",
+  "behavior": "aerial",
+  "color": "#8a6a44",
+  "chartColor": "#8a6a44",
+  "cfg": {
+    "length": 0.8, "width": 1.0, "height": 0.3,
+    "walkSpeed": 1.0, "flySpeed": 5, "altMin": 2, "altMax": 14,
+    "flightDurMin": 6, "flightDurMax": 16, "loopChance": 0.35
+  },
+  "breeding": { "mtbLayEgg": 15, "growthFood": 12, "juvenileScale": 0.5 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.55, 0.12, 0.12], "color": "#2a2018" },
+    { "shape": "sphere", "pos": [0.28, 0.02, 0], "scale": [0.12, 0.12, 0.12], "color": "#2a2018" },
+    { "shape": "cylinder", "pos": [0.32, 0.14, 0.04], "rot": [0, 0, 0.5], "scale": [0.02, 0.2, 0.02], "color": "#2a2018" },
+    { "shape": "cylinder", "pos": [0.32, 0.14, -0.04], "rot": [0, 0, 0.5], "scale": [0.02, 0.2, 0.02], "color": "#2a2018" },
+    { "shape": "sphere", "pos": [0.1, 0.08, 0.46], "rot": [0.35, 0, 0], "scale": [0.55, 0.04, 0.55], "color": "body" },
+    { "shape": "sphere", "pos": [0.1, 0.08, -0.46], "rot": [-0.35, 0, 0], "scale": [0.55, 0.04, 0.55], "color": "body" },
+    { "shape": "sphere", "pos": [-0.3, 0.06, 0.36], "rot": [0.3, 0, 0], "scale": [0.44, 0.04, 0.46], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.3, 0.06, -0.36], "rot": [-0.3, 0, 0], "scale": [0.44, 0.04, 0.46], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.32, 0.08, 0.4], "rot": [0.3, 0, 0], "scale": [0.18, 0.05, 0.18], "color": "#1a1208" },
+    { "shape": "sphere", "pos": [-0.32, 0.08, -0.4], "rot": [-0.3, 0, 0], "scale": [0.18, 0.05, 0.18], "color": "#1a1208" },
+    { "shape": "sphere", "pos": [-0.32, 0.1, 0.4], "rot": [0.3, 0, 0], "scale": [0.08, 0.05, 0.08], "color": "#e8e0d0" },
+    { "shape": "sphere", "pos": [-0.32, 0.1, -0.4], "rot": [-0.3, 0, 0], "scale": [0.08, 0.05, 0.08], "color": "#e8e0d0" }
+  ] }
+}

@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L2 carnivore lizard (terrestrial, semi-aquatic). Caiman lizard — armored green body, orange head, crushes snails at the waterline. DIETS: hunts frog, beetle, insect. reach = waterline + water (shoreOrWater).",
+  "id": "caiman_lizard",
+  "sizeScale": 3.2,
+  "name": "Caiman Lizard",
+  "behavior": "terrestrial",
+  "color": "#3f7a3a",
+  "chartColor": "#4f9447",
+  "cfg": { "contactRadius": 2.6, "winThreshold": 0.45 },
+  "breeding": { "mtbLayEgg": 46, "growthFood": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.15, 0.5, 0.56], "color": "body" },
+    { "shape": "sphere", "pos": [0.62, 0.02, 0], "scale": [0.52, 0.44, 0.5], "color": "#c47a32" },
+    { "shape": "box", "pos": [0.96, 0.0, 0], "scale": [0.4, 0.34, 0.4], "color": "#c47a32" },
+    { "shape": "eyes", "pos": [1.0, 0.18, 0.17], "r": 0.05 },
+    { "shape": "cylinder", "pos": [0.5, -0.18, 0.36], "rot": [0.9, 0, 0], "scale": [0.1, 0.42, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [0.5, -0.18, -0.36], "rot": [-0.9, 0, 0], "scale": [0.1, 0.42, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.45, -0.18, 0.36], "rot": [0.9, 0, 0], "scale": [0.1, 0.42, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.45, -0.18, -0.36], "rot": [-0.9, 0, 0], "scale": [0.1, 0.42, 0.1], "color": "body" },
+    { "shape": "sphere", "pos": [-0.7, 0.0, 0], "scale": [0.6, 0.34, 0.34], "color": "body" },
+    { "shape": "cone", "pos": [-1.6, 0.02, 0], "rot": [0, 0, 1.5708], "scale": [0.18, 0.85, 0.12], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.0, 0.28, 0], "scale": [0.12, 0.16, 0.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.4, 0.24, 0], "scale": [0.1, 0.14, 0.09], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.35, 0.26, 0], "scale": [0.1, 0.14, 0.09], "color": "bodyDark" }
+  ] }
+}

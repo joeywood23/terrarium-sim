@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L1 herbivore (terrestrial). Green iguana — large folivorous lizard with a dorsal crest and dewlap. Pure forager, no DIETS row. Prey for harpy_eagle, jaguar, boa, caiman.",
+  "id": "green_iguana",
+  "sizeScale": 4.0,
+  "name": "Green Iguana",
+  "behavior": "terrestrial",
+  "color": "#5a9a3a",
+  "chartColor": "#6cb347",
+  "breeding": { "mtbLayEgg": 40, "growthFood": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.2, 0.5, 0.54], "color": "body" },
+    { "shape": "sphere", "pos": [0.66, 0.02, 0], "scale": [0.5, 0.4, 0.44], "color": "body" },
+    { "shape": "box", "pos": [0.98, 0.02, 0], "scale": [0.36, 0.3, 0.34], "color": "body" },
+    { "shape": "sphere", "pos": [0.92, -0.18, 0], "scale": [0.2, 0.22, 0.3], "color": "#cdd6a0" },
+    { "shape": "eyes", "pos": [1.02, 0.16, 0.16], "r": 0.05 },
+    { "shape": "cone", "pos": [0.7, 0.32, 0], "scale": [0.06, 0.18, 0.03], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.3, 0.34, 0], "scale": [0.06, 0.22, 0.03], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.1, 0.32, 0], "scale": [0.06, 0.2, 0.03], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.5, 0.26, 0], "scale": [0.05, 0.16, 0.03], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.5, -0.16, 0.34], "rot": [0.9, 0, 0], "scale": [0.09, 0.42, 0.09], "color": "body" },
+    { "shape": "cylinder", "pos": [0.5, -0.16, -0.34], "rot": [-0.9, 0, 0], "scale": [0.09, 0.42, 0.09], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.45, -0.16, 0.34], "rot": [0.9, 0, 0], "scale": [0.09, 0.42, 0.09], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.45, -0.16, -0.34], "rot": [-0.9, 0, 0], "scale": [0.09, 0.42, 0.09], "color": "body" },
+    { "shape": "cone", "pos": [-1.7, 0.04, 0], "rot": [0, 0, 1.5708], "scale": [0.16, 1.0, 0.12], "color": "body" }
+  ] }
+}

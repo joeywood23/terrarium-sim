@@ -1,0 +1,23 @@
+{
+  "_comment": "Jungle L3 predator (aquatic). Matamata — knobbly flat shell, snorkel snout, ambush suction feeder. DIETS: hunts fish, neon_tetra. reach = waterline + water (shoreOrWater).",
+  "id": "matamata_turtle",
+  "sizeScale": 3.0,
+  "name": "Matamata Turtle",
+  "behavior": "aquatic",
+  "color": "#4a3a28",
+  "chartColor": "#6a5238",
+  "cfg": { "contactRadius": 2.8, "winThreshold": 0.4, "ambush": true },
+  "breeding": { "mtbLayEgg": 60, "growthFood": 34 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [-0.1, 0.05, 0], "scale": [1.2, 0.6, 0.95], "color": "body" },
+    { "shape": "sphere", "pos": [-0.1, 0.28, 0.35], "scale": [0.3, 0.2, 0.3], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.1, 0.28, -0.35], "scale": [0.3, 0.2, 0.3], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.4, 0.3, 0], "scale": [0.34, 0.22, 0.34], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.7, -0.05, 0], "scale": [0.45, 0.3, 0.55], "color": "#7a6244" },
+    { "shape": "box", "pos": [1.0, -0.08, 0], "scale": [0.4, 0.12, 0.5], "color": "#7a6244" },
+    { "shape": "cone", "pos": [1.28, -0.04, 0], "rot": [0, 0, -1.5708], "scale": [0.07, 0.3, 0.07], "color": "#9a8258" },
+    { "shape": "box", "pos": [0.55, -0.32, 0.4], "scale": [0.3, 0.1, 0.2], "color": "bodyDark" },
+    { "shape": "box", "pos": [0.55, -0.32, -0.4], "scale": [0.3, 0.1, 0.2], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.95, 0.0, 0.18], "r": 0.04 }
+  ] }
+}

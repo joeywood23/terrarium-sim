@@ -1,0 +1,23 @@
+{
+  "_comment": "Jungle L2 insectivore (terrestrial). Glass frog — translucent green skin, big eyes; a tiny leaf hunter. DIETS: hunts insect, ant, beetle. reach = on land.",
+  "id": "glass_frog",
+  "sizeScale": 1.2,
+  "name": "Glass Frog",
+  "behavior": "terrestrial",
+  "color": "#7fc98a",
+  "chartColor": "#8fd99a",
+  "cfg": { "contactRadius": 1.8, "winThreshold": 0.55 },
+  "breeding": { "mtbLayEgg": 24, "growthFood": 16 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.9, 0.6, 0.8], "color": "body" },
+    { "shape": "sphere", "pos": [0.4, 0.18, 0], "scale": [0.5, 0.42, 0.56], "color": "body" },
+    { "shape": "sphere", "pos": [0.4, 0.4, 0.24], "scale": [0.22, 0.24, 0.2], "color": "body" },
+    { "shape": "sphere", "pos": [0.4, 0.4, -0.24], "scale": [0.22, 0.24, 0.2], "color": "body" },
+    { "shape": "sphere", "pos": [0.46, 0.44, 0.24], "scale": [0.12, 0.13, 0.1], "color": "#101810" },
+    { "shape": "sphere", "pos": [0.46, 0.44, -0.24], "scale": [0.12, 0.13, 0.1], "color": "#101810" },
+    { "shape": "sphere", "pos": [-0.3, -0.04, 0.4], "scale": [0.34, 0.26, 0.2], "color": "body" },
+    { "shape": "sphere", "pos": [-0.3, -0.04, -0.4], "scale": [0.34, 0.26, 0.2], "color": "body" },
+    { "shape": "sphere", "pos": [0.36, -0.12, 0.38], "scale": [0.18, 0.14, 0.12], "color": "body" },
+    { "shape": "sphere", "pos": [0.36, -0.12, -0.38], "scale": [0.18, 0.14, 0.12], "color": "body" }
+  ] }
+}

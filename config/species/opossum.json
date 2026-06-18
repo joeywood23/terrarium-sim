@@ -1,0 +1,24 @@
+{
+  "_comment": "Jungle L1 omnivore (terrestrial). Common opossum — grizzled marsupial scavenger; grazes via the shared forager. Pure forager (no DIETS row). Prey for ocelot, oncilla, owls, boa.",
+  "id": "opossum",
+  "sizeScale": 2.8,
+  "name": "Opossum",
+  "behavior": "terrestrial",
+  "color": "#a89e88",
+  "chartColor": "#a89e88",
+  "breeding": { "mtbLayEgg": 22, "growthFood": 18 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.08, 0], "scale": [1.2, 0.56, 0.54], "color": "#aa9e86" },
+    { "shape": "sphere", "pos": [0.62, 0.08, 0], "scale": [0.5, 0.46, 0.46], "color": "#d8cfb8" },
+    { "shape": "cone", "pos": [0.98, 0.04, 0], "rot": [0, 0, -1.5708], "scale": [0.22, 0.4, 0.22], "color": "#d8cfb8" },
+    { "shape": "sphere", "pos": [1.16, 0.04, 0], "scale": [0.08, 0.08, 0.1], "color": "#c08a8a" },
+    { "shape": "sphere", "pos": [0.82, 0.34, 0.16], "scale": [0.16, 0.18, 0.1], "color": "#241810" },
+    { "shape": "sphere", "pos": [0.82, 0.34, -0.16], "scale": [0.16, 0.18, 0.1], "color": "#241810" },
+    { "shape": "eyes", "pos": [0.96, 0.2, 0.13], "r": 0.05 },
+    { "shape": "cylinder", "pos": [0.5, -0.22, 0.22], "scale": [0.09, 0.42, 0.09], "color": "#3a342c" },
+    { "shape": "cylinder", "pos": [0.5, -0.22, -0.22], "scale": [0.09, 0.42, 0.09], "color": "#3a342c" },
+    { "shape": "cylinder", "pos": [-0.5, -0.22, 0.24], "scale": [0.09, 0.42, 0.09], "color": "#3a342c" },
+    { "shape": "cylinder", "pos": [-0.5, -0.22, -0.24], "scale": [0.09, 0.42, 0.09], "color": "#3a342c" },
+    { "shape": "cylinder", "pos": [-0.95, 0.16, 0], "rot": [0, 0, 1.35], "scale": [0.06, 0.85, 0.06], "color": "#c0b29a" }
+  ] }
+}

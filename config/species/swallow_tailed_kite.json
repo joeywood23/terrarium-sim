@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L2 aerial insectivore (aerial). Swallow-tailed kite — graceful forked-tail glider that snatches prey on the wing. DIETS: hunts insect, butterfly, dragonfly, anole. reach = on land.",
+  "id": "swallow_tailed_kite",
+  "sizeScale": 4.0,
+  "name": "Swallow-tailed Kite",
+  "behavior": "aerial",
+  "color": "#e8e8ee",
+  "chartColor": "#b0b8c4",
+  "cfg": {
+    "length": 1.6, "width": 1.0, "height": 0.45,
+    "flySpeed": 18, "walkSpeed": 1.5, "altMin": 8, "altMax": 44, "altDrift": 22,
+    "contactRadius": 2.8, "winThreshold": 0.45
+  },
+  "breeding": { "mtbLayEgg": 50, "growthFood": 32 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.4, 0.4], "color": "body" },
+    { "shape": "sphere", "pos": [0.55, 0.1, 0], "scale": [0.4, 0.36, 0.38], "color": "body" },
+    { "shape": "cone", "pos": [0.82, 0.06, 0], "rot": [0, 0, -1.5708], "scale": [0.1, 0.22, 0.1], "color": "#2a2a2a" },
+    { "shape": "box", "pos": [-0.1, 0.08, 1.0], "rot": [0, 0.3, 0.05], "scale": [0.6, 0.05, 1.6], "color": "#2a2e36" },
+    { "shape": "box", "pos": [-0.1, 0.08, -1.0], "rot": [0, -0.3, -0.05], "scale": [0.6, 0.05, 1.6], "color": "#2a2e36" },
+    { "shape": "box", "pos": [-0.85, 0.0, 0.2], "rot": [0, -0.3, 0], "scale": [0.8, 0.05, 0.24], "color": "#2a2e36" },
+    { "shape": "box", "pos": [-0.85, 0.0, -0.2], "rot": [0, 0.3, 0], "scale": [0.8, 0.05, 0.24], "color": "#2a2e36" },
+    { "shape": "eyes", "pos": [0.72, 0.14, 0.13], "r": 0.05 }
+  ] }
+}

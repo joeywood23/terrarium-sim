@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L2 omnivore (aerial). Toco toucan — oversized orange bill; eats fruit and raids nests, snaps insects. DIETS: hunts insect, butterfly. reach = on land.",
+  "id": "toco_toucan",
+  "sizeScale": 3.5,
+  "name": "Toco Toucan",
+  "behavior": "aerial",
+  "color": "#1a1a1a",
+  "chartColor": "#e88a1a",
+  "cfg": {
+    "length": 1.3, "width": 0.85, "height": 0.6,
+    "flySpeed": 12, "walkSpeed": 1.6, "altMin": 4, "altMax": 28, "altDrift": 16,
+    "contactRadius": 2.4, "winThreshold": 0.6
+  },
+  "breeding": { "mtbLayEgg": 40, "growthFood": 28 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.6, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.0, 0.12, 0], "scale": [0.7, 0.5, 0.46], "color": "#f2f2f2" },
+    { "shape": "sphere", "pos": [0.55, 0.2, 0], "scale": [0.46, 0.46, 0.44], "color": "body" },
+    { "shape": "cone", "pos": [1.1, 0.16, 0], "rot": [0, 0, -1.5708], "scale": [0.22, 0.85, 0.22], "color": "#e8881a" },
+    { "shape": "cone", "pos": [1.1, 0.05, 0], "rot": [0, 0, -1.5708], "scale": [0.14, 0.7, 0.14], "color": "#c85a10" },
+    { "shape": "box", "pos": [-0.1, 0.14, 0.5], "rot": [0, 0.2, 0.1], "scale": [0.6, 0.06, 0.6], "color": "body" },
+    { "shape": "box", "pos": [-0.1, 0.14, -0.5], "rot": [0, -0.2, -0.1], "scale": [0.6, 0.06, 0.6], "color": "body" },
+    { "shape": "cone", "pos": [-0.85, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.4, 0.45, 0.1], "color": "body" },
+    { "shape": "eyes", "pos": [0.66, 0.26, 0.16], "r": 0.06 }
+  ] }
+}

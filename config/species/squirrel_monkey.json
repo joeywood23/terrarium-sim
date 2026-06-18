@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L2 omnivore (terrestrial). Squirrel monkey — small, gregarious; eats fruit and gleans insects. DIETS: hunts insect, ant, beetle. reach = on land. Prey for raptors, cats, snakes.",
+  "id": "squirrel_monkey",
+  "sizeScale": 2.4,
+  "name": "Squirrel Monkey",
+  "behavior": "terrestrial",
+  "color": "#b8a85a",
+  "chartColor": "#c8b860",
+  "cfg": { "contactRadius": 2.2, "winThreshold": 0.6 },
+  "breeding": { "mtbLayEgg": 34, "growthFood": 22 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [0.8, 0.58, 0.54], "color": "body" },
+    { "shape": "sphere", "pos": [0.38, 0.06, 0], "scale": [0.5, 0.52, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.72, 0.3, 0], "scale": [0.44, 0.44, 0.42], "color": "#2a2218" },
+    { "shape": "sphere", "pos": [0.78, 0.28, 0], "scale": [0.34, 0.3, 0.32], "color": "#e8e0c8" },
+    { "shape": "sphere", "pos": [0.96, 0.24, 0], "scale": [0.2, 0.18, 0.2], "color": "#2a2218" },
+    { "shape": "eyes", "pos": [1.0, 0.3, 0.12], "r": 0.05 },
+    { "shape": "cylinder", "pos": [0.4, -0.22, 0.24], "scale": [0.1, 0.44, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [0.4, -0.22, -0.24], "scale": [0.1, 0.44, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.4, -0.22, 0.26], "scale": [0.11, 0.44, 0.11], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.4, -0.22, -0.26], "scale": [0.11, 0.44, 0.11], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.82, 0.2, 0], "rot": [0, 0, 1.2], "scale": [0.07, 0.95, 0.07], "color": "#2a2218" },
+    { "shape": "sphere", "pos": [-1.2, 0.5, 0.04], "scale": [0.08, 0.08, 0.08], "color": "#2a2218" }
+  ] }
+}

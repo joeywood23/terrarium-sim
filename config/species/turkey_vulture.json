@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L2 scavenger (aerial). Turkey vulture — teetering soarer with a red bare head; tracks carrion by smell (no DIETS row — fliers scavenge corpses by default).",
+  "id": "turkey_vulture",
+  "sizeScale": 4.2,
+  "name": "Turkey Vulture",
+  "behavior": "aerial",
+  "color": "#2e261f",
+  "chartColor": "#5a4a3a",
+  "cfg": {
+    "length": 1.7, "width": 1.05, "height": 0.55,
+    "flySpeed": 12, "walkSpeed": 1.8, "altMin": 9, "altMax": 44, "altDrift": 24
+  },
+  "breeding": { "mtbLayEgg": 56, "growthFood": 36 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.55, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.58, 0.18, 0], "scale": [0.32, 0.32, 0.32], "color": "#c0442e" },
+    { "shape": "cone", "pos": [0.8, 0.16, 0], "rot": [0, 0, -1.5708], "scale": [0.09, 0.2, 0.09], "color": "#e0d8c8" },
+    { "shape": "box", "pos": [-0.1, 0.12, 0.95], "rot": [0, 0.18, 0.06], "scale": [0.9, 0.07, 1.4], "color": "body" },
+    { "shape": "box", "pos": [-0.1, 0.12, -0.95], "rot": [0, -0.18, -0.06], "scale": [0.9, 0.07, 1.4], "color": "body" },
+    { "shape": "box", "pos": [-0.15, 0.16, 1.8], "rot": [0, 0.38, 0.1], "scale": [0.5, 0.06, 0.8], "color": "#4a3e30" },
+    { "shape": "box", "pos": [-0.15, 0.16, -1.8], "rot": [0, -0.38, -0.1], "scale": [0.5, 0.06, 0.8], "color": "#4a3e30" },
+    { "shape": "cone", "pos": [-0.92, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.42, 0.5, 0.1], "color": "body" },
+    { "shape": "eyes", "pos": [0.7, 0.2, 0.11], "r": 0.04 }
+  ] }
+}

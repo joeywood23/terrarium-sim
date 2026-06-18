@@ -1,0 +1,23 @@
+{
+  "_comment": "Jungle L1 herbivore (terrestrial). Red-footed tortoise — domed shell, red-scaled legs; slow forager. Pure forager, no DIETS row. Shell deters most predators; risk from jaguar.",
+  "id": "red_footed_tortoise",
+  "sizeScale": 3.0,
+  "name": "Red-footed Tortoise",
+  "behavior": "terrestrial",
+  "color": "#3a342c",
+  "chartColor": "#6a5e4a",
+  "breeding": { "mtbLayEgg": 44, "growthFood": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.18, 0], "scale": [1.1, 0.8, 0.86], "color": "body" },
+    { "shape": "sphere", "pos": [0.0, 0.3, 0], "scale": [0.7, 0.7, 0.62], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.72, 0.0, 0], "scale": [0.4, 0.34, 0.36], "color": "#5a5048" },
+    { "shape": "sphere", "pos": [0.96, 0.02, 0], "scale": [0.24, 0.22, 0.24], "color": "#5a5048" },
+    { "shape": "sphere", "pos": [0.86, 0.1, 0.12], "scale": [0.06, 0.06, 0.07], "color": "#d8a020" },
+    { "shape": "eyes", "pos": [0.94, 0.08, 0.12], "r": 0.04 },
+    { "shape": "cylinder", "pos": [0.5, -0.24, 0.32], "scale": [0.14, 0.28, 0.14], "color": "#9a3a2a" },
+    { "shape": "cylinder", "pos": [0.5, -0.24, -0.32], "scale": [0.14, 0.28, 0.14], "color": "#9a3a2a" },
+    { "shape": "cylinder", "pos": [-0.5, -0.24, 0.34], "scale": [0.14, 0.28, 0.14], "color": "#9a3a2a" },
+    { "shape": "cylinder", "pos": [-0.5, -0.24, -0.34], "scale": [0.14, 0.28, 0.14], "color": "#9a3a2a" },
+    { "shape": "sphere", "pos": [-0.95, 0.06, 0], "scale": [0.16, 0.12, 0.12], "color": "#5a5048" }
+  ] }
+}

@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L3 wader (aerial). Cocoi heron — large gray heron stalking fish at the bank. DIETS: hunts fish, frog, neon_tetra, tambaqui. reach = waterline + water (shoreOrWater).",
+  "id": "cocoi_heron",
+  "sizeScale": 5.0,
+  "name": "Cocoi Heron",
+  "behavior": "aerial",
+  "color": "#9aa2aa",
+  "chartColor": "#7d858d",
+  "cfg": {
+    "length": 1.7, "width": 1.0, "height": 0.65,
+    "flySpeed": 12, "walkSpeed": 1.6, "altMin": 4, "altMax": 30, "altDrift": 16,
+    "contactRadius": 3.2, "winThreshold": 0.4
+  },
+  "breeding": { "mtbLayEgg": 58, "growthFood": 38 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.05, 0.52, 0.46], "color": "body" },
+    { "shape": "cylinder", "pos": [0.55, 0.36, 0], "rot": [0, 0, 0.6], "scale": [0.15, 0.78, 0.15], "color": "body" },
+    { "shape": "sphere", "pos": [0.82, 0.7, 0], "scale": [0.3, 0.3, 0.28], "color": "#e6e9ec" },
+    { "shape": "sphere", "pos": [0.82, 0.86, 0], "scale": [0.2, 0.18, 0.2], "color": "#2a2a2e" },
+    { "shape": "cone", "pos": [1.18, 0.68, 0], "rot": [0, 0, -1.35], "scale": [0.08, 0.46, 0.08], "color": "#e8c84a" },
+    { "shape": "box", "pos": [-0.2, 0.06, 0.55], "rot": [0, 0.2, 0.05], "scale": [0.85, 0.06, 0.75], "color": "body" },
+    { "shape": "box", "pos": [-0.2, 0.06, -0.55], "rot": [0, -0.2, -0.05], "scale": [0.85, 0.06, 0.75], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.1, -0.55, 0.18], "scale": [0.05, 0.8, 0.05], "color": "#3a3a3a" },
+    { "shape": "cylinder", "pos": [-0.1, -0.55, -0.18], "scale": [0.05, 0.8, 0.05], "color": "#3a3a3a" },
+    { "shape": "eyes", "pos": [0.9, 0.74, 0.14], "r": 0.05 }
+  ] }
+}

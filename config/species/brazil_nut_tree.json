@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer. Brazil-nut canopy tree — heavy seed pods feed agouti, peccary, monkeys.",
+  "id": "brazil_nut_tree",
+  "name": "Brazil Nut Tree",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#b7d488",
+  "colorOld": "#35642a",
+  "chartColor": "#458c33",
+  "maxRadius": 2.4,
+  "seedShare": 0.5
+}

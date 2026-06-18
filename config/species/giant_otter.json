@@ -1,0 +1,24 @@
+{
+  "_comment": "Jungle L3 predator (aquatic). Sleek river otter, pack hunter. DIETS: hunts fish, koi, piranha, neon_tetra, pacu. reach = open water (inWater).",
+  "id": "giant_otter",
+  "sizeScale": 5.0,
+  "name": "Giant Otter",
+  "behavior": "aquatic",
+  "color": "#5b3a26",
+  "chartColor": "#8d5a3a",
+  "cfg": { "contactRadius": 3.5, "winThreshold": 0.3 },
+  "breeding": { "mtbLayEgg": 55, "growthFood": 38 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.3, 0.55, 0.55], "color": "body" },
+    { "shape": "sphere", "pos": [0.8, 0.08, 0], "scale": [0.55, 0.52, 0.55], "color": "body" },
+    { "shape": "sphere", "pos": [1.12, 0.06, 0], "scale": [0.34, 0.32, 0.4], "color": "#c9b79e" },
+    { "shape": "sphere", "pos": [1.28, 0.0, 0], "scale": [0.14, 0.12, 0.18], "color": "#241810" },
+    { "shape": "cone", "pos": [0.92, 0.34, 0.18], "scale": [0.1, 0.12, 0.08], "color": "body" },
+    { "shape": "cone", "pos": [0.92, 0.34, -0.18], "scale": [0.1, 0.12, 0.08], "color": "body" },
+    { "shape": "eyes", "pos": [1.1, 0.2, 0.18], "r": 0.05 },
+    { "shape": "sphere", "pos": [-0.75, 0.0, 0], "scale": [0.95, 0.45, 0.42], "color": "body" },
+    { "shape": "cone", "pos": [-1.45, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.3, 0.7, 0.18], "color": "bodyDark" },
+    { "shape": "box", "pos": [0.5, -0.34, 0.34], "scale": [0.22, 0.1, 0.28], "color": "bodyDark" },
+    { "shape": "box", "pos": [0.5, -0.34, -0.34], "scale": [0.22, 0.1, 0.28], "color": "bodyDark" }
+  ] }
+}

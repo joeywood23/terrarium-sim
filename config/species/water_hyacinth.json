@@ -1,0 +1,13 @@
+{
+  "_comment": "L0 producer (aquatic). Floating water hyacinth — lavender bloom mats on still water; forage for manatee/capybara.",
+  "id": "water_hyacinth",
+  "name": "Water Hyacinth",
+  "behavior": "plant",
+  "habitat": "water",
+  "colorYoung": "#cfe6c0",
+  "colorOld": "#7c98c9",
+  "chartColor": "#8e7cc9",
+  "maxRadius": 1.2,
+  "minDepth": 0.4,
+  "seedShare": 0.7
+}

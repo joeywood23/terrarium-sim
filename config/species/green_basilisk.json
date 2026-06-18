@@ -1,0 +1,24 @@
+{
+  "_comment": "Jungle L2 insectivore lizard (terrestrial). Green basilisk — crested 'Jesus lizard' that sprints over water. DIETS: hunts insect, ant, beetle, butterfly. reach = on land.",
+  "id": "green_basilisk",
+  "sizeScale": 2.6,
+  "name": "Green Basilisk",
+  "behavior": "terrestrial",
+  "color": "#2f9c6a",
+  "chartColor": "#37b87c",
+  "cfg": { "contactRadius": 2.2, "winThreshold": 0.5 },
+  "breeding": { "mtbLayEgg": 34, "growthFood": 22 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.4, 0.42], "color": "body" },
+    { "shape": "sphere", "pos": [0.55, 0.02, 0], "scale": [0.44, 0.36, 0.38], "color": "body" },
+    { "shape": "box", "pos": [0.84, 0.04, 0], "scale": [0.3, 0.26, 0.28], "color": "body" },
+    { "shape": "cone", "pos": [0.78, 0.34, 0], "scale": [0.1, 0.34, 0.04], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.1, 0.34, 0], "scale": [0.1, 0.4, 0.04], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.9, 0.16, 0.14], "r": 0.05 },
+    { "shape": "cylinder", "pos": [0.46, -0.14, 0.3], "rot": [0.9, 0, 0], "scale": [0.07, 0.4, 0.07], "color": "body" },
+    { "shape": "cylinder", "pos": [0.46, -0.14, -0.3], "rot": [-0.9, 0, 0], "scale": [0.07, 0.4, 0.07], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.4, -0.14, 0.3], "rot": [0.9, 0, 0], "scale": [0.07, 0.44, 0.07], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.4, -0.14, -0.3], "rot": [-0.9, 0, 0], "scale": [0.07, 0.44, 0.07], "color": "body" },
+    { "shape": "cone", "pos": [-1.5, 0.04, 0], "rot": [0, 0, 1.5708], "scale": [0.12, 0.95, 0.06], "color": "body" }
+  ] }
+}

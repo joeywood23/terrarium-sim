@@ -1,0 +1,23 @@
+{
+  "_comment": "Jungle L3 predator (aquatic). Electric eel — long ribbon body, stuns prey. DIETS: hunts fish, koi, neon_tetra. reach = open water (inWater).",
+  "id": "electric_eel",
+  "sizeScale": 4.0,
+  "name": "Electric Eel",
+  "behavior": "aquatic",
+  "color": "#4a4636",
+  "chartColor": "#b5a13a",
+  "cfg": { "contactRadius": 3.0, "winThreshold": 0.4 },
+  "breeding": { "mtbLayEgg": 46, "growthFood": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [1.0, 0.0, 0], "scale": [0.55, 0.46, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [1.32, 0.0, 0], "scale": [0.26, 0.24, 0.26], "color": "#6a6450" },
+    { "shape": "sphere", "pos": [0.55, 0.0, 0], "scale": [0.6, 0.5, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.1, 0.0, 0], "scale": [0.6, 0.46, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [-0.35, 0.0, 0], "scale": [0.55, 0.42, 0.42], "color": "body" },
+    { "shape": "sphere", "pos": [-0.8, 0.0, 0], "scale": [0.5, 0.36, 0.36], "color": "body" },
+    { "shape": "sphere", "pos": [-1.2, 0.0, 0], "scale": [0.42, 0.3, 0.3], "color": "body" },
+    { "shape": "sphere", "pos": [-1.55, 0.0, 0], "scale": [0.28, 0.2, 0.2], "color": "body" },
+    { "shape": "box", "pos": [-0.4, -0.28, 0], "scale": [2.0, 0.12, 0.06], "color": "#b5a13a" },
+    { "shape": "eyes", "pos": [1.24, 0.12, 0.16], "r": 0.05 }
+  ] }
+}

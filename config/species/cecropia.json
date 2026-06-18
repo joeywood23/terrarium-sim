@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer. Fast pioneer cecropia — soft leaves favoured by sloths; hosts ants.",
+  "id": "cecropia",
+  "name": "Cecropia",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#d6e6ad",
+  "colorOld": "#557a3a",
+  "chartColor": "#6fa148",
+  "maxRadius": 1.8,
+  "seedShare": 0.7
+}

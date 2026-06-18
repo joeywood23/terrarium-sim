@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L2 small carnivore (terrestrial). Coral snake — banded red/black/yellow, hunts other small reptiles. DIETS: hunts anole, vine_snake, frog, dart_frog. reach = on land.",
+  "id": "coral_snake",
+  "sizeScale": 2.4,
+  "name": "Coral Snake",
+  "behavior": "terrestrial",
+  "color": "#d63a2e",
+  "chartColor": "#e0463a",
+  "cfg": { "contactRadius": 2.2, "winThreshold": 0.5 },
+  "breeding": { "mtbLayEgg": 42, "growthFood": 26 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [1.45, -0.05, 0], "scale": [0.3, 0.22, 0.3], "color": "#1a1a1a" },
+    { "shape": "sphere", "pos": [1.62, -0.06, 0], "scale": [0.14, 0.12, 0.16], "color": "#1a1a1a" },
+    { "shape": "sphere", "pos": [1.2, -0.04, 0.05], "scale": [0.34, 0.3, 0.34], "color": "body" },
+    { "shape": "sphere", "pos": [0.9, -0.04, 0.18], "scale": [0.36, 0.32, 0.36], "color": "#e8d24a" },
+    { "shape": "sphere", "pos": [0.6, -0.04, 0.24], "scale": [0.38, 0.34, 0.38], "color": "#1a1a1a" },
+    { "shape": "sphere", "pos": [0.3, -0.04, 0.14], "scale": [0.38, 0.34, 0.38], "color": "body" },
+    { "shape": "sphere", "pos": [0.0, -0.04, -0.04], "scale": [0.36, 0.32, 0.36], "color": "#e8d24a" },
+    { "shape": "sphere", "pos": [-0.3, -0.04, -0.2], "scale": [0.34, 0.3, 0.34], "color": "#1a1a1a" },
+    { "shape": "sphere", "pos": [-0.6, -0.04, -0.24], "scale": [0.3, 0.27, 0.3], "color": "body" },
+    { "shape": "sphere", "pos": [-0.88, -0.04, -0.14], "scale": [0.22, 0.2, 0.22], "color": "#1a1a1a" },
+    { "shape": "sphere", "pos": [-1.08, -0.04, 0.0], "scale": [0.13, 0.12, 0.13], "color": "#e8d24a" },
+    { "shape": "eyes", "pos": [1.52, 0.04, 0.1], "r": 0.035 }
+  ] }
+}

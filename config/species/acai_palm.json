@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer. Acai palm — dark berry clusters feed birds and mammals.",
+  "id": "acai_palm",
+  "name": "Acai Palm",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#bcd595",
+  "colorOld": "#2f5a32",
+  "chartColor": "#3f7d40",
+  "maxRadius": 1.9,
+  "seedShare": 0.6
+}

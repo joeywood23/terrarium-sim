@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer. Epiphytic orchid — small pink blooms dotting the understory.",
+  "id": "orchid",
+  "name": "Orchid",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#ffe0ef",
+  "colorOld": "#c44e8e",
+  "chartColor": "#d864a0",
+  "maxRadius": 0.8,
+  "seedShare": 0.8
+}

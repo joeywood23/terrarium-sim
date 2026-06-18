@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L2 small carnivore (terrestrial). Vine snake — extremely slender green canopy snake with a pointed snout. DIETS: hunts anole, frog, dart_frog, hummingbird. reach = on land.",
+  "id": "vine_snake",
+  "sizeScale": 2.4,
+  "name": "Vine Snake",
+  "behavior": "terrestrial",
+  "color": "#7faa4a",
+  "chartColor": "#8fbb55",
+  "cfg": { "contactRadius": 2.2, "winThreshold": 0.5 },
+  "breeding": { "mtbLayEgg": 40, "growthFood": 24 },
+  "model": { "parts": [
+    { "shape": "cone", "pos": [1.62, -0.05, 0], "rot": [0, 0, -1.5708], "scale": [0.16, 0.34, 0.16], "color": "body" },
+    { "shape": "sphere", "pos": [1.42, -0.05, 0], "scale": [0.24, 0.18, 0.22], "color": "body" },
+    { "shape": "sphere", "pos": [1.18, -0.04, 0.05], "scale": [0.24, 0.2, 0.24], "color": "body" },
+    { "shape": "sphere", "pos": [0.9, -0.04, 0.16], "scale": [0.26, 0.22, 0.26], "color": "body" },
+    { "shape": "sphere", "pos": [0.58, -0.04, 0.24], "scale": [0.27, 0.23, 0.27], "color": "body" },
+    { "shape": "sphere", "pos": [0.26, -0.04, 0.18], "scale": [0.27, 0.23, 0.27], "color": "body" },
+    { "shape": "sphere", "pos": [-0.06, -0.04, 0.02], "scale": [0.26, 0.22, 0.26], "color": "body" },
+    { "shape": "sphere", "pos": [-0.38, -0.04, -0.16], "scale": [0.24, 0.2, 0.24], "color": "body" },
+    { "shape": "sphere", "pos": [-0.7, -0.04, -0.26], "scale": [0.21, 0.18, 0.21], "color": "body" },
+    { "shape": "sphere", "pos": [-1.02, -0.04, -0.22], "scale": [0.16, 0.14, 0.16], "color": "body" },
+    { "shape": "sphere", "pos": [-1.3, -0.04, -0.08], "scale": [0.1, 0.09, 0.1], "color": "body" },
+    { "shape": "eyes", "pos": [1.4, 0.03, 0.1], "r": 0.035 }
+  ] }
+}

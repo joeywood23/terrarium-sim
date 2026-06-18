@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L2 omnivore (aerial). Hyacinth macaw — the largest parrot, deep cobalt blue with yellow eye-rings. DIETS: hunts insect. reach = on land. Prey for harpy_eagle, ornate_hawk_eagle.",
+  "id": "hyacinth_macaw",
+  "sizeScale": 4.5,
+  "name": "Hyacinth Macaw",
+  "behavior": "aerial",
+  "color": "#2440b8",
+  "chartColor": "#2440b8",
+  "cfg": {
+    "length": 1.6, "width": 0.95, "height": 0.62,
+    "flySpeed": 12, "altMin": 4, "altMax": 30,
+    "contactRadius": 2.6, "winThreshold": 0.85
+  },
+  "breeding": { "mtbLayEgg": 36, "growthFood": 24 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.95, 0.58, 0.47], "color": "body" },
+    { "shape": "sphere", "pos": [0.6, 0.22, 0], "scale": [0.46, 0.48, 0.44], "color": "body" },
+    { "shape": "cone", "pos": [0.9, 0.14, 0], "rot": [0, 0, -2.0], "scale": [0.18, 0.36, 0.18], "color": "#161616" },
+    { "shape": "box", "pos": [0.74, 0.2, 0.16], "scale": [0.12, 0.06, 0.08], "color": "#e8c020" },
+    { "shape": "box", "pos": [0.74, 0.2, -0.16], "scale": [0.12, 0.06, 0.08], "color": "#e8c020" },
+    { "shape": "eyes", "pos": [0.78, 0.28, 0.14], "r": 0.05 },
+    { "shape": "box", "pos": [-0.05, 0.06, 0.36], "rot": [0, 0, 0.1], "scale": [0.66, 0.1, 0.28], "color": "body" },
+    { "shape": "box", "pos": [-0.05, 0.06, -0.36], "rot": [0, 0, -0.1], "scale": [0.66, 0.1, 0.28], "color": "body" },
+    { "shape": "box", "pos": [-1.0, 0.0, 0], "scale": [1.1, 0.06, 0.22], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.85, 0.06, 0], "scale": [0.75, 0.06, 0.14], "color": "body" }
+  ] }
+}

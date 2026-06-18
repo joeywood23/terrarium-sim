@@ -1,0 +1,30 @@
+{
+  "_comment": "Jungle L2 ambush insect predator (aerial). Praying mantis — raptorial forelimbs. DIETS: hunts insect, butterfly, ant, bullet_ant. Catches in air or on land.",
+  "id": "praying_mantis",
+  "sizeScale": 1.8,
+  "name": "Praying Mantis",
+  "behavior": "aerial",
+  "color": "#6aa83a",
+  "chartColor": "#7ac047",
+  "cfg": {
+    "length": 0.9, "width": 0.5, "height": 0.4,
+    "walkSpeed": 0.8, "flySpeed": 7, "altMin": 1, "altMax": 12,
+    "walkFlightMin": 20, "walkFlightMax": 60,
+    "contactRadius": 1.8, "winThreshold": 0.45
+  },
+  "breeding": { "mtbLayEgg": 22, "growthFood": 14, "juvenileScale": 0.5 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [-0.3, 0.0, 0], "scale": [0.7, 0.22, 0.22], "color": "body" },
+    { "shape": "sphere", "pos": [0.2, 0.04, 0], "scale": [0.4, 0.26, 0.26], "color": "body" },
+    { "shape": "sphere", "pos": [0.5, 0.1, 0], "scale": [0.22, 0.22, 0.22], "color": "body" },
+    { "shape": "sphere", "pos": [0.56, 0.16, 0.1], "scale": [0.1, 0.12, 0.1], "color": "#1a2a10" },
+    { "shape": "sphere", "pos": [0.56, 0.16, -0.1], "scale": [0.1, 0.12, 0.1], "color": "#1a2a10" },
+    { "shape": "cylinder", "pos": [0.46, 0.0, 0.12], "rot": [0, 0, 0.9], "scale": [0.03, 0.34, 0.03], "color": "body" },
+    { "shape": "cylinder", "pos": [0.46, 0.0, -0.12], "rot": [0, 0, 0.9], "scale": [0.03, 0.34, 0.03], "color": "body" },
+    { "shape": "cylinder", "pos": [0.0, -0.18, 0.14], "rot": [0.7, 0, 0], "scale": [0.025, 0.34, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.0, -0.18, -0.14], "rot": [-0.7, 0, 0], "scale": [0.025, 0.34, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.3, -0.18, 0.14], "rot": [0.9, 0, 0], "scale": [0.025, 0.34, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.3, -0.18, -0.14], "rot": [-0.9, 0, 0], "scale": [0.025, 0.34, 0.025], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.25, 0.12, 0.06], "scale": [0.55, 0.04, 0.18], "color": "bodyDark" }
+  ] }
+}

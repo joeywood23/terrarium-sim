@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer. Emergent kapok — the tallest canopy tree, food/structure for frugivores. colorYoung/colorOld = stripped->lush gradient.",
+  "id": "kapok_tree",
+  "name": "Kapok Tree",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#c4d98a",
+  "colorOld": "#2c5320",
+  "chartColor": "#3c8c2a",
+  "maxRadius": 2.7,
+  "seedShare": 0.5
+}

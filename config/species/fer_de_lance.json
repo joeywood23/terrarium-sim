@@ -1,0 +1,28 @@
+{
+  "_comment": "Jungle L3 mesopredator (terrestrial). Fer-de-lance — fast-striking pit viper, leaf-litter ambusher. DIETS: hunts agouti, acouchi, paca, frog, anole. reach = on land.",
+  "id": "fer_de_lance",
+  "sizeScale": 3.0,
+  "name": "Fer-de-lance",
+  "behavior": "terrestrial",
+  "color": "#7a6a4a",
+  "chartColor": "#9a8862",
+  "cfg": { "contactRadius": 2.8, "winThreshold": 0.4 },
+  "breeding": { "mtbLayEgg": 50, "growthFood": 34 },
+  "model": { "parts": [
+    { "shape": "box", "pos": [1.55, -0.05, 0], "scale": [0.42, 0.24, 0.4], "color": "body" },
+    { "shape": "sphere", "pos": [1.78, -0.06, 0], "scale": [0.16, 0.12, 0.2], "color": "body" },
+    { "shape": "sphere", "pos": [1.28, -0.04, 0.05], "scale": [0.4, 0.36, 0.42], "color": "body" },
+    { "shape": "sphere", "pos": [0.96, -0.04, 0.2], "scale": [0.46, 0.42, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [0.62, -0.04, 0.26], "scale": [0.48, 0.44, 0.48], "color": "body" },
+    { "shape": "sphere", "pos": [0.28, -0.04, 0.14], "scale": [0.46, 0.42, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [-0.04, -0.04, -0.04], "scale": [0.44, 0.4, 0.44], "color": "body" },
+    { "shape": "sphere", "pos": [-0.38, -0.04, -0.22], "scale": [0.4, 0.36, 0.4], "color": "body" },
+    { "shape": "sphere", "pos": [-0.72, -0.04, -0.26], "scale": [0.34, 0.3, 0.34], "color": "body" },
+    { "shape": "sphere", "pos": [-1.04, -0.04, -0.14], "scale": [0.24, 0.22, 0.24], "color": "body" },
+    { "shape": "sphere", "pos": [-1.28, -0.04, 0.02], "scale": [0.14, 0.12, 0.14], "color": "body" },
+    { "shape": "cone", "pos": [1.05, 0.12, 0.1], "scale": [0.16, 0.18, 0.08], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.45, 0.12, 0.22], "scale": [0.16, 0.18, 0.08], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.2, 0.12, -0.1], "scale": [0.16, 0.18, 0.08], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [1.62, 0.05, 0.14], "r": 0.04 }
+  ] }
+}

@@ -1,0 +1,22 @@
+{
+  "_comment": "Jungle L1 frugivore/folivore (terrestrial). White-faced saki — shaggy black coat, pale face. Pure forager, no DIETS row. Prey for harpy_eagle, ornate_hawk_eagle, jaguar.",
+  "id": "saki_monkey",
+  "sizeScale": 3.0,
+  "name": "Saki Monkey",
+  "behavior": "terrestrial",
+  "color": "#2a2622",
+  "chartColor": "#4a443c",
+  "breeding": { "mtbLayEgg": 44, "growthFood": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [0.9, 0.66, 0.62], "color": "body" },
+    { "shape": "sphere", "pos": [0.42, 0.06, 0], "scale": [0.56, 0.6, 0.56], "color": "body" },
+    { "shape": "sphere", "pos": [0.78, 0.32, 0], "scale": [0.56, 0.56, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.86, 0.3, 0], "scale": [0.38, 0.42, 0.34], "color": "#e6ddc8" },
+    { "shape": "eyes", "pos": [1.0, 0.34, 0.12], "r": 0.05 },
+    { "shape": "cylinder", "pos": [0.42, -0.24, 0.26], "scale": [0.12, 0.46, 0.12], "color": "body" },
+    { "shape": "cylinder", "pos": [0.42, -0.24, -0.26], "scale": [0.12, 0.46, 0.12], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.42, -0.24, 0.28], "scale": [0.13, 0.46, 0.13], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.42, -0.24, -0.28], "scale": [0.13, 0.46, 0.13], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.92, 0.16, 0], "rot": [0, 0, 1.25], "scale": [0.14, 1.0, 0.14], "color": "body" }
+  ] }
+}

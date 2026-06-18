@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L2 omnivore (aerial). Blue-and-gold macaw — blue back, golden underside. DIETS: hunts insect. reach = on land. Prey for harpy_eagle, ornate_hawk_eagle.",
+  "id": "blue_and_gold_macaw",
+  "sizeScale": 4.0,
+  "name": "Blue-and-gold Macaw",
+  "behavior": "aerial",
+  "color": "#2a5fc0",
+  "chartColor": "#2a5fc0",
+  "cfg": {
+    "length": 1.5, "width": 0.9, "height": 0.6,
+    "flySpeed": 12, "altMin": 4, "altMax": 30,
+    "contactRadius": 2.5, "winThreshold": 0.85
+  },
+  "breeding": { "mtbLayEgg": 32, "growthFood": 22 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.9, 0.55, 0.45], "color": "body" },
+    { "shape": "sphere", "pos": [0.0, -0.18, 0], "scale": [0.78, 0.36, 0.42], "color": "#e8b820" },
+    { "shape": "sphere", "pos": [0.58, 0.22, 0], "scale": [0.44, 0.46, 0.42], "color": "#eef2f2" },
+    { "shape": "cone", "pos": [0.86, 0.14, 0], "rot": [0, 0, -2.0], "scale": [0.16, 0.32, 0.16], "color": "#1c1c1c" },
+    { "shape": "eyes", "pos": [0.74, 0.28, 0.14], "r": 0.05 },
+    { "shape": "box", "pos": [-0.05, 0.06, 0.34], "rot": [0, 0, 0.1], "scale": [0.6, 0.1, 0.26], "color": "body" },
+    { "shape": "box", "pos": [-0.05, 0.06, -0.34], "rot": [0, 0, -0.1], "scale": [0.6, 0.1, 0.26], "color": "body" },
+    { "shape": "box", "pos": [-0.95, 0.0, 0], "scale": [1.0, 0.06, 0.22], "color": "#1f4aa0" },
+    { "shape": "box", "pos": [-0.8, 0.06, 0], "scale": [0.7, 0.06, 0.14], "color": "#e8b820" }
+  ] }
+}

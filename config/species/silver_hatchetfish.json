@@ -1,0 +1,19 @@
+{
+  "_comment": "Jungle L1 herbivore (aquatic). Silver hatchetfish — deep-keeled surface skimmer. Pure forager, no DIETS row. Base prey for arowana, payara, otter, caiman.",
+  "id": "silver_hatchetfish",
+  "sizeScale": 1.0,
+  "name": "Silver Hatchetfish",
+  "behavior": "aquatic",
+  "color": "#cdd6da",
+  "chartColor": "#aeb8bd",
+  "breeding": { "mtbLayEgg": 20, "growthFood": 12 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [0.85, 0.5, 0.3], "color": "body" },
+    { "shape": "sphere", "pos": [0.0, -0.34, 0], "scale": [0.7, 0.5, 0.26], "color": "#e8eef0" },
+    { "shape": "sphere", "pos": [0.5, 0.12, 0], "scale": [0.4, 0.42, 0.28], "color": "body" },
+    { "shape": "cone", "pos": [-0.7, 0.1, 0], "rot": [0, 0, 1.5708], "scale": [0.32, 0.4, 0.08], "color": "bodyDark" },
+    { "shape": "box", "pos": [0.1, -0.3, 0.3], "rot": [0, 0, 0.4], "scale": [0.4, 0.04, 0.12], "color": "#e8eef0" },
+    { "shape": "box", "pos": [0.1, -0.3, -0.3], "rot": [0, 0, 0.4], "scale": [0.4, 0.04, 0.12], "color": "#e8eef0" },
+    { "shape": "eyes", "pos": [0.6, 0.16, 0.12], "r": 0.06 }
+  ] }
+}

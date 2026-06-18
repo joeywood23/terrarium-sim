@@ -1,0 +1,31 @@
+{
+  "_comment": "Jungle L2 ground predator (aerial archetype, ground-bound like the beetle). Goliath birdeater tarantula. DIETS: hunts insect, beetle, ant, frog, termite. reach = on land.",
+  "id": "tarantula",
+  "sizeScale": 2.5,
+  "name": "Tarantula",
+  "behavior": "aerial",
+  "color": "#4a2e1e",
+  "chartColor": "#7a4e34",
+  "cfg": {
+    "length": 0.9, "width": 0.9, "height": 0.4,
+    "walkSpeed": 0.6, "altMin": 1, "altMax": 4,
+    "walkFlightMin": 80, "walkFlightMax": 200,
+    "contactRadius": 1.8, "winThreshold": 0.45
+  },
+  "breeding": { "mtbLayEgg": 30, "growthFood": 18 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [-0.25, 0.0, 0], "scale": [0.7, 0.5, 0.62], "color": "body" },
+    { "shape": "sphere", "pos": [0.3, 0.0, 0], "scale": [0.5, 0.42, 0.5], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.45, 0.06, 0.12], "rot": [0, 0, -0.6], "scale": [0.04, 0.2, 0.04], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.45, 0.06, -0.12], "rot": [0, 0, -0.6], "scale": [0.04, 0.2, 0.04], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.2, -0.05, 0.4], "rot": [0.9, 0, 0.3], "scale": [0.04, 0.5, 0.04], "color": "body" },
+    { "shape": "cylinder", "pos": [0.2, -0.05, -0.4], "rot": [-0.9, 0, 0.3], "scale": [0.04, 0.5, 0.04], "color": "body" },
+    { "shape": "cylinder", "pos": [0.0, -0.05, 0.46], "rot": [0.9, 0, 0], "scale": [0.04, 0.54, 0.04], "color": "body" },
+    { "shape": "cylinder", "pos": [0.0, -0.05, -0.46], "rot": [-0.9, 0, 0], "scale": [0.04, 0.54, 0.04], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.2, -0.05, 0.46], "rot": [0.9, 0, -0.2], "scale": [0.04, 0.54, 0.04], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.2, -0.05, -0.46], "rot": [-0.9, 0, -0.2], "scale": [0.04, 0.54, 0.04], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.4, -0.05, 0.4], "rot": [0.9, 0, -0.4], "scale": [0.04, 0.5, 0.04], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.4, -0.05, -0.4], "rot": [-0.9, 0, -0.4], "scale": [0.04, 0.5, 0.04], "color": "body" },
+    { "shape": "eyes", "pos": [0.46, 0.12, 0.08], "r": 0.04 }
+  ] }
+}

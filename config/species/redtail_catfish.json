@@ -1,0 +1,24 @@
+{
+  "_comment": "Jungle L3 predator (aquatic). Redtail catfish — broad flat head, barbels, vivid red tail. DIETS: hunts fish, koi, neon_tetra, pacu. reach = open water (inWater).",
+  "id": "redtail_catfish",
+  "sizeScale": 4.0,
+  "name": "Redtail Catfish",
+  "behavior": "aquatic",
+  "color": "#3a4248",
+  "chartColor": "#5a6a72",
+  "cfg": { "contactRadius": 3.5, "winThreshold": 0.4 },
+  "breeding": { "mtbLayEgg": 48, "growthFood": 32 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.25, 0.6, 0.55], "color": "body" },
+    { "shape": "sphere", "pos": [0.0, -0.28, 0], "scale": [1.1, 0.36, 0.6], "color": "#e6e6e6" },
+    { "shape": "sphere", "pos": [0.85, -0.05, 0], "scale": [0.66, 0.42, 0.7], "color": "body" },
+    { "shape": "box", "pos": [1.12, -0.12, 0], "scale": [0.3, 0.16, 0.5], "color": "body" },
+    { "shape": "cylinder", "pos": [1.2, -0.02, 0.18], "rot": [0, 0, 1.2], "scale": [0.03, 0.7, 0.03], "color": "#d8d8d8" },
+    { "shape": "cylinder", "pos": [1.2, -0.02, -0.18], "rot": [0, 0, 1.2], "scale": [0.03, 0.7, 0.03], "color": "#d8d8d8" },
+    { "shape": "cylinder", "pos": [1.15, -0.1, 0.26], "rot": [0.6, 0, 1.4], "scale": [0.025, 0.5, 0.025], "color": "#d8d8d8" },
+    { "shape": "cylinder", "pos": [1.15, -0.1, -0.26], "rot": [-0.6, 0, 1.4], "scale": [0.025, 0.5, 0.025], "color": "#d8d8d8" },
+    { "shape": "cone", "pos": [-1.0, 0.05, 0], "rot": [0, 0, 1.5708], "scale": [0.55, 0.55, 0.12], "color": "#c8392c" },
+    { "shape": "box", "pos": [-0.1, 0.42, 0], "scale": [0.4, 0.3, 0.08], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.95, 0.12, 0.3], "r": 0.06 }
+  ] }
+}

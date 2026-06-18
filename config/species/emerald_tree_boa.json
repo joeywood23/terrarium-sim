@@ -1,0 +1,28 @@
+{
+  "_comment": "Jungle L3 mesopredator (terrestrial, arboreal). Emerald tree boa — vivid green coiled ambusher. DIETS: hunts anole, macaw, hummingbird, insect_bat, squirrel_monkey. reach = on land.",
+  "id": "emerald_tree_boa",
+  "sizeScale": 3.0,
+  "name": "Emerald Tree Boa",
+  "behavior": "terrestrial",
+  "color": "#1f8f3a",
+  "chartColor": "#27a847",
+  "cfg": { "contactRadius": 2.8, "winThreshold": 0.45 },
+  "breeding": { "mtbLayEgg": 56, "growthFood": 36 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [1.55, -0.05, 0], "scale": [0.4, 0.26, 0.36], "color": "body" },
+    { "shape": "sphere", "pos": [1.78, -0.06, 0], "scale": [0.18, 0.14, 0.2], "color": "body" },
+    { "shape": "sphere", "pos": [1.28, -0.04, 0.05], "scale": [0.4, 0.36, 0.4], "color": "body" },
+    { "shape": "sphere", "pos": [0.98, -0.04, 0.2], "scale": [0.46, 0.42, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [0.66, -0.04, 0.26], "scale": [0.48, 0.44, 0.48], "color": "body" },
+    { "shape": "sphere", "pos": [0.34, -0.04, 0.16], "scale": [0.48, 0.44, 0.48], "color": "body" },
+    { "shape": "sphere", "pos": [0.04, -0.04, -0.02], "scale": [0.46, 0.42, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [-0.26, -0.04, -0.2], "scale": [0.44, 0.4, 0.44], "color": "body" },
+    { "shape": "sphere", "pos": [-0.58, -0.04, -0.26], "scale": [0.4, 0.36, 0.4], "color": "body" },
+    { "shape": "sphere", "pos": [-0.9, -0.04, -0.16], "scale": [0.32, 0.29, 0.32], "color": "body" },
+    { "shape": "sphere", "pos": [-1.16, -0.04, 0.02], "scale": [0.2, 0.18, 0.2], "color": "body" },
+    { "shape": "sphere", "pos": [1.1, 0.1, 0.12], "scale": [0.18, 0.06, 0.06], "color": "#e8f0d0" },
+    { "shape": "sphere", "pos": [0.5, 0.1, 0.22], "scale": [0.18, 0.06, 0.06], "color": "#e8f0d0" },
+    { "shape": "sphere", "pos": [-0.1, 0.1, -0.06], "scale": [0.18, 0.06, 0.06], "color": "#e8f0d0" },
+    { "shape": "eyes", "pos": [1.66, 0.04, 0.13], "r": 0.045 }
+  ] }
+}

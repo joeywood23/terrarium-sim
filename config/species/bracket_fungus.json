@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer/detritus. Bracket fungus on the forest floor — part of the leaf-litter base eaten by peccary, beetle, termite.",
+  "id": "bracket_fungus",
+  "name": "Bracket Fungus",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#e8d8b0",
+  "colorOld": "#8a5a2b",
+  "chartColor": "#a8702f",
+  "maxRadius": 0.7,
+  "seedShare": 0.5
+}

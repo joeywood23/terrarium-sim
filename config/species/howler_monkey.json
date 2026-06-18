@@ -1,0 +1,24 @@
+{
+  "_comment": "Jungle L1 folivore (terrestrial). Red howler monkey — leaf-eater with a deep-throated bellow; prehensile tail. Pure forager, no DIETS row. Prey for harpy_eagle, jaguar, ornate_hawk_eagle.",
+  "id": "howler_monkey",
+  "sizeScale": 4.0,
+  "name": "Howler Monkey",
+  "behavior": "terrestrial",
+  "color": "#8a3a1e",
+  "chartColor": "#a8492a",
+  "breeding": { "mtbLayEgg": 50, "growthFood": 36 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [0.95, 0.7, 0.66], "color": "body" },
+    { "shape": "sphere", "pos": [0.42, 0.06, 0], "scale": [0.6, 0.64, 0.6], "color": "body" },
+    { "shape": "sphere", "pos": [0.8, 0.32, 0], "scale": [0.56, 0.54, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.78, 0.04, 0], "scale": [0.4, 0.46, 0.42], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [1.0, 0.28, 0], "scale": [0.28, 0.3, 0.26], "color": "#2a1810" },
+    { "shape": "eyes", "pos": [1.06, 0.4, 0.12], "r": 0.05 },
+    { "shape": "cylinder", "pos": [0.44, -0.24, 0.26], "scale": [0.13, 0.48, 0.13], "color": "body" },
+    { "shape": "cylinder", "pos": [0.44, -0.24, -0.26], "scale": [0.13, 0.48, 0.13], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.44, -0.24, 0.28], "scale": [0.14, 0.48, 0.14], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.44, -0.24, -0.28], "scale": [0.14, 0.48, 0.14], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.9, 0.2, 0], "rot": [0, 0, 1.3], "scale": [0.11, 0.8, 0.11], "color": "body" },
+    { "shape": "sphere", "pos": [-1.25, 0.48, 0], "scale": [0.1, 0.1, 0.1], "color": "body" }
+  ] }
+}

@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L3 diving bird (aerial). Anhinga — 'snakebird' that spears fish underwater, then dries its wings. DIETS: hunts fish, neon_tetra, tambaqui. reach = waterline + water (shoreOrWater).",
+  "id": "anhinga",
+  "sizeScale": 4.0,
+  "name": "Anhinga",
+  "behavior": "aerial",
+  "color": "#2a2a2e",
+  "chartColor": "#5a5a60",
+  "cfg": {
+    "length": 1.5, "width": 0.9, "height": 0.55,
+    "flySpeed": 13, "walkSpeed": 1.6, "altMin": 4, "altMax": 30, "altDrift": 16,
+    "contactRadius": 3.0, "winThreshold": 0.4
+  },
+  "breeding": { "mtbLayEgg": 52, "growthFood": 34 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.5, 0.44], "color": "body" },
+    { "shape": "cylinder", "pos": [0.5, 0.3, 0], "rot": [0, 0, 0.7], "scale": [0.1, 0.66, 0.1], "color": "body" },
+    { "shape": "sphere", "pos": [0.66, 0.58, 0], "scale": [0.2, 0.2, 0.2], "color": "body" },
+    { "shape": "cone", "pos": [0.96, 0.58, 0], "rot": [0, 0, -1.5708], "scale": [0.05, 0.4, 0.05], "color": "#d8c84a" },
+    { "shape": "box", "pos": [-0.2, 0.08, 0.5], "rot": [0, 0.2, 0.05], "scale": [0.8, 0.06, 0.65], "color": "#c8c4b8" },
+    { "shape": "box", "pos": [-0.2, 0.08, -0.5], "rot": [0, -0.2, -0.05], "scale": [0.8, 0.06, 0.65], "color": "#c8c4b8" },
+    { "shape": "cone", "pos": [-0.95, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.36, 0.5, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.1, -0.46, 0.16], "scale": [0.05, 0.5, 0.05], "color": "#2a2a2a" },
+    { "shape": "cylinder", "pos": [-0.1, -0.46, -0.16], "scale": [0.05, 0.5, 0.05], "color": "#2a2a2a" },
+    { "shape": "eyes", "pos": [0.72, 0.6, 0.12], "r": 0.04 }
+  ] }
+}

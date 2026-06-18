@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L2 omnivore lizard (terrestrial). Black-and-white tegu — big, beaded ground lizard. DIETS: hunts insect, beetle, frog, ant. reach = on land.",
+  "id": "tegu",
+  "sizeScale": 3.5,
+  "name": "Tegu Lizard",
+  "behavior": "terrestrial",
+  "color": "#3a3a3a",
+  "chartColor": "#6a6a6a",
+  "cfg": { "contactRadius": 2.6, "winThreshold": 0.45 },
+  "breeding": { "mtbLayEgg": 44, "growthFood": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.1, 0.42, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.6, 0.0, 0], "scale": [0.5, 0.38, 0.44], "color": "body" },
+    { "shape": "sphere", "pos": [0.98, 0.04, 0], "scale": [0.4, 0.32, 0.36], "color": "body" },
+    { "shape": "box", "pos": [1.24, 0.0, 0], "scale": [0.24, 0.2, 0.26], "color": "body" },
+    { "shape": "eyes", "pos": [1.06, 0.16, 0.15], "r": 0.05 },
+    { "shape": "cylinder", "pos": [0.5, -0.14, 0.34], "rot": [0.9, 0, 0], "scale": [0.09, 0.4, 0.09], "color": "body" },
+    { "shape": "cylinder", "pos": [0.5, -0.14, -0.34], "rot": [-0.9, 0, 0], "scale": [0.09, 0.4, 0.09], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.45, -0.14, 0.34], "rot": [0.9, 0, 0], "scale": [0.09, 0.4, 0.09], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.45, -0.14, -0.34], "rot": [-0.9, 0, 0], "scale": [0.09, 0.4, 0.09], "color": "body" },
+    { "shape": "sphere", "pos": [-0.7, 0.0, 0], "scale": [0.6, 0.28, 0.3], "color": "body" },
+    { "shape": "cone", "pos": [-1.55, 0.02, 0], "rot": [0, 0, 1.5708], "scale": [0.16, 0.8, 0.16], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.2, 0.18, 0], "scale": [0.5, 0.06, 0.4], "color": "#e0e0e0" },
+    { "shape": "sphere", "pos": [-0.5, 0.14, 0], "scale": [0.4, 0.06, 0.32], "color": "#e0e0e0" }
+  ] }
+}

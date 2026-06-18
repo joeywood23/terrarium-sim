@@ -1,0 +1,30 @@
+{
+  "_comment": "Jungle L4 apex (aerial). Ornate hawk-eagle — crested canopy raptor that snatches monkeys and large birds. DIETS: hunts monkey, capuchin, squirrel_monkey, macaw, agouti. reach = on land.",
+  "id": "ornate_hawk_eagle",
+  "sizeScale": 4.8,
+  "name": "Ornate Hawk-Eagle",
+  "behavior": "aerial",
+  "color": "#5b4a3a",
+  "chartColor": "#8a6a48",
+  "cfg": {
+    "length": 2.0, "width": 1.0, "height": 0.6,
+    "flySpeed": 16, "walkSpeed": 2.0, "altMin": 7, "altMax": 42, "altDrift": 20,
+    "contactRadius": 3.5, "winThreshold": 0.35
+  },
+  "breeding": { "mtbLayEgg": 76, "growthFood": 46 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.5, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [0.1, -0.12, 0], "scale": [0.66, 0.36, 0.4], "color": "#d8c4a0" },
+    { "shape": "sphere", "pos": [0.6, 0.18, 0], "scale": [0.42, 0.42, 0.42], "color": "body" },
+    { "shape": "cone", "pos": [0.6, 0.5, 0], "rot": [0, 0, 0.2], "scale": [0.08, 0.3, 0.08], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.9, 0.12, 0], "rot": [0, 0, -1.5708], "scale": [0.14, 0.3, 0.14], "color": "#e0a82a" },
+    { "shape": "box", "pos": [-0.1, 0.12, 0.95], "rot": [0, 0.25, 0.1], "scale": [0.85, 0.07, 1.4], "color": "body" },
+    { "shape": "box", "pos": [-0.1, 0.12, -0.95], "rot": [0, -0.25, -0.1], "scale": [0.85, 0.07, 1.4], "color": "body" },
+    { "shape": "box", "pos": [-0.15, 0.16, 1.8], "rot": [0, 0.45, 0.12], "scale": [0.5, 0.06, 0.85], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.15, 0.16, -1.8], "rot": [0, -0.45, -0.12], "scale": [0.5, 0.06, 0.85], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.95, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.5, 0.55, 0.1], "color": "#c8b48a" },
+    { "shape": "cone", "pos": [0.2, -0.34, 0.12], "rot": [3.14159, 0, 0], "scale": [0.07, 0.18, 0.07], "color": "#e0a82a" },
+    { "shape": "cone", "pos": [0.2, -0.34, -0.12], "rot": [3.14159, 0, 0], "scale": [0.07, 0.18, 0.07], "color": "#e0a82a" },
+    { "shape": "eyes", "pos": [0.78, 0.22, 0.13], "r": 0.05 }
+  ] }
+}

@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L1 frugivore (terrestrial). Kinkajou — golden arboreal carnivoran that eats mostly fruit; prehensile tail. Pure forager, no DIETS row. Prey for ocelot, margay, harpy_eagle.",
+  "id": "kinkajou",
+  "sizeScale": 3.0,
+  "name": "Kinkajou",
+  "behavior": "terrestrial",
+  "color": "#b88a4a",
+  "chartColor": "#c79a55",
+  "breeding": { "mtbLayEgg": 40, "growthFood": 28 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [1.2, 0.58, 0.56], "color": "body" },
+    { "shape": "sphere", "pos": [0.62, 0.08, 0], "scale": [0.52, 0.5, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.9, 0.18, 0], "scale": [0.42, 0.42, 0.42], "color": "body" },
+    { "shape": "sphere", "pos": [1.12, 0.12, 0], "scale": [0.2, 0.18, 0.2], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.82, 0.42, 0.18], "scale": [0.16, 0.16, 0.1], "color": "body" },
+    { "shape": "sphere", "pos": [0.82, 0.42, -0.18], "scale": [0.16, 0.16, 0.1], "color": "body" },
+    { "shape": "eyes", "pos": [1.04, 0.24, 0.14], "r": 0.06 },
+    { "shape": "cylinder", "pos": [0.55, -0.22, 0.24], "scale": [0.11, 0.44, 0.11], "color": "body" },
+    { "shape": "cylinder", "pos": [0.55, -0.22, -0.24], "scale": [0.11, 0.44, 0.11], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.55, -0.22, 0.26], "scale": [0.11, 0.44, 0.11], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.55, -0.22, -0.26], "scale": [0.11, 0.44, 0.11], "color": "body" },
+    { "shape": "cylinder", "pos": [-1.0, 0.16, 0], "rot": [0, 0, 1.35], "scale": [0.1, 0.7, 0.1], "color": "body" },
+    { "shape": "sphere", "pos": [-1.32, 0.42, 0], "scale": [0.1, 0.1, 0.1], "color": "bodyDark" }
+  ] }
+}

@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L3 nocturnal raptor (aerial). Spectacled owl — dark hood with pale facial 'spectacles'. DIETS: hunts agouti, opossum, acouchi, paca. reach = on land.",
+  "id": "spectacled_owl",
+  "sizeScale": 4.0,
+  "name": "Spectacled Owl",
+  "behavior": "aerial",
+  "color": "#4a3e30",
+  "chartColor": "#6a5a46",
+  "cfg": {
+    "length": 1.5, "width": 0.95, "height": 0.72,
+    "flySpeed": 13, "walkSpeed": 1.6, "altMin": 5, "altMax": 30, "altDrift": 16,
+    "contactRadius": 3.2, "winThreshold": 0.4
+  },
+  "breeding": { "mtbLayEgg": 60, "growthFood": 38 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.85, 0.72, 0.62], "color": "#caa66e" },
+    { "shape": "sphere", "pos": [0.4, 0.34, 0], "scale": [0.64, 0.64, 0.58], "color": "body" },
+    { "shape": "sphere", "pos": [0.64, 0.36, 0.18], "scale": [0.22, 0.26, 0.16], "color": "#e8e0cc" },
+    { "shape": "sphere", "pos": [0.64, 0.36, -0.18], "scale": [0.22, 0.26, 0.16], "color": "#e8e0cc" },
+    { "shape": "cone", "pos": [0.8, 0.3, 0], "rot": [0, 0, -1.5708], "scale": [0.08, 0.18, 0.08], "color": "#3a3a3a" },
+    { "shape": "box", "pos": [-0.1, 0.1, 0.72], "rot": [0, 0.15, 0.1], "scale": [0.72, 0.08, 0.95], "color": "body" },
+    { "shape": "box", "pos": [-0.1, 0.1, -0.72], "rot": [0, -0.15, -0.1], "scale": [0.72, 0.08, 0.95], "color": "body" },
+    { "shape": "cone", "pos": [-0.85, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.36, 0.4, 0.1], "color": "body" },
+    { "shape": "eyes", "pos": [0.7, 0.38, 0.17], "r": 0.1 }
+  ] }
+}

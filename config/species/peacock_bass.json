@@ -1,0 +1,22 @@
+{
+  "_comment": "Jungle L3 predator (aquatic). Peacock bass (tucunare) — aggressive ambush hunter with a tail ocellus. DIETS: hunts fish, koi, neon_tetra. reach = open water (inWater).",
+  "id": "peacock_bass",
+  "sizeScale": 3.0,
+  "name": "Peacock Bass",
+  "behavior": "aquatic",
+  "color": "#3e7d3a",
+  "chartColor": "#5aa84a",
+  "cfg": { "contactRadius": 3.0, "winThreshold": 0.35 },
+  "breeding": { "mtbLayEgg": 36, "growthFood": 26 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.2, 0.85, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [0.7, 0.05, 0], "scale": [0.55, 0.62, 0.42], "color": "body" },
+    { "shape": "box", "pos": [0.96, -0.1, 0], "scale": [0.28, 0.3, 0.34], "color": "#e8c45a" },
+    { "shape": "box", "pos": [-0.1, 0.6, 0], "scale": [1.0, 0.3, 0.08], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.95, 0.05, 0], "rot": [0, 0, 1.5708], "scale": [0.6, 0.55, 0.12], "color": "#243a20" },
+    { "shape": "sphere", "pos": [-0.85, 0.05, 0.0], "scale": [0.2, 0.2, 0.46], "color": "#111111" },
+    { "shape": "box", "pos": [-0.2, 0.0, 0], "scale": [0.12, 0.9, 0.46], "color": "#243a20" },
+    { "shape": "box", "pos": [0.2, 0.0, 0], "scale": [0.12, 0.85, 0.46], "color": "#243a20" },
+    { "shape": "eyes", "pos": [0.85, 0.18, 0.22], "r": 0.07 }
+  ] }
+}

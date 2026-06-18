@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer. Strangler fig — figs are a keystone fruit for birds, monkeys, bats.",
+  "id": "strangler_fig",
+  "name": "Strangler Fig",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#cde0a0",
+  "colorOld": "#3a6b2c",
+  "chartColor": "#4f9436",
+  "maxRadius": 2.2,
+  "seedShare": 0.6
+}

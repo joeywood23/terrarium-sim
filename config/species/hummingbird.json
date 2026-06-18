@@ -1,0 +1,24 @@
+{
+  "_comment": "Jungle L1 nectarivore (aerial). Hummingbird — tiny, fast, hovering; also snaps gnats. DIETS: hunts insect. reach = on land. Frequent loops, low altitude.",
+  "id": "hummingbird",
+  "sizeScale": 1.3,
+  "name": "Hummingbird",
+  "behavior": "aerial",
+  "color": "#1f9e8a",
+  "chartColor": "#27c0a8",
+  "cfg": {
+    "length": 0.6, "width": 0.7, "height": 0.3,
+    "flySpeed": 9, "walkSpeed": 1.0, "altMin": 2, "altMax": 18, "altDrift": 12,
+    "loopChance": 0.4, "contactRadius": 1.6, "winThreshold": 0.55
+  },
+  "breeding": { "mtbLayEgg": 16, "growthFood": 10, "juvenileScale": 0.6 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.7, 0.42, 0.38], "color": "body" },
+    { "shape": "sphere", "pos": [0.36, 0.06, 0], "scale": [0.34, 0.34, 0.32], "color": "accent" },
+    { "shape": "cone", "pos": [0.78, 0.04, 0], "rot": [0, 0, -1.5708], "scale": [0.04, 0.5, 0.04], "color": "#1a1a1a" },
+    { "shape": "box", "pos": [-0.05, 0.1, 0.36], "rot": [0, 0.2, 0.2], "scale": [0.5, 0.04, 0.5], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.05, 0.1, -0.36], "rot": [0, -0.2, -0.2], "scale": [0.5, 0.04, 0.5], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.5, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.2, 0.3, 0.06], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.46, 0.12, 0.12], "r": 0.04 }
+  ] }
+}

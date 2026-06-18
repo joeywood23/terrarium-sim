@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer. Heliconia — vivid red/orange bracts, a nectar source at the understory.",
+  "id": "heliconia",
+  "name": "Heliconia",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#ffd24a",
+  "colorOld": "#d83c1e",
+  "chartColor": "#ef5a2a",
+  "maxRadius": 1.2,
+  "seedShare": 0.8
+}

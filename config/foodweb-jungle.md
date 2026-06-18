@@ -119,3 +119,45 @@ prey in another, gated by position:
   (reach = prey on land, predator stoops)
 - `piranha → insect`: aquatic predator taking fliers that touch the surface
   (reach = prey over deep-enough water, mirrors existing fish grazing on `birds`)
+
+---
+
+## Expansion v2 — +100 animals & +12 producers
+
+The web was scaled up to a deep Amazon ecosystem: **100 new animal species** (each
+with a declarative `model.parts` 3D model) plus **12 new producers**. New predators
+are wired in the `DIETS` table in `src/main.js`; herbivores/foragers need no row
+(terrestrial graze land plants, aquatic graze water plants); fliers without a row
+scavenge carrion. `reach` helpers: `onLand`, `inWater`, `shoreOrWater` (waterline
+ambush band). Aquatic ambush species set `cfg.ambush` to stalk + lunge at the bank.
+
+- **Producers (12, L0):** kapok_tree, brazil_nut_tree, strangler_fig, cecropia,
+  acai_palm, heliconia, passionflower, orchid, bamboo, bracket_fungus,
+  water_hyacinth*, giant_water_lily* (* = habitat:water).
+- **Aquatic (19):** apex arapaima; predators giant_otter, boto_dolphin, arowana,
+  peacock_bass, payara, wolf_fish†, electric_eel, redtail_catfish,
+  freshwater_stingray, matamata_turtle†; grazers tambaqui, pacu, plecostomus,
+  neon_tetra, discus_fish, silver_hatchetfish, giant_river_turtle, amazon_manatee
+  († cfg.ambush).
+- **Terrestrial mammals (26):** apex puma; cats jaguarundi, margay, oncilla;
+  tayra, bush_dog, crab_eating_fox; anteaters giant_anteater, tamandua,
+  giant_armadillo; coati, capuchin, squirrel_monkey, golden_lion_tamarin;
+  grazers lowland_tapir, red_brocket_deer, gray_brocket_deer,
+  white_lipped_peccary, paca, acouchi, brazilian_porcupine, kinkajou, opossum,
+  howler_monkey, spider_monkey, saki_monkey.
+- **Reptiles & amphibians (15):** green_anaconda, emerald_tree_boa, rainbow_boa,
+  fer_de_lance, bushmaster, coral_snake, vine_snake, tegu, caiman_lizard,
+  green_basilisk, horned_frog†, cane_toad, glass_frog; herbivores green_iguana,
+  red_footed_tortoise.
+- **Birds (26):** raptors ornate_hawk_eagle, great_black_hawk, laughing_falcon,
+  crested_owl, spectacled_owl, swallow_tailed_kite; scavengers king_vulture,
+  black_vulture, turkey_vulture; waders/fishers great_egret, cocoi_heron,
+  jabiru_stork, scarlet_ibis, anhinga, ringed_kingfisher; canopy toco_toucan,
+  green_aracari, hummingbird, paradise_tanager, cock_of_the_rock,
+  blue_and_gold_macaw, hyacinth_macaw, motmot, woodpecker, hoatzin, fruit_bat.
+- **Invertebrates (14):** praying_mantis, dragonfly, tarantula, wandering_spider,
+  giant_centipede, scorpion, assassin_bug, army_ant, bullet_ant (predators);
+  blue_morpho, owl_butterfly, rhinoceros_beetle, termite, firefly (prey).
+
+Loader note: `loadSpeciesData()` now fetches all manifest files in parallel
+(was serial — 130+ species made the cold load multi-second).

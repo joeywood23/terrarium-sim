@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L3 wader (aerial). Great egret — white dagger-billed fisher of the shallows. DIETS: hunts fish, neon_tetra, frog, tambaqui. reach = waterline + water (shoreOrWater).",
+  "id": "great_egret",
+  "sizeScale": 4.5,
+  "name": "Great Egret",
+  "behavior": "aerial",
+  "color": "#f2f2f0",
+  "chartColor": "#cfd4d0",
+  "cfg": {
+    "length": 1.5, "width": 0.9, "height": 0.6,
+    "flySpeed": 12, "walkSpeed": 1.6, "altMin": 4, "altMax": 28, "altDrift": 16,
+    "contactRadius": 3.0, "winThreshold": 0.4
+  },
+  "breeding": { "mtbLayEgg": 52, "growthFood": 34 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.5, 0.42], "color": "body" },
+    { "shape": "cylinder", "pos": [0.5, 0.32, 0], "rot": [0, 0, 0.6], "scale": [0.14, 0.7, 0.14], "color": "body" },
+    { "shape": "sphere", "pos": [0.74, 0.62, 0], "scale": [0.28, 0.28, 0.26], "color": "body" },
+    { "shape": "cone", "pos": [1.06, 0.6, 0], "rot": [0, 0, -1.3], "scale": [0.08, 0.4, 0.08], "color": "#e8c02a" },
+    { "shape": "box", "pos": [-0.2, 0.06, 0.5], "rot": [0, 0.2, 0.05], "scale": [0.8, 0.06, 0.7], "color": "body" },
+    { "shape": "box", "pos": [-0.2, 0.06, -0.5], "rot": [0, -0.2, -0.05], "scale": [0.8, 0.06, 0.7], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.1, -0.5, 0.16], "scale": [0.05, 0.7, 0.05], "color": "#2a2a2a" },
+    { "shape": "cylinder", "pos": [-0.1, -0.5, -0.16], "scale": [0.05, 0.7, 0.05], "color": "#2a2a2a" },
+    { "shape": "eyes", "pos": [0.82, 0.66, 0.13], "r": 0.045 }
+  ] }
+}

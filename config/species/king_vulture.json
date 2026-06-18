@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L3 scavenger (aerial). King vulture — striking white body, colorful bare head; soars high and feeds on carrion (no DIETS row — fliers scavenge corpses by default).",
+  "id": "king_vulture",
+  "sizeScale": 5.0,
+  "name": "King Vulture",
+  "behavior": "aerial",
+  "color": "#eae6da",
+  "chartColor": "#c9b27a",
+  "cfg": {
+    "length": 2.0, "width": 1.1, "height": 0.6,
+    "flySpeed": 13, "walkSpeed": 1.8, "altMin": 10, "altMax": 48, "altDrift": 24
+  },
+  "breeding": { "mtbLayEgg": 70, "growthFood": 44 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.55, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.58, 0.18, 0], "scale": [0.36, 0.36, 0.36], "color": "#e88a2a" },
+    { "shape": "sphere", "pos": [0.62, 0.34, 0], "scale": [0.2, 0.2, 0.2], "color": "#d8442a" },
+    { "shape": "cone", "pos": [0.86, 0.14, 0], "rot": [0, 0, -1.5708], "scale": [0.12, 0.26, 0.12], "color": "#e8a82a" },
+    { "shape": "box", "pos": [-0.1, 0.12, 1.0], "rot": [0, 0.2, 0.08], "scale": [0.9, 0.07, 1.5], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.1, 0.12, -1.0], "rot": [0, -0.2, -0.08], "scale": [0.9, 0.07, 1.5], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.15, 0.16, 1.9], "rot": [0, 0.4, 0.12], "scale": [0.5, 0.06, 0.9], "color": "#2a2a2a" },
+    { "shape": "box", "pos": [-0.15, 0.16, -1.9], "rot": [0, -0.4, -0.12], "scale": [0.5, 0.06, 0.9], "color": "#2a2a2a" },
+    { "shape": "cone", "pos": [-0.95, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.45, 0.5, 0.1], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.72, 0.2, 0.12], "r": 0.05 }
+  ] }
+}

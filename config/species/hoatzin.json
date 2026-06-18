@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L1 folivore (aerial). Hoatzin — spiky-crested 'stinkbird' of the riverbank, a clumsy flier. DIETS: hunts insect (it mostly ferments leaves, but snaps the odd bug). reach = on land.",
+  "id": "hoatzin",
+  "sizeScale": 3.2,
+  "name": "Hoatzin",
+  "behavior": "aerial",
+  "color": "#7a5a32",
+  "chartColor": "#9a743f",
+  "cfg": {
+    "length": 1.3, "width": 0.85, "height": 0.55,
+    "flySpeed": 9, "altMin": 3, "altMax": 18,
+    "contactRadius": 2.0, "winThreshold": 0.75
+  },
+  "breeding": { "mtbLayEgg": 38, "growthFood": 26 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.58, 0.48], "color": "body" },
+    { "shape": "sphere", "pos": [0.55, 0.2, 0], "scale": [0.36, 0.36, 0.34], "color": "#3a4a8a" },
+    { "shape": "cone", "pos": [0.82, 0.16, 0], "rot": [0, 0, -1.5708], "scale": [0.09, 0.2, 0.09], "color": "#1a1a1a" },
+    { "shape": "cone", "pos": [0.5, 0.46, 0], "scale": [0.05, 0.24, 0.04], "color": "#b03a2a" },
+    { "shape": "cone", "pos": [0.42, 0.46, 0.08], "rot": [0.2, 0, 0.2], "scale": [0.05, 0.22, 0.04], "color": "#b03a2a" },
+    { "shape": "cone", "pos": [0.42, 0.46, -0.08], "rot": [-0.2, 0, 0.2], "scale": [0.05, 0.22, 0.04], "color": "#b03a2a" },
+    { "shape": "box", "pos": [-0.1, 0.1, 0.46], "rot": [0, 0.2, 0.1], "scale": [0.6, 0.06, 0.55], "color": "#9a743f" },
+    { "shape": "box", "pos": [-0.1, 0.1, -0.46], "rot": [0, -0.2, -0.1], "scale": [0.6, 0.06, 0.55], "color": "#9a743f" },
+    { "shape": "cone", "pos": [-0.9, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.36, 0.5, 0.08], "color": "#c8a85a" },
+    { "shape": "eyes", "pos": [0.66, 0.24, 0.13], "r": 0.06 }
+  ] }
+}

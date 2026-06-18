@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L2 insectivore (terrestrial). Giant anteater — long tubular snout, huge bushy tail. DIETS: hunts ant, termite, beetle, army_ant, bullet_ant. reach = on land.",
+  "id": "giant_anteater",
+  "sizeScale": 5.0,
+  "name": "Giant Anteater",
+  "behavior": "terrestrial",
+  "color": "#6b6258",
+  "chartColor": "#8a8074",
+  "cfg": { "contactRadius": 3.0, "winThreshold": 0.3 },
+  "breeding": { "mtbLayEgg": 60, "growthFood": 40 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [1.35, 0.62, 0.58], "color": "body" },
+    { "shape": "sphere", "pos": [0.7, 0.1, 0], "scale": [0.5, 0.5, 0.48], "color": "body" },
+    { "shape": "cylinder", "pos": [1.2, 0.05, 0], "rot": [0, 0, -1.5708], "scale": [0.16, 0.9, 0.16], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [1.62, 0.0, 0], "scale": [0.12, 0.1, 0.12], "color": "#241810" },
+    { "shape": "box", "pos": [0.3, 0.1, 0], "rot": [0, 0, 0.5], "scale": [0.9, 0.18, 0.5], "color": "#2a2420" },
+    { "shape": "cylinder", "pos": [0.55, -0.3, 0.26], "scale": [0.14, 0.46, 0.14], "color": "#2a2420" },
+    { "shape": "cylinder", "pos": [0.55, -0.3, -0.26], "scale": [0.14, 0.46, 0.14], "color": "#2a2420" },
+    { "shape": "cylinder", "pos": [-0.55, -0.3, 0.28], "scale": [0.14, 0.46, 0.14], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.55, -0.3, -0.28], "scale": [0.14, 0.46, 0.14], "color": "body" },
+    { "shape": "sphere", "pos": [-1.0, 0.3, 0], "scale": [0.5, 0.8, 0.7], "color": "body" },
+    { "shape": "sphere", "pos": [-1.4, 0.5, 0], "scale": [0.4, 0.7, 0.6], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.84, 0.2, 0.14], "r": 0.04 }
+  ] }
+}

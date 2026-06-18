@@ -1,0 +1,30 @@
+{
+  "_comment": "Jungle L2 ground predator (aerial archetype, ground-bound). Amazonian giant centipede — segmented and venomous. DIETS: hunts insect, beetle, ant, frog, anole. reach = on land.",
+  "id": "giant_centipede",
+  "sizeScale": 2.5,
+  "name": "Giant Centipede",
+  "behavior": "aerial",
+  "color": "#9a3a2a",
+  "chartColor": "#b8492f",
+  "cfg": {
+    "length": 1.4, "width": 0.4, "height": 0.3,
+    "walkSpeed": 1.0, "altMin": 1, "altMax": 4,
+    "walkFlightMin": 90, "walkFlightMax": 220,
+    "contactRadius": 1.8, "winThreshold": 0.5
+  },
+  "breeding": { "mtbLayEgg": 28, "growthFood": 18 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.7, 0.0, 0], "scale": [0.34, 0.28, 0.32], "color": "body" },
+    { "shape": "cone", "pos": [0.9, 0.0, 0.1], "rot": [0, 0, -1.2], "scale": [0.04, 0.16, 0.04], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.9, 0.0, -0.1], "rot": [0, 0, -1.2], "scale": [0.04, 0.16, 0.04], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.45, 0.0, 0], "scale": [0.3, 0.26, 0.3], "color": "body" },
+    { "shape": "sphere", "pos": [0.2, 0.0, 0], "scale": [0.3, 0.26, 0.3], "color": "accent" },
+    { "shape": "sphere", "pos": [-0.05, 0.0, 0], "scale": [0.3, 0.26, 0.3], "color": "body" },
+    { "shape": "sphere", "pos": [-0.3, 0.0, 0], "scale": [0.3, 0.26, 0.3], "color": "accent" },
+    { "shape": "sphere", "pos": [-0.55, 0.0, 0], "scale": [0.28, 0.24, 0.28], "color": "body" },
+    { "shape": "sphere", "pos": [-0.78, 0.0, 0], "scale": [0.24, 0.2, 0.24], "color": "accent" },
+    { "shape": "box", "pos": [0.1, -0.12, 0.22], "scale": [1.4, 0.03, 0.18], "color": "bodyDark" },
+    { "shape": "box", "pos": [0.1, -0.12, -0.22], "scale": [1.4, 0.03, 0.18], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.78, 0.08, 0.1], "r": 0.03 }
+  ] }
+}

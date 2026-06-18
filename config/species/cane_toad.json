@@ -1,0 +1,24 @@
+{
+  "_comment": "Jungle L2 insectivore (terrestrial). Cane toad — large warty toad with poison glands. DIETS: hunts ant, beetle, insect. reach = on land.",
+  "id": "cane_toad",
+  "sizeScale": 2.0,
+  "name": "Cane Toad",
+  "behavior": "terrestrial",
+  "color": "#8a6a44",
+  "chartColor": "#a8835a",
+  "cfg": { "contactRadius": 2.0, "winThreshold": 0.5 },
+  "breeding": { "mtbLayEgg": 26, "growthFood": 18 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.66, 0.82], "color": "body" },
+    { "shape": "sphere", "pos": [0.46, 0.16, 0], "scale": [0.56, 0.46, 0.6], "color": "body" },
+    { "shape": "sphere", "pos": [0.42, 0.38, 0.24], "scale": [0.2, 0.22, 0.18], "color": "body" },
+    { "shape": "sphere", "pos": [0.42, 0.38, -0.24], "scale": [0.2, 0.22, 0.18], "color": "body" },
+    { "shape": "sphere", "pos": [0.46, 0.4, 0.24], "scale": [0.1, 0.11, 0.09], "color": "#3a2a18" },
+    { "shape": "sphere", "pos": [0.46, 0.4, -0.24], "scale": [0.1, 0.11, 0.09], "color": "#3a2a18" },
+    { "shape": "sphere", "pos": [0.1, 0.22, 0.4], "scale": [0.28, 0.18, 0.2], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.1, 0.22, -0.4], "scale": [0.28, 0.18, 0.2], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.4, -0.06, 0.4], "scale": [0.38, 0.28, 0.22], "color": "body" },
+    { "shape": "sphere", "pos": [-0.4, -0.06, -0.4], "scale": [0.38, 0.28, 0.22], "color": "body" },
+    { "shape": "sphere", "pos": [0.1, 0.3, 0.0], "scale": [0.5, 0.06, 0.5], "color": "bodyDark" }
+  ] }
+}

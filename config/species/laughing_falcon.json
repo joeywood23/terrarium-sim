@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L3 raptor (aerial). Laughing falcon — a snake specialist. DIETS: hunts coral_snake, vine_snake, fer_de_lance, anole, rainbow_boa. reach = on land.",
+  "id": "laughing_falcon",
+  "sizeScale": 3.6,
+  "name": "Laughing Falcon",
+  "behavior": "aerial",
+  "color": "#c2b48a",
+  "chartColor": "#c2b48a",
+  "cfg": {
+    "length": 1.5, "width": 0.85, "height": 0.5,
+    "flySpeed": 16, "walkSpeed": 2.0, "altMin": 6, "altMax": 36, "altDrift": 18,
+    "contactRadius": 3.0, "winThreshold": 0.4
+  },
+  "breeding": { "mtbLayEgg": 54, "growthFood": 34 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.95, 0.5, 0.44], "color": "body" },
+    { "shape": "sphere", "pos": [0.55, 0.18, 0], "scale": [0.46, 0.46, 0.46], "color": "body" },
+    { "shape": "box", "pos": [0.55, 0.22, 0], "scale": [0.5, 0.24, 0.5], "color": "#3a342a" },
+    { "shape": "cone", "pos": [0.84, 0.12, 0], "rot": [0, 0, -1.5708], "scale": [0.12, 0.24, 0.12], "color": "#2a2a2a" },
+    { "shape": "box", "pos": [-0.1, 0.12, 0.85], "rot": [0, 0.2, 0.1], "scale": [0.7, 0.07, 1.1], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.1, 0.12, -0.85], "rot": [0, -0.2, -0.1], "scale": [0.7, 0.07, 1.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.9, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.45, 0.5, 0.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.2, -0.3, 0.12], "rot": [3.14159, 0, 0], "scale": [0.06, 0.14, 0.06], "color": "#d8c020" },
+    { "shape": "cone", "pos": [0.2, -0.3, -0.12], "rot": [3.14159, 0, 0], "scale": [0.06, 0.14, 0.06], "color": "#d8c020" },
+    { "shape": "eyes", "pos": [0.74, 0.22, 0.14], "r": 0.06 }
+  ] }
+}

@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L3 mesopredator (terrestrial). Jaguarundi — slender weasel-like cat. DIETS: hunts agouti, acouchi, paca, anole, ground birds. reach = on land.",
+  "id": "jaguarundi",
+  "sizeScale": 3.0,
+  "name": "Jaguarundi",
+  "behavior": "terrestrial",
+  "color": "#5b5048",
+  "chartColor": "#7a6c60",
+  "cfg": { "contactRadius": 2.8, "winThreshold": 0.45 },
+  "breeding": { "mtbLayEgg": 44, "growthFood": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [1.5, 0.48, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.7, 0.06, 0], "scale": [0.6, 0.46, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [1.08, 0.16, 0], "scale": [0.38, 0.36, 0.38], "color": "body" },
+    { "shape": "sphere", "pos": [1.32, 0.12, 0], "scale": [0.2, 0.18, 0.22], "color": "body" },
+    { "shape": "cone", "pos": [1.04, 0.42, 0.14], "scale": [0.1, 0.14, 0.08], "color": "body" },
+    { "shape": "cone", "pos": [1.04, 0.42, -0.14], "scale": [0.1, 0.14, 0.08], "color": "body" },
+    { "shape": "cylinder", "pos": [0.6, -0.2, 0.22], "scale": [0.1, 0.46, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [0.6, -0.2, -0.22], "scale": [0.1, 0.46, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.6, -0.2, 0.24], "scale": [0.1, 0.46, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.6, -0.2, -0.24], "scale": [0.1, 0.46, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [-1.2, 0.1, 0], "rot": [0, 0, 1.5], "scale": [0.08, 1.0, 0.08], "color": "body" },
+    { "shape": "eyes", "pos": [1.22, 0.22, 0.15], "r": 0.05 }
+  ] }
+}

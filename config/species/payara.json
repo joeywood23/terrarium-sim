@@ -1,0 +1,21 @@
+{
+  "_comment": "Jungle L3 predator (aquatic). Payara / vampire fish — fanged open-water hunter. DIETS: hunts fish, koi, neon_tetra, pacu, piranha. reach = open water (inWater).",
+  "id": "payara",
+  "sizeScale": 3.2,
+  "name": "Payara",
+  "behavior": "aquatic",
+  "color": "#9aa6ad",
+  "chartColor": "#7d8a92",
+  "cfg": { "contactRadius": 3.0, "winThreshold": 0.35 },
+  "breeding": { "mtbLayEgg": 38, "growthFood": 26 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.45, 0.6, 0.42], "color": "body" },
+    { "shape": "sphere", "pos": [0.85, 0.0, 0], "scale": [0.6, 0.56, 0.44], "color": "body" },
+    { "shape": "box", "pos": [1.1, -0.18, 0], "scale": [0.34, 0.26, 0.32], "color": "body" },
+    { "shape": "cone", "pos": [1.08, -0.34, 0.06], "scale": [0.03, 0.22, 0.03], "color": "#f0f0f0" },
+    { "shape": "cone", "pos": [1.08, -0.34, -0.06], "scale": [0.03, 0.22, 0.03], "color": "#f0f0f0" },
+    { "shape": "cone", "pos": [-1.0, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.6, 0.6, 0.12], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.1, 0.42, 0], "scale": [0.5, 0.2, 0.06], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.98, 0.16, 0.2], "r": 0.07 }
+  ] }
+}

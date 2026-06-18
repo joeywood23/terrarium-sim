@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L1 frugivore (aerial). Greater fruit bat (flying fox) — broad leathery wings, fox-like face. DIETS: hunts insect. reach = on land. Prey for harpy_eagle, owls, boa.",
+  "id": "fruit_bat",
+  "sizeScale": 2.6,
+  "name": "Fruit Bat",
+  "behavior": "aerial",
+  "color": "#5a3a26",
+  "chartColor": "#7a4e34",
+  "cfg": {
+    "length": 1.0, "width": 0.7, "height": 0.5,
+    "flySpeed": 12, "altMin": 4, "altMax": 28,
+    "contactRadius": 2.0, "winThreshold": 0.7
+  },
+  "breeding": { "mtbLayEgg": 32, "growthFood": 20 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.6, 0.5, 0.4], "color": "body" },
+    { "shape": "sphere", "pos": [0.36, 0.1, 0], "scale": [0.36, 0.36, 0.34], "color": "body" },
+    { "shape": "cone", "pos": [0.56, 0.06, 0], "rot": [0, 0, -1.5708], "scale": [0.12, 0.2, 0.12], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.34, 0.4, 0.13], "scale": [0.1, 0.24, 0.08], "color": "body" },
+    { "shape": "cone", "pos": [0.34, 0.4, -0.13], "scale": [0.1, 0.24, 0.08], "color": "body" },
+    { "shape": "eyes", "pos": [0.48, 0.14, 0.1], "r": 0.045 },
+    { "shape": "box", "pos": [-0.05, 0.05, 0.7], "rot": [0, 0.2, 0.18], "scale": [0.6, 0.03, 1.0], "color": "#4e342e" },
+    { "shape": "box", "pos": [-0.05, 0.05, -0.7], "rot": [0, -0.2, -0.18], "scale": [0.6, 0.03, 1.0], "color": "#4e342e" },
+    { "shape": "box", "pos": [-0.1, 0.1, 1.4], "rot": [0, 0.4, 0.2], "scale": [0.34, 0.03, 0.55], "color": "#3e2620" },
+    { "shape": "box", "pos": [-0.1, 0.1, -1.4], "rot": [0, -0.4, -0.2], "scale": [0.34, 0.03, 0.55], "color": "#3e2620" }
+  ] }
+}

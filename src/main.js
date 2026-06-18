@@ -960,12 +960,17 @@ async function loadSpeciesData() {
     const mani = await (await fetch('config/species/manifest.json')).json();
     files = Array.isArray(mani.files) ? mani.files : [];
   } catch (e) { console.error('species manifest load failed —', e.message); }
-  for (const f of files) {
-    try {
-      const def = await (await fetch('config/species/' + f)).json();
-      RAW_SPECIES.push({ file: f, def });
-      if (def && def.id) byId[def.id] = def;
-    } catch (e) { console.error('species file "' + f + '" failed to load —', e.message); }
+  // Fetch all files in parallel (was sequential — with 130+ species that meant
+  // 130 serial round-trips and a multi-second blank load). Results are collected
+  // back in manifest order so registration + the config editor stay stable.
+  const loaded = await Promise.all(files.map(async f => {
+    try { return { file: f, def: await (await fetch('config/species/' + f)).json() }; }
+    catch (e) { console.error('species file "' + f + '" failed to load —', e.message); return null; }
+  }));
+  for (const r of loaded) {
+    if (!r) continue;
+    RAW_SPECIES.push(r);
+    if (r.def && r.def.id) byId[r.def.id] = r.def;
   }
   return byId;
 }
@@ -2498,6 +2503,91 @@ const DIETS = {
   anole:        { hunts: ['ant', 'beetle'],                                  reach: onLand },
   insect_bat:   { hunts: ['beetle', 'butterfly'] },                          // catches fliers anywhere
   macaw:        { hunts: ['insect'] },                                       // omnivore; also grazes
+
+  // ══ Expanded Amazon food web ══════════════════════════════════════════════
+  // ── Aquatic predators (reach = open water; ambush species grab the bank) ───
+  arapaima:           { hunts: ['piranha', 'fish', 'koi', 'neon_tetra', 'pacu', 'tambaqui', 'discus_fish', 'plecostomus'], reach: inWater },
+  giant_otter:        { hunts: ['piranha', 'fish', 'koi', 'neon_tetra', 'pacu', 'discus_fish'], reach: inWater },
+  boto_dolphin:       { hunts: ['fish', 'koi', 'neon_tetra', 'piranha', 'tambaqui'], reach: inWater },
+  arowana:            { hunts: ['fish', 'koi', 'neon_tetra', 'insect'],      reach: inWater },
+  peacock_bass:       { hunts: ['fish', 'koi', 'neon_tetra'],                reach: inWater },
+  wolf_fish:          { hunts: ['fish', 'koi', 'neon_tetra', 'frog'],        reach: shoreOrWater },
+  electric_eel:       { hunts: ['fish', 'koi', 'neon_tetra'],                reach: inWater },
+  redtail_catfish:    { hunts: ['fish', 'koi', 'neon_tetra', 'pacu'],        reach: inWater },
+  freshwater_stingray:{ hunts: ['fish', 'neon_tetra'],                       reach: inWater },
+  matamata_turtle:    { hunts: ['fish', 'neon_tetra'],                       reach: shoreOrWater },
+
+  // ── Terrestrial mammal predators ───────────────────────────────────────────
+  puma:           { hunts: ['capybara', 'peccary', 'white_lipped_peccary', 'agouti', 'paca', 'red_brocket_deer', 'gray_brocket_deer', 'monkey'], reach: onLand },
+  jaguarundi:     { hunts: ['agouti', 'acouchi', 'paca', 'anole'],           reach: onLand },
+  margay:         { hunts: ['agouti', 'acouchi', 'anole', 'capuchin'],       reach: onLand },
+  oncilla:        { hunts: ['anole', 'dart_frog', 'ant', 'beetle', 'opossum'], reach: onLand },
+  tayra:          { hunts: ['agouti', 'acouchi', 'paca', 'anole', 'capuchin'], reach: onLand },
+  bush_dog:       { hunts: ['agouti', 'paca', 'acouchi', 'capybara'],        reach: onLand },
+  crab_eating_fox:{ hunts: ['agouti', 'acouchi', 'frog', 'anole', 'beetle'], reach: onLand },
+  giant_anteater: { hunts: ['ant', 'termite', 'beetle', 'army_ant', 'bullet_ant'], reach: onLand },
+  tamandua:       { hunts: ['ant', 'termite', 'beetle'],                     reach: onLand },
+  coati:          { hunts: ['beetle', 'rhinoceros_beetle', 'ant', 'anole', 'dart_frog'], reach: onLand },
+  capuchin:       { hunts: ['beetle', 'ant', 'anole', 'frog'],               reach: onLand },
+
+  // ── Reptile & amphibian predators ──────────────────────────────────────────
+  green_anaconda:  { hunts: ['capybara', 'agouti', 'paca', 'white_lipped_peccary', 'red_brocket_deer', 'fish'], reach: shoreOrWater },
+  emerald_tree_boa:{ hunts: ['anole', 'macaw', 'hummingbird', 'insect_bat'], reach: onLand },
+  rainbow_boa:     { hunts: ['agouti', 'acouchi', 'anole', 'frog', 'opossum'], reach: onLand },
+  fer_de_lance:    { hunts: ['agouti', 'acouchi', 'paca', 'frog', 'anole'],  reach: onLand },
+  bushmaster:      { hunts: ['agouti', 'paca', 'acouchi', 'opossum'],        reach: onLand },
+  coral_snake:     { hunts: ['anole', 'vine_snake', 'frog', 'dart_frog'],    reach: onLand },
+  vine_snake:      { hunts: ['anole', 'frog', 'dart_frog', 'hummingbird'],   reach: onLand },
+  tegu:            { hunts: ['insect', 'beetle', 'rhinoceros_beetle', 'frog', 'ant'], reach: onLand },
+  caiman_lizard:   { hunts: ['frog', 'beetle', 'insect'],                    reach: shoreOrWater },
+  green_basilisk:  { hunts: ['insect', 'ant', 'beetle', 'butterfly', 'firefly'], reach: onLand },
+  horned_frog:     { hunts: ['insect', 'ant', 'beetle', 'frog', 'anole', 'dart_frog'], reach: onLand },
+  cane_toad:       { hunts: ['ant', 'beetle', 'insect', 'termite'],          reach: onLand },
+
+  // ── Bird raptors (strike terrestrial prey) ─────────────────────────────────
+  ornate_hawk_eagle: { hunts: ['monkey', 'capuchin', 'howler_monkey', 'spider_monkey', 'macaw', 'agouti'], reach: onLand },
+  great_black_hawk:  { hunts: ['anole', 'frog', 'agouti', 'coral_snake', 'acouchi'], reach: onLand },
+  laughing_falcon:   { hunts: ['coral_snake', 'vine_snake', 'fer_de_lance', 'anole', 'rainbow_boa'], reach: onLand },
+  crested_owl:       { hunts: ['agouti', 'paca', 'acouchi', 'insect_bat', 'opossum'], reach: onLand },
+  spectacled_owl:    { hunts: ['agouti', 'opossum', 'acouchi', 'paca'],      reach: onLand },
+  swallow_tailed_kite:{ hunts: ['insect', 'butterfly', 'blue_morpho', 'owl_butterfly', 'dragonfly', 'anole'], reach: onLand },
+  // ── Bird waders / fishers (catch prey at the waterline) ────────────────────
+  great_egret:       { hunts: ['fish', 'neon_tetra', 'frog', 'tambaqui'],    reach: shoreOrWater },
+  cocoi_heron:       { hunts: ['fish', 'frog', 'neon_tetra', 'tambaqui'],    reach: shoreOrWater },
+  jabiru_stork:      { hunts: ['fish', 'frog', 'neon_tetra', 'tambaqui', 'pacu'], reach: shoreOrWater },
+  scarlet_ibis:      { hunts: ['insect', 'beetle', 'ant'],                   reach: shoreOrWater },
+  anhinga:           { hunts: ['fish', 'neon_tetra', 'tambaqui'],            reach: shoreOrWater },
+  ringed_kingfisher: { hunts: ['fish', 'neon_tetra'],                        reach: shoreOrWater },
+  // ── Bird frugivore / insectivore omnivores ─────────────────────────────────
+  toco_toucan:       { hunts: ['insect', 'butterfly', 'owl_butterfly'],      reach: onLand },
+  green_aracari:     { hunts: ['insect', 'butterfly', 'blue_morpho'],        reach: onLand },
+  hummingbird:       { hunts: ['insect'],                                    reach: onLand },
+  paradise_tanager:  { hunts: ['insect', 'ant', 'termite'],                  reach: onLand },
+  cock_of_the_rock:  { hunts: ['insect'],                                    reach: onLand },
+  blue_and_gold_macaw:{ hunts: ['insect'] },
+  hyacinth_macaw:    { hunts: ['insect'] },
+
+  // ── Invertebrate predators ─────────────────────────────────────────────────
+  praying_mantis:  { hunts: ['insect', 'butterfly', 'blue_morpho', 'owl_butterfly', 'firefly', 'ant'] },
+  dragonfly:       { hunts: ['insect', 'butterfly', 'firefly', 'termite'] },
+  tarantula:       { hunts: ['insect', 'beetle', 'rhinoceros_beetle', 'ant', 'frog', 'termite'], reach: onLand },
+  wandering_spider:{ hunts: ['insect', 'beetle', 'ant', 'termite'],          reach: onLand },
+  giant_centipede: { hunts: ['insect', 'beetle', 'ant', 'frog', 'anole', 'termite'], reach: onLand },
+  scorpion:        { hunts: ['insect', 'beetle', 'ant', 'termite'],          reach: onLand },
+  assassin_bug:    { hunts: ['insect', 'ant', 'termite', 'butterfly'] },
+  army_ant:        { hunts: ['insect', 'beetle', 'termite', 'ant'],          reach: onLand },
+  bullet_ant:      { hunts: ['insect', 'termite', 'ant'],                    reach: onLand },
+
+  // ── Additional omnivores / insectivores / fishers ─────────────────────────
+  squirrel_monkey:    { hunts: ['insect', 'ant', 'beetle'],                  reach: onLand },
+  golden_lion_tamarin:{ hunts: ['insect', 'beetle'],                         reach: onLand },
+  giant_armadillo:    { hunts: ['ant', 'termite', 'beetle', 'bullet_ant'],   reach: onLand },
+  glass_frog:         { hunts: ['insect', 'ant', 'beetle'],                  reach: onLand },
+  fruit_bat:          { hunts: ['insect'] },
+  motmot:             { hunts: ['insect', 'beetle', 'butterfly'],            reach: onLand },
+  woodpecker:         { hunts: ['insect', 'ant', 'beetle', 'termite'],       reach: onLand },
+  hoatzin:            { hunts: ['insect'],                                   reach: onLand },
+  payara:             { hunts: ['fish', 'koi', 'neon_tetra', 'pacu', 'piranha', 'silver_hatchetfish'], reach: inWater },
 };
 
 /* Build the `prey` sub-diet grazeControl expects from a predator's DIETS row.

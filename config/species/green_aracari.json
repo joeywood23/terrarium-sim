@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L2 omnivore (aerial). Green aracari — small slender toucan. DIETS: hunts insect, butterfly. reach = on land.",
+  "id": "green_aracari",
+  "sizeScale": 2.5,
+  "name": "Green Aracari",
+  "behavior": "aerial",
+  "color": "#2f6a2a",
+  "chartColor": "#3f8a36",
+  "cfg": {
+    "length": 1.1, "width": 0.75, "height": 0.5,
+    "flySpeed": 13, "walkSpeed": 1.6, "altMin": 4, "altMax": 26, "altDrift": 14,
+    "contactRadius": 2.2, "winThreshold": 0.6
+  },
+  "breeding": { "mtbLayEgg": 34, "growthFood": 22 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.95, 0.55, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [0.0, -0.16, 0], "scale": [0.8, 0.36, 0.42], "color": "#d8b22a" },
+    { "shape": "sphere", "pos": [0.5, 0.18, 0], "scale": [0.42, 0.42, 0.4], "color": "#2a2a2a" },
+    { "shape": "cone", "pos": [0.96, 0.14, 0], "rot": [0, 0, -1.5708], "scale": [0.16, 0.66, 0.16], "color": "#e8d24a" },
+    { "shape": "box", "pos": [-0.1, 0.12, 0.46], "rot": [0, 0.2, 0.1], "scale": [0.55, 0.06, 0.55], "color": "body" },
+    { "shape": "box", "pos": [-0.1, 0.12, -0.46], "rot": [0, -0.2, -0.1], "scale": [0.55, 0.06, 0.55], "color": "body" },
+    { "shape": "cone", "pos": [-0.8, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.36, 0.4, 0.1], "color": "body" },
+    { "shape": "eyes", "pos": [0.62, 0.24, 0.14], "r": 0.05 }
+  ] }
+}

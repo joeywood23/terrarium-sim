@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L2 insect predator (aerial). Assassin bug — stabs prey with a curved proboscis. DIETS: hunts insect, ant, termite, butterfly. Catches in air or on land.",
+  "id": "assassin_bug",
+  "sizeScale": 1.0,
+  "name": "Assassin Bug",
+  "behavior": "aerial",
+  "color": "#a82a2a",
+  "chartColor": "#c83838",
+  "cfg": {
+    "length": 0.7, "width": 0.45, "height": 0.3,
+    "walkSpeed": 0.8, "flySpeed": 8, "altMin": 1, "altMax": 10,
+    "walkFlightMin": 30, "walkFlightMax": 80,
+    "contactRadius": 1.4, "winThreshold": 0.5
+  },
+  "breeding": { "mtbLayEgg": 18, "growthFood": 12, "juvenileScale": 0.5 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [-0.15, 0.0, 0], "scale": [0.7, 0.34, 0.34], "color": "body" },
+    { "shape": "sphere", "pos": [0.3, 0.04, 0], "scale": [0.26, 0.24, 0.24], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.52, -0.04, 0], "rot": [0, 0, -1.0], "scale": [0.03, 0.26, 0.03], "color": "#1a1a1a" },
+    { "shape": "cylinder", "pos": [0.34, 0.18, 0.05], "rot": [0, 0, 0.6], "scale": [0.02, 0.2, 0.02], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.34, 0.18, -0.05], "rot": [0, 0, 0.6], "scale": [0.02, 0.2, 0.02], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.2, 0.1, 0], "scale": [0.4, 0.04, 0.36], "color": "accent" },
+    { "shape": "cylinder", "pos": [0.0, -0.12, 0.16], "rot": [0.7, 0, 0], "scale": [0.02, 0.28, 0.02], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.0, -0.12, -0.16], "rot": [-0.7, 0, 0], "scale": [0.02, 0.28, 0.02], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.36, 0.1, 0.09], "r": 0.03 }
+  ] }
+}

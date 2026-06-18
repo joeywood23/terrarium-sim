@@ -1,0 +1,24 @@
+{
+  "_comment": "Jungle L1 detritivore prey (aerial archetype, ground-bound). Termite — pale soft-bodied wood/litter recycler. Pure prey (scavenges by default). Base food for anteaters, tamandua, ants, birds.",
+  "id": "termite",
+  "sizeScale": 0.5,
+  "name": "Termite",
+  "behavior": "aerial",
+  "color": "#d8c8a8",
+  "chartColor": "#c8b890",
+  "cfg": {
+    "length": 0.45, "width": 0.32, "height": 0.26,
+    "walkSpeed": 0.5, "altMin": 1, "altMax": 2,
+    "walkFlightMin": 140, "walkFlightMax": 320,
+    "juvenileScale": 0.5
+  },
+  "breeding": { "mtbLayEgg": 10, "growthFood": 8, "juvenileScale": 0.5 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.22, 0.04, 0], "scale": [0.16, 0.15, 0.15], "color": "#caa86a" },
+    { "shape": "sphere", "pos": [0.02, 0.04, 0], "scale": [0.16, 0.14, 0.14], "color": "body" },
+    { "shape": "sphere", "pos": [-0.22, 0.04, 0], "scale": [0.3, 0.2, 0.2], "color": "body" },
+    { "shape": "cone", "pos": [0.34, 0.04, 0.05], "rot": [0, 0, -1.2], "scale": [0.03, 0.1, 0.03], "color": "#8a6a3a" },
+    { "shape": "cone", "pos": [0.34, 0.04, -0.05], "rot": [0, 0, -1.2], "scale": [0.03, 0.1, 0.03], "color": "#8a6a3a" },
+    { "shape": "eyes", "pos": [0.26, 0.06, 0.06], "r": 0.02 }
+  ] }
+}

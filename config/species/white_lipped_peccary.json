@@ -1,0 +1,27 @@
+{
+  "_comment": "Jungle L1 herbivore (terrestrial). White-lipped peccary — larger, herd-forming relative of the collared peccary. Pure forager, no DIETS row. Prey for jaguar, puma.",
+  "id": "white_lipped_peccary",
+  "sizeScale": 4.5,
+  "name": "White-lipped Peccary",
+  "behavior": "terrestrial",
+  "color": "#3a342e",
+  "chartColor": "#5a5044",
+  "breeding": { "mtbLayEgg": 28, "growthFood": 26 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [1.05, 0.66, 0.6], "color": "body" },
+    { "shape": "sphere", "pos": [0.3, 0.14, 0], "scale": [0.7, 0.74, 0.64], "color": "body" },
+    { "shape": "sphere", "pos": [-0.45, 0.03, 0], "scale": [0.56, 0.56, 0.54], "color": "body" },
+    { "shape": "sphere", "pos": [0.72, 0.06, 0], "scale": [0.46, 0.46, 0.44], "color": "body" },
+    { "shape": "sphere", "pos": [1.0, 0.04, 0], "scale": [0.44, 0.42, 0.42], "color": "body" },
+    { "shape": "box", "pos": [1.3, -0.02, 0], "scale": [0.32, 0.26, 0.3], "color": "#e0dcd2" },
+    { "shape": "sphere", "pos": [1.47, -0.02, 0], "scale": [0.1, 0.14, 0.18], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.94, 0.34, 0.15], "scale": [0.1, 0.18, 0.07], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.94, 0.34, -0.15], "scale": [0.1, 0.18, 0.07], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [1.12, 0.16, 0.16], "r": 0.05 },
+    { "shape": "cylinder", "pos": [0.35, -0.3, 0.25], "scale": [0.11, 0.46, 0.11], "color": "#181410" },
+    { "shape": "cylinder", "pos": [0.35, -0.3, -0.25], "scale": [0.11, 0.46, 0.11], "color": "#181410" },
+    { "shape": "cylinder", "pos": [-0.42, -0.3, 0.27], "scale": [0.11, 0.46, 0.11], "color": "#181410" },
+    { "shape": "cylinder", "pos": [-0.42, -0.3, -0.27], "scale": [0.11, 0.46, 0.11], "color": "#181410" },
+    { "shape": "sphere", "pos": [0.1, 0.46, 0], "scale": [0.6, 0.18, 0.32], "color": "#1a1612" }
+  ] }
+}

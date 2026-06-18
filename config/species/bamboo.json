@@ -1,0 +1,12 @@
+{
+  "_comment": "L0 producer. Guadua bamboo — fast vertical thickets, cover and forage.",
+  "id": "bamboo",
+  "name": "Bamboo",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#d3e6a3",
+  "colorOld": "#5e7d2a",
+  "chartColor": "#7fa23a",
+  "maxRadius": 2.0,
+  "seedShare": 0.6
+}

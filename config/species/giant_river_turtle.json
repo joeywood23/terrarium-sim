@@ -1,0 +1,22 @@
+{
+  "_comment": "Jungle L1 herbivore (aquatic). Arrau / giant South American river turtle — grazes aquatic plants and fallen fruit. Pure forager, no DIETS row. Juveniles eaten by caiman, otter.",
+  "id": "giant_river_turtle",
+  "sizeScale": 4.0,
+  "name": "Giant River Turtle",
+  "behavior": "aquatic",
+  "color": "#3f5a4a",
+  "chartColor": "#557a64",
+  "breeding": { "mtbLayEgg": 70, "growthFood": 40 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [-0.05, 0.05, 0], "scale": [1.25, 0.78, 1.0], "color": "body" },
+    { "shape": "sphere", "pos": [-0.05, 0.32, 0], "scale": [0.95, 0.6, 0.78], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.7, -0.02, 0], "scale": [0.4, 0.32, 0.36], "color": "#6a8a76" },
+    { "shape": "sphere", "pos": [0.96, 0.0, 0], "scale": [0.24, 0.22, 0.24], "color": "#6a8a76" },
+    { "shape": "eyes", "pos": [0.9, 0.08, 0.13], "r": 0.05 },
+    { "shape": "box", "pos": [0.5, -0.32, 0.42], "rot": [0, 0, 0.2], "scale": [0.42, 0.1, 0.26], "color": "bodyDark" },
+    { "shape": "box", "pos": [0.5, -0.32, -0.42], "rot": [0, 0, 0.2], "scale": [0.42, 0.1, 0.26], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.5, -0.32, 0.44], "rot": [0, 0, -0.2], "scale": [0.4, 0.1, 0.24], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.5, -0.32, -0.44], "rot": [0, 0, -0.2], "scale": [0.4, 0.1, 0.24], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-1.0, 0.04, 0], "scale": [0.16, 0.12, 0.14], "color": "#6a8a76" }
+  ] }
+}

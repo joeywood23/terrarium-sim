@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L2 aerial insect predator (aerial). Dragonfly — fast hawking flier with four wings. DIETS: hunts insect, butterfly, termite. Catches on the wing.",
+  "id": "dragonfly",
+  "sizeScale": 1.8,
+  "name": "Dragonfly",
+  "behavior": "aerial",
+  "color": "#1fa0b8",
+  "chartColor": "#27bcd6",
+  "cfg": {
+    "length": 1.0, "width": 0.9, "height": 0.25,
+    "flySpeed": 16, "altMin": 2, "altMax": 20, "loopChance": 0.4,
+    "contactRadius": 1.6, "winThreshold": 0.5
+  },
+  "breeding": { "mtbLayEgg": 18, "growthFood": 12, "juvenileScale": 0.5 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.4, 0.0, 0], "scale": [0.3, 0.26, 0.26], "color": "body" },
+    { "shape": "sphere", "pos": [0.56, 0.04, 0.09], "scale": [0.13, 0.14, 0.12], "color": "#10303a" },
+    { "shape": "sphere", "pos": [0.56, 0.04, -0.09], "scale": [0.13, 0.14, 0.12], "color": "#10303a" },
+    { "shape": "cylinder", "pos": [-0.2, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.12, 1.2, 0.12], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.85, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.08, 0.4, 0.08], "color": "accent" },
+    { "shape": "box", "pos": [0.2, 0.06, 0.5], "rot": [0, 0.1, 0], "scale": [0.4, 0.02, 0.9], "color": "#bfe8f0" },
+    { "shape": "box", "pos": [0.2, 0.06, -0.5], "rot": [0, -0.1, 0], "scale": [0.4, 0.02, 0.9], "color": "#bfe8f0" },
+    { "shape": "box", "pos": [-0.1, 0.04, 0.5], "rot": [0, -0.1, 0], "scale": [0.4, 0.02, 0.85], "color": "#bfe8f0" },
+    { "shape": "box", "pos": [-0.1, 0.04, -0.5], "rot": [0, 0.1, 0], "scale": [0.4, 0.02, 0.85], "color": "#bfe8f0" }
+  ] }
+}

@@ -1,0 +1,25 @@
+{
+  "_comment": "Jungle L2 scavenger (aerial). Black vulture — gregarious carrion feeder, broad black wings (no DIETS row — fliers scavenge corpses by default).",
+  "id": "black_vulture",
+  "sizeScale": 4.2,
+  "name": "Black Vulture",
+  "behavior": "aerial",
+  "color": "#23232a",
+  "chartColor": "#4a4a52",
+  "cfg": {
+    "length": 1.7, "width": 1.0, "height": 0.55,
+    "flySpeed": 12, "walkSpeed": 1.8, "altMin": 8, "altMax": 42, "altDrift": 22
+  },
+  "breeding": { "mtbLayEgg": 56, "growthFood": 36 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.0, 0.55, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.58, 0.18, 0], "scale": [0.34, 0.34, 0.34], "color": "#3a3a3e" },
+    { "shape": "cone", "pos": [0.82, 0.14, 0], "rot": [0, 0, -1.5708], "scale": [0.1, 0.22, 0.1], "color": "#cfcabb" },
+    { "shape": "box", "pos": [-0.1, 0.12, 0.95], "rot": [0, 0.2, 0.08], "scale": [0.85, 0.07, 1.35], "color": "body" },
+    { "shape": "box", "pos": [-0.1, 0.12, -0.95], "rot": [0, -0.2, -0.08], "scale": [0.85, 0.07, 1.35], "color": "body" },
+    { "shape": "box", "pos": [-0.15, 0.16, 1.75], "rot": [0, 0.4, 0.12], "scale": [0.45, 0.06, 0.7], "color": "#cfcabb" },
+    { "shape": "box", "pos": [-0.15, 0.16, -1.75], "rot": [0, -0.4, -0.12], "scale": [0.45, 0.06, 0.7], "color": "#cfcabb" },
+    { "shape": "cone", "pos": [-0.92, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.4, 0.45, 0.1], "color": "body" },
+    { "shape": "eyes", "pos": [0.72, 0.2, 0.12], "r": 0.04 }
+  ] }
+}

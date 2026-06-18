@@ -1,0 +1,23 @@
+{
+  "_comment": "Jungle L2 omnivore (terrestrial). Golden lion tamarin — flame-orange manticeed monkey. DIETS: hunts insect, beetle. reach = on land. Prey for raptors, cats, snakes.",
+  "id": "golden_lion_tamarin",
+  "sizeScale": 2.0,
+  "name": "Golden Lion Tamarin",
+  "behavior": "terrestrial",
+  "color": "#e08a1e",
+  "chartColor": "#e08a1e",
+  "cfg": { "contactRadius": 2.0, "winThreshold": 0.6 },
+  "breeding": { "mtbLayEgg": 30, "growthFood": 20 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [0.78, 0.56, 0.52], "color": "body" },
+    { "shape": "sphere", "pos": [0.38, 0.06, 0], "scale": [0.48, 0.5, 0.48], "color": "body" },
+    { "shape": "sphere", "pos": [0.72, 0.3, 0], "scale": [0.52, 0.5, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.74, 0.3, 0], "scale": [0.3, 0.34, 0.34], "color": "#5a3010" },
+    { "shape": "eyes", "pos": [0.96, 0.34, 0.11], "r": 0.045 },
+    { "shape": "cylinder", "pos": [0.4, -0.2, 0.22], "scale": [0.09, 0.42, 0.09], "color": "body" },
+    { "shape": "cylinder", "pos": [0.4, -0.2, -0.22], "scale": [0.09, 0.42, 0.09], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.4, -0.2, 0.24], "scale": [0.1, 0.42, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.4, -0.2, -0.24], "scale": [0.1, 0.42, 0.1], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.82, 0.18, 0], "rot": [0, 0, 1.2], "scale": [0.08, 0.9, 0.08], "color": "bodyDark" }
+  ] }
+}

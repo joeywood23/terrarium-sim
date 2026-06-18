@@ -1,0 +1,13 @@
+{
+  "_comment": "L0 producer (aquatic). Victoria giant water lily — broad floating pads; grazed by fish and capybara.",
+  "id": "giant_water_lily",
+  "name": "Giant Water Lily",
+  "behavior": "plant",
+  "habitat": "water",
+  "colorYoung": "#bfe0a0",
+  "colorOld": "#2f6b3a",
+  "chartColor": "#3f9050",
+  "maxRadius": 1.6,
+  "minDepth": 0.6,
+  "seedShare": 0.6
+}

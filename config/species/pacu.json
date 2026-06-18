@@ -1,0 +1,19 @@
+{
+  "_comment": "Jungle L1 herbivore (aquatic). Pacu — round-bodied seed crusher, relative of the piranha but a plant eater. Pure forager, no DIETS row. Prey for arapaima, otter, caiman.",
+  "id": "pacu",
+  "sizeScale": 2.8,
+  "name": "Pacu",
+  "behavior": "aquatic",
+  "color": "#7a7468",
+  "chartColor": "#9a9486",
+  "breeding": { "mtbLayEgg": 28, "growthFood": 22 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.05, 0.95, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [0.0, -0.36, 0], "scale": [0.9, 0.46, 0.42], "color": "#b08a4a" },
+    { "shape": "sphere", "pos": [0.66, 0.06, 0], "scale": [0.46, 0.56, 0.42], "color": "body" },
+    { "shape": "box", "pos": [0.9, -0.04, 0], "scale": [0.22, 0.18, 0.28], "color": "body" },
+    { "shape": "cone", "pos": [-0.85, 0.04, 0], "rot": [0, 0, 1.5708], "scale": [0.55, 0.48, 0.12], "color": "bodyDark" },
+    { "shape": "box", "pos": [-0.1, 0.58, 0], "scale": [0.6, 0.2, 0.08], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.8, 0.18, 0.2], "r": 0.06 }
+  ] }
+}

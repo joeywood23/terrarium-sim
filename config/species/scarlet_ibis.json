@@ -1,0 +1,26 @@
+{
+  "_comment": "Jungle L2 wader (aerial). Scarlet ibis — brilliant red, curved bill probing the mud. DIETS: hunts insect, beetle, ant. reach = waterline + water (shoreOrWater).",
+  "id": "scarlet_ibis",
+  "sizeScale": 3.5,
+  "name": "Scarlet Ibis",
+  "behavior": "aerial",
+  "color": "#e23a2a",
+  "chartColor": "#e23a2a",
+  "cfg": {
+    "length": 1.3, "width": 0.85, "height": 0.55,
+    "flySpeed": 13, "walkSpeed": 1.6, "altMin": 4, "altMax": 28, "altDrift": 16,
+    "contactRadius": 2.6, "winThreshold": 0.5
+  },
+  "breeding": { "mtbLayEgg": 44, "growthFood": 28 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.95, 0.48, 0.42], "color": "body" },
+    { "shape": "cylinder", "pos": [0.48, 0.3, 0], "rot": [0, 0, 0.6], "scale": [0.12, 0.6, 0.12], "color": "body" },
+    { "shape": "sphere", "pos": [0.7, 0.56, 0], "scale": [0.24, 0.24, 0.22], "color": "body" },
+    { "shape": "cone", "pos": [0.98, 0.46, 0], "rot": [0, 0, -1.0], "scale": [0.06, 0.42, 0.06], "color": "#1a1a1a" },
+    { "shape": "box", "pos": [-0.2, 0.06, 0.46], "rot": [0, 0.2, 0.05], "scale": [0.7, 0.06, 0.6], "color": "body" },
+    { "shape": "box", "pos": [-0.2, 0.06, -0.46], "rot": [0, -0.2, -0.05], "scale": [0.7, 0.06, 0.6], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.1, -0.42, 0.14], "scale": [0.04, 0.58, 0.04], "color": "#2a2a2a" },
+    { "shape": "cylinder", "pos": [-0.1, -0.42, -0.14], "scale": [0.04, 0.58, 0.04], "color": "#2a2a2a" },
+    { "shape": "eyes", "pos": [0.76, 0.6, 0.11], "r": 0.04 }
+  ] }
+}

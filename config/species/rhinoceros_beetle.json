@@ -1,0 +1,28 @@
+{
+  "_comment": "Jungle L1 prey (aerial archetype, sluggish like the beetle). Rhinoceros beetle — armored with a great horn. Pure prey/detritivore (scavenges by default). Eaten by birds, monkeys, anteaters, frogs.",
+  "id": "rhinoceros_beetle",
+  "sizeScale": 1.8,
+  "name": "Rhinoceros Beetle",
+  "behavior": "aerial",
+  "color": "#2a221a",
+  "chartColor": "#5a4632",
+  "cfg": {
+    "length": 1.0, "width": 0.8, "height": 0.6,
+    "altMin": 2, "walkSpeed": 0.35,
+    "walkFlightMin": 60, "walkFlightMax": 160,
+    "swimFlightMin": 40, "swimFlightMax": 100
+  },
+  "breeding": { "mtbLayEgg": 16, "growthFood": 12 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [-0.1, 0.0, 0], "scale": [1.2, 0.66, 0.9], "color": "body" },
+    { "shape": "sphere", "pos": [0.5, 0.06, 0], "scale": [0.46, 0.4, 0.46], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.7, 0.3, 0], "rot": [0, 0, 0.4], "scale": [0.08, 0.4, 0.08], "color": "#3a2e22" },
+    { "shape": "cone", "pos": [0.66, 0.16, 0], "rot": [0, 0, -0.4], "scale": [0.06, 0.24, 0.06], "color": "#3a2e22" },
+    { "shape": "box", "pos": [-0.1, 0.2, 0], "scale": [1.0, 0.06, 0.04], "color": "#1a140e" },
+    { "shape": "cylinder", "pos": [0.2, -0.2, 0.4], "rot": [0.7, 0, 0.3], "scale": [0.04, 0.34, 0.04], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.2, -0.2, -0.4], "rot": [-0.7, 0, 0.3], "scale": [0.04, 0.34, 0.04], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.3, -0.2, 0.42], "rot": [0.7, 0, -0.2], "scale": [0.04, 0.34, 0.04], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.3, -0.2, -0.42], "rot": [-0.7, 0, -0.2], "scale": [0.04, 0.34, 0.04], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.6, 0.16, 0.18], "r": 0.05 }
+  ] }
+}
