@@ -1,0 +1,11 @@
+{
+  "_comment": "Jungle L0 producer / detritus base. Low ground cover of leaf litter & fungi (food for peccary, beetle).",
+  "id": "leaf_litter",
+  "name": "Leaf Litter",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#d7ccc8",
+  "colorOld": "#5d4037",
+  "chartColor": "#8d6e63",
+  "maxRadius": 0.8
+}

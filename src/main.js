@@ -1540,9 +1540,9 @@ function swimTick(a, dt) {
   // Grazing/hunting takes priority over breeding when the reserve is low.
   const graze = grazeControl(a, dt, {
     plant: plantInWater,
-    prey: { lists: [birds], reach: pos => waterDepthAt(pos.x, pos.z) >= fishMinDepth },
     use3D: true,
   });
+  predationContactStep(a); // aquatic predators (piranha, black_caiman) catch live prey via DIETS
 
   // --- Steering: yaw + pitch are the only movement controls ---
   const SR = FISH.steerRate;
@@ -2398,11 +2398,27 @@ function seekNearestPrey(a, radius) {
  * filter on top of the array scan, so we stop treating "every flier in `birds`"
  * as edible and instead target named prey. `reach(pos)` is the positional
  * catchability test (e.g. prey must be over water the predator can reach). */
+// Shared positional catchability tests (reach), by where the PREY sits:
+const onLand    = pos => waterDepthAt(pos.x, pos.z) <= FROG.maxWade;   // land/shallows
+const inWater   = pos => waterDepthAt(pos.x, pos.z) >= fishMinDepth;   // open water
+const nearWater = pos => waterDepthAt(pos.x, pos.z) >= 0.4;            // waterline + water (ambush)
+
 const DIETS = {
-  frog: {
-    hunts: ['beetle'],
-    reach: pos => waterDepthAt(pos.x, pos.z) <= FROG.maxWade, // catchable on land/shallows
-  },
+  // ── L4 apex ──────────────────────────────────────────────────────────────
+  jaguar:       { hunts: ['capybara', 'peccary', 'agouti', 'monkey', 'boa'], reach: onLand },
+  harpy_eagle:  { hunts: ['monkey', 'sloth', 'macaw', 'boa'],                reach: onLand },
+  black_caiman: { hunts: ['piranha', 'fish', 'capybara', 'frog', 'macaw'],   reach: nearWater },
+  // ── L3 mesopredators ─────────────────────────────────────────────────────
+  boa:          { hunts: ['agouti', 'frog', 'anole', 'macaw'],               reach: onLand },
+  ocelot:       { hunts: ['agouti', 'anole', 'frog', 'dart_frog', 'macaw'],  reach: onLand },
+  monkey:       { hunts: ['beetle', 'ant'],                                  reach: onLand },
+  piranha:      { hunts: ['fish', 'insect'],                                 reach: inWater },
+  // ── L2 insectivores / small carnivores ───────────────────────────────────
+  dart_frog:    { hunts: ['ant', 'beetle'],                                  reach: onLand },
+  frog:         { hunts: ['beetle', 'butterfly', 'ant'],                     reach: onLand }, // tree frog
+  anole:        { hunts: ['ant', 'beetle'],                                  reach: onLand },
+  insect_bat:   { hunts: ['beetle', 'butterfly'] },                          // catches fliers anywhere
+  macaw:        { hunts: ['insect'] },                                       // omnivore; also grazes
 };
 
 /* Build the `prey` sub-diet grazeControl expects from a predator's DIETS row.
@@ -2412,7 +2428,7 @@ function preyDietFor(species) {
   if (!d || !d.hunts || !d.hunts.length) return null;
   const hunts = new Set(d.hunts);
   return {
-    lists: [birds],                          // candidate pool: all fliers...
+    lists: [birds, frogs, fishes],           // candidate pool: every creature, any archetype...
     reach: d.reach || (() => true),          // ...filtered by where they can be caught...
     eats:  c => hunts.has(c.st.species),     // ...and by named prey species.
   };
@@ -2422,10 +2438,15 @@ function preyDietFor(species) {
  * frog.json: contactRadius, winThreshold) so it's tunable per predator in the
  * config editor. Custom species ride their archetype's cfg; anything missing the
  * fields falls back to shared defaults. */
+// Merged archetype cfg per custom aquatic/terrestrial species id (their own cfg
+// over the FISH/FROG base), so per-species catch tuning isn't lost to the base.
+// Populated by registerSpecies; aerial species keep theirs in FLIERS[id].cfg.
+const ARCH_CFG = {};
 function predCfg(species) {
   if (species === 'fish') return FISH;
   if (species === 'frog') return FROG;
   if (FLIERS[species]) return FLIERS[species].cfg;
+  if (ARCH_CFG[species]) return ARCH_CFG[species];
   const list = SPECIES[species] && SPECIES[species].list;
   return list === fishes ? FISH : list === frogs ? FROG : null;
 }
@@ -2929,6 +2950,7 @@ function registerSpecies() {
       SPECIES[d.id] = { list: birds, spawn: (x, z, o) => spawnBird(d.id, x, z, o), br: BREEDING[d.id] };
     } else {
       const isAq = arch === 'aquatic';
+      ARCH_CFG[d.id] = Object.assign({}, isAq ? FISH : FROG, d.cfg); // own cfg over the base, for predCfg/huntParams
       RENDER_KIT[d.id] = {
         geo: isAq ? fishGeo : frogGeo,                            // shares the archetype's hitbox
         mat: new THREE.MeshStandardMaterial({ color: new THREE.Color(d.color != null ? d.color : 0x888888), roughness: 0.6, metalness: 0 }),
@@ -2994,6 +3016,7 @@ function birdTakeOff(a) {
 
 function birdWalkTick(a, dt) {
   const p = a.mesh.position, st = a.st, sp = a.sp;
+  predationContactStep(a); // aerial predators (eagle, bat, macaw) catch live prey via DIETS
 
   // Water rose over its feet -> it just swims.
   if (waterDepthAt(p.x, p.z) > sp.maxWade) {
@@ -3055,6 +3078,7 @@ function birdWalkTick(a, dt) {
 
 function birdFlyTick(a, dt) {
   const p = a.mesh.position, st = a.st, sp = a.sp;
+  predationContactStep(a); // a flier stoops on prey it passes over (eagle, bat) — DIETS
   st.flightDur -= dt;
   if (st.flightDur <= 0) st.descending = true;
 
@@ -3124,6 +3148,7 @@ function birdFlyTick(a, dt) {
 
 function birdSwimTick(a, dt) {
   const p = a.mesh.position, st = a.st, sp = a.sp;
+  predationContactStep(a); // can still snatch prey while paddling — DIETS
 
   // Float at the surface, but never sink the hull into a shallow lakebed.
   const targetY = Math.max(

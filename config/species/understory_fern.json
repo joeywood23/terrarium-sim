@@ -1,0 +1,11 @@
+{
+  "_comment": "Jungle L0 producer. Shady understory fern (food for capybara, sloth).",
+  "id": "understory_fern",
+  "name": "Understory Fern",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#aee08a",
+  "colorOld": "#2f6d2a",
+  "chartColor": "#558b2f",
+  "maxRadius": 1.4
+}

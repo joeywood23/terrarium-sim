@@ -1,0 +1,11 @@
+{
+  "_comment": "Jungle L0 producer. Climbing liana/vine (food for sloth, monkey).",
+  "id": "liana",
+  "name": "Liana",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#c5e1a5",
+  "colorOld": "#33691e",
+  "chartColor": "#7cb342",
+  "maxRadius": 1.2
+}

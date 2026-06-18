@@ -1,0 +1,11 @@
+{
+  "_comment": "Jungle L0 producer. Flowering bromeliad — bright understory microhabitat.",
+  "id": "bromeliad",
+  "name": "Bromeliad",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#ffd1dc",
+  "colorOld": "#c2185b",
+  "chartColor": "#ec407a",
+  "maxRadius": 1.0
+}

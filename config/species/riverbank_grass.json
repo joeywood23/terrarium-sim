@@ -1,0 +1,11 @@
+{
+  "_comment": "Jungle L0 producer. Riverbank grass/sedge (food for capybara).",
+  "id": "riverbank_grass",
+  "name": "Riverbank Grass",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#dce775",
+  "colorOld": "#827717",
+  "chartColor": "#c0ca33",
+  "maxRadius": 1.0
+}

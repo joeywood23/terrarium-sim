@@ -9,6 +9,31 @@
     "beetle.json",
     "bluebell.json",
     "emberleaf.json",
-    "seakelp.json"
+    "seakelp.json",
+
+    "jaguar.json",
+    "harpy_eagle.json",
+    "black_caiman.json",
+    "boa.json",
+    "ocelot.json",
+    "monkey.json",
+    "piranha.json",
+    "dart_frog.json",
+    "anole.json",
+    "insect_bat.json",
+    "macaw.json",
+    "capybara.json",
+    "agouti.json",
+    "peccary.json",
+    "sloth.json",
+    "ant.json",
+    "butterfly.json",
+
+    "fruit_tree.json",
+    "understory_fern.json",
+    "bromeliad.json",
+    "liana.json",
+    "riverbank_grass.json",
+    "leaf_litter.json"
   ]
 }

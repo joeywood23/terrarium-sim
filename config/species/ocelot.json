@@ -1,0 +1,10 @@
+{
+  "_comment": "Jungle L3 mesopredator (terrestrial). Rides the frog archetype. DIETS: hunts agouti, anole, frog (tree frog), dart_frog, macaw.",
+  "id": "ocelot",
+  "name": "Ocelot",
+  "behavior": "terrestrial",
+  "color": "#d8a441",
+  "chartColor": "#d8a441",
+  "cfg": { "contactRadius": 3.0, "winThreshold": 0.45 },
+  "breeding": { "mtbLayEgg": 55, "growthFood": 40 }
+}

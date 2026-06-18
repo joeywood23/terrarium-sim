@@ -1,0 +1,9 @@
+{
+  "_comment": "Jungle L1 herbivore (terrestrial). Grazes roots/fruit/fungi (any land plant via the shared forager). Pure prey. Eaten by jaguar.",
+  "id": "peccary",
+  "name": "Peccary",
+  "behavior": "terrestrial",
+  "color": "#5d4037",
+  "chartColor": "#5d4037",
+  "breeding": { "mtbLayEgg": 26, "growthFood": 25 }
+}

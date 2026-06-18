@@ -1,0 +1,9 @@
+{
+  "_comment": "Jungle L1 herbivore (terrestrial). Slow folivore grazing leaves/lianas. Pure prey. Eaten by jaguar, harpy_eagle.",
+  "id": "sloth",
+  "name": "Sloth",
+  "behavior": "terrestrial",
+  "color": "#9e8b6c",
+  "chartColor": "#9e8b6c",
+  "breeding": { "mtbLayEgg": 35, "growthFood": 30 }
+}

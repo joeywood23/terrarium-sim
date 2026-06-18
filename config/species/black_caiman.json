@@ -1,0 +1,10 @@
+{
+  "_comment": "Jungle L4 APEX predator (aquatic). Rides the fish archetype. Ambush hunter at the waterline: cfg gives a wide contactRadius and low winThreshold. DIETS: hunts piranha, fish (tetra), capybara, frog (tree frog), macaw. reach = at/near water so it can grab shore prey.",
+  "id": "black_caiman",
+  "name": "Black Caiman",
+  "behavior": "aquatic",
+  "color": "#2e3b32",
+  "chartColor": "#37474f",
+  "cfg": { "contactRadius": 4.5, "winThreshold": 0.3 },
+  "breeding": { "mtbLayEgg": 85, "growthFood": 55 }
+}

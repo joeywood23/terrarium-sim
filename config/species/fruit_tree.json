@@ -1,0 +1,11 @@
+{
+  "_comment": "Jungle L0 producer. Canopy fruit tree — the largest land plant (food for agouti, monkey, macaw, peccary). colorYoung/colorOld are the stripped->lush gradient.",
+  "id": "fruit_tree",
+  "name": "Fruit Tree",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#b9d98a",
+  "colorOld": "#2e5d1e",
+  "chartColor": "#43a047",
+  "maxRadius": 2.4
+}
