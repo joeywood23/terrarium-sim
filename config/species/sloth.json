@@ -5,5 +5,22 @@
   "behavior": "terrestrial",
   "color": "#9e8b6c",
   "chartColor": "#9e8b6c",
-  "breeding": { "mtbLayEgg": 35, "growthFood": 30 }
+  "breeding": { "mtbLayEgg": 35, "growthFood": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.12, 0], "scale": [0.95, 0.82, 0.72], "color": "body" },
+    { "shape": "sphere", "pos": [0.58, 0.34, 0], "scale": [0.44, 0.44, 0.44], "color": "#b5a585" },
+    { "shape": "sphere", "pos": [0.72, 0.26, 0], "scale": [0.16, 0.14, 0.2], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.66, 0.34, 0.13], "scale": [0.14, 0.16, 0.1], "color": "#5b4a36" },
+    { "shape": "sphere", "pos": [0.66, 0.34, -0.13], "scale": [0.14, 0.16, 0.1], "color": "#5b4a36" },
+    { "shape": "eyes", "pos": [0.72, 0.36, 0.12], "r": 0.045 },
+    { "shape": "cylinder", "pos": [0.42, -0.12, 0.36], "rot": [0.5, 0, 0.5], "scale": [0.14, 0.6, 0.14], "color": "body" },
+    { "shape": "cylinder", "pos": [0.42, -0.12, -0.36], "rot": [-0.5, 0, 0.5], "scale": [0.14, 0.6, 0.14], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.42, -0.12, 0.36], "rot": [0.5, 0, -0.4], "scale": [0.14, 0.55, 0.14], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.42, -0.12, -0.36], "rot": [-0.5, 0, -0.4], "scale": [0.14, 0.55, 0.14], "color": "body" },
+    { "shape": "cone", "pos": [0.66, -0.4, 0.5], "rot": [3.14159, 0, 0], "scale": [0.1, 0.2, 0.1], "color": "#2e2418" },
+    { "shape": "cone", "pos": [0.66, -0.4, -0.5], "rot": [3.14159, 0, 0], "scale": [0.1, 0.2, 0.1], "color": "#2e2418" },
+    { "shape": "cone", "pos": [-0.62, -0.4, 0.46], "rot": [3.14159, 0, 0], "scale": [0.1, 0.2, 0.1], "color": "#2e2418" },
+    { "shape": "cone", "pos": [-0.62, -0.4, -0.46], "rot": [3.14159, 0, 0], "scale": [0.1, 0.2, 0.1], "color": "#2e2418" },
+    { "shape": "sphere", "pos": [-0.1, 0.5, 0.1], "scale": [0.5, 0.18, 0.4], "color": "bodyDark" }
+  ] }
 }

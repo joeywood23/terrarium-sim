@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Model Review — Terrarium</title>
+<style>
+  :root { color-scheme: dark; }
+  html,body { margin:0; height:100%; background:#11151c; color:#cdd6e3;
+    font:13px/1.4 system-ui,Segoe UI,Roboto,sans-serif; overflow:hidden; }
+  #c { position:fixed; inset:0; display:block; }
+  #hud { position:fixed; top:14px; left:16px; pointer-events:none; }
+  #hud h1 { margin:0; font-size:20px; font-weight:600; letter-spacing:.3px; }
+  #hud .sub { opacity:.6; margin-top:2px; }
+  #nav { position:fixed; top:12px; left:50%; transform:translateX(-50%); display:flex; gap:8px; align-items:center; }
+  #panel { position:fixed; left:16px; bottom:24px; max-width:340px; max-height:42vh;
+    overflow:auto; background:#0c0f15cc; border:1px solid #2a3340; border-radius:8px;
+    padding:10px 12px; white-space:pre; font-family:ui-monospace,Consolas,monospace;
+    font-size:11px; opacity:.92; }
+  button, select { font:600 13px system-ui; padding:6px 12px; border-radius:8px; border:1px solid #333;
+    cursor:pointer; color:#cdd6e3; background:#222a35; }
+  select { padding:6px 8px; }
+  .ghost { background:#2a3340; }
+  #views { position:fixed; right:16px; bottom:24px; display:flex; flex-direction:column; gap:6px; }
+  #views button { font-size:12px; }
+  .hint { position:fixed; bottom:8px; left:50%; transform:translateX(-50%); opacity:.4; }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud"><h1 id="name">…</h1><div class="sub" id="sub"></div></div>
+<div id="nav">
+  <button onclick="go(-1)">◀ Prev</button>
+  <select id="pick"></select>
+  <button onclick="go(1)">Next ▶</button>
+</div>
+<pre id="panel"></pre>
+<div id="views">
+  <button onclick="view('side')">Side</button>
+  <button onclick="view('front')">Front</button>
+  <button onclick="view('top')">Top</button>
+  <button onclick="view('iso')">Iso</button>
+  <button onclick="spin()" class="ghost">Spin ⟳</button>
+</div>
+<div class="hint">drag to orbit · scroll to zoom · approve or reject in chat</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+function eyePair(fwd, up, side, r = 0.12) {
+  const g = new THREE.Group();
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 });
+  for (const s of [-1, 1]) {
+    const e = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), eyeMat);
+    e.position.set(fwd, up, s * side); g.add(e);
+  }
+  return g;
+}
+function buildPartsModel(parts, baseColor, tint) {
+  const g = new THREE.Group();
+  const bodyCol = tint || new THREE.Color(baseColor != null ? baseColor : 0xffffff);
+  for (const part of (parts || [])) {
+    if (part.shape === 'eyes') {
+      const p = part.pos || [0.3, 0.2, 0.2];
+      g.add(eyePair(p[0], p[1], p[2], part.r || 0.1)); continue;
+    }
+    let geo;
+    switch (part.shape) {
+      case 'sphere':   geo = new THREE.SphereGeometry(0.5, 12, 9); break;
+      case 'cone':     geo = new THREE.ConeGeometry(0.5, 1, 10); break;
+      case 'cylinder': geo = new THREE.CylinderGeometry(0.5, 0.5, 1, 10); break;
+      default:         geo = new THREE.BoxGeometry(1, 1, 1);
+    }
+    const spec = part.color;
+    const col = (spec == null || spec === 'body') ? bodyCol.clone()
+              : spec === 'bodyDark' ? bodyCol.clone().multiplyScalar(0.7)
+              : spec === 'accent'   ? bodyCol.clone().offsetHSL(0.5, 0, 0)
+              : new THREE.Color(spec);
+    const mat = new THREE.MeshStandardMaterial({
+      color: col, roughness: part.roughness != null ? part.roughness : 0.6, metalness: 0,
+      emissive: part.glow ? col.clone().multiplyScalar(0.3) : new THREE.Color(0x000000),
+      emissiveIntensity: part.glow ? 0.5 : 0,
+    });
+    const m = new THREE.Mesh(geo, mat);
+    const s = part.scale == null ? [1, 1, 1] : (Array.isArray(part.scale) ? part.scale : [part.scale, part.scale, part.scale]);
+    m.scale.set(s[0], s[1], s[2]);
+    if (part.pos) m.position.set(part.pos[0], part.pos[1], part.pos[2]);
+    if (part.rot) m.rotation.set(part.rot[0], part.rot[1], part.rot[2]);
+    m.castShadow = true; g.add(m);
+  }
+  return g;
+}
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x11151c);
+const camera = new THREE.PerspectiveCamera(40, 1, 0.01, 200);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+
+scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x202018, 0.9));
+const key = new THREE.DirectionalLight(0xffffff, 1.6);
+key.position.set(3, 6, 4); key.castShadow = true;
+key.shadow.mapSize.set(1024, 1024); scene.add(key);
+const fill = new THREE.DirectionalLight(0xa9c6ff, 0.5); fill.position.set(-4, 2, -3); scene.add(fill);
+
+const grid = new THREE.GridHelper(10, 20, 0x33425a, 0x222c39); scene.add(grid);
+const disc = new THREE.Mesh(new THREE.CircleGeometry(6, 48),
+  new THREE.MeshStandardMaterial({ color: 0x161b24, roughness: 1 }));
+disc.rotation.x = -Math.PI / 2; disc.position.y = -0.001; disc.receiveShadow = true; scene.add(disc);
+
+let model = null, radius = 1, center = new THREE.Vector3(), autoSpin = false;
+
+function frame() {
+  const box = new THREE.Box3().setFromObject(model);
+  const size = box.getSize(new THREE.Vector3());
+  box.getCenter(center);
+  model.position.x -= center.x; model.position.z -= center.z; model.position.y -= box.min.y;
+  radius = Math.max(size.x, size.y, size.z) * 0.5 || 1;
+  center.set(0, size.y * 0.5, 0);
+  controls.target.copy(center);
+  view('iso');
+}
+function view(name) {
+  autoSpin = false;
+  const d = radius * 3.4, h = center.y;
+  if (name === 'side')      camera.position.set(0.001, h + radius * 0.15, d);
+  else if (name === 'front')camera.position.set(d, h + radius * 0.15, 0.001);
+  else if (name === 'top')  camera.position.set(0.001, d, 0.001);
+  else                      camera.position.set(d * 0.72, d * 0.5, d * 0.72);
+  camera.lookAt(center); controls.target.copy(center); controls.update();
+}
+window.view = view;
+window.spin = () => { autoSpin = true; };
+window.__ready = false;
+
+let MODELS = [], idx = 0, current = null;
+async function loadModel(id) {
+  window.__ready = false;
+  if (current) { scene.remove(current); current = null; }
+  let def;
+  try { def = await (await fetch('../config/species/' + id + '.json?t=' + Date.now())).json(); }
+  catch (e) { document.getElementById('name').textContent = id + ' (load failed)'; return; }
+  const parts = (def.model && def.model.parts) || [];
+  document.getElementById('name').textContent = def.name || id;
+  const tier = (MODELS[idx] && MODELS[idx].tier) || '';
+  document.getElementById('sub').textContent =
+    parts.length + ' parts · ' + tier + (parts.length ? '' : ' · (no model yet)');
+  document.getElementById('panel').textContent = JSON.stringify(parts, null, 1);
+  model = current = buildPartsModel(parts, def.color);
+  scene.add(model);
+  frame();
+  const sel = document.getElementById('pick'); if (sel) sel.value = id;
+  try { history.replaceState(null, '', '?m=' + id); } catch (e) {}
+  window.__ready = true;
+}
+function go(d) { idx = (idx + d + MODELS.length) % MODELS.length; loadModel(MODELS[idx].id); }
+window.go = go;
+window.loadModel = (id) => { const i = MODELS.findIndex(m => m.id === id); if (i >= 0) idx = i; loadModel(id); };
+
+async function init() {
+  MODELS = (await (await fetch('models.json?t=' + Date.now())).json()).models;
+  const sel = document.getElementById('pick');
+  MODELS.forEach(m => { const o = document.createElement('option'); o.value = m.id; o.textContent = m.id; sel.appendChild(o); });
+  sel.onchange = () => { idx = MODELS.findIndex(m => m.id === sel.value); loadModel(sel.value); };
+  const q = new URLSearchParams(location.search).get('m');
+  const qi = MODELS.findIndex(m => m.id === q);
+  idx = qi >= 0 ? qi : 0;
+  loadModel(MODELS[idx].id);
+}
+init();
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+renderer.setAnimationLoop(() => {
+  if (model && autoSpin) model.rotation.y += 0.012;
+  controls.update();
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>

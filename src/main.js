@@ -1121,35 +1121,22 @@ function mixFishColor(a, b) {
   return c;
 }
 
+// Approved low-poly fish (see model-review). Built through the shared
+// declarative parts pipeline so gene-tinted fish — and koi, which reuses this
+// builder — recolor automatically via the "body"/"bodyDark" roles.
+const FISH_PARTS = [
+  { shape: 'sphere', scale: [1.7, 0.62, 0.92], color: 'body' },                                   // torpedo body
+  { shape: 'sphere', pos: [0.6, 0, 0], scale: [0.9, 0.6, 0.82], color: 'body' },                  // fuller head
+  { shape: 'sphere', pos: [1.0, -0.03, 0], scale: [0.42, 0.4, 0.5], color: 'body' },              // rounded snout
+  { shape: 'cone', pos: [-1.02, 0, 0], rot: [0, 0, 1.5708], scale: [0.85, 0.72, 0.16], color: 'bodyDark' }, // caudal fin
+  { shape: 'cone', pos: [0.05, 0.52, 0], scale: [0.55, 0.55, 0.13], color: 'bodyDark' },          // dorsal fin
+  { shape: 'cone', pos: [-0.28, -0.38, 0], rot: [3.14159, 0, 0], scale: [0.34, 0.32, 0.1], color: 'bodyDark' }, // anal fin
+  { shape: 'cone', pos: [0.34, -0.16, 0.4], rot: [0.7, 0, 2.2], scale: [0.22, 0.5, 0.1], color: 'bodyDark' },   // pectoral L
+  { shape: 'cone', pos: [0.34, -0.16, -0.4], rot: [-0.7, 0, 2.2], scale: [0.22, 0.5, 0.1], color: 'bodyDark' }, // pectoral R
+  { shape: 'eyes', pos: [0.78, 0.16, 0.3], r: 0.11 },
+];
 function buildFishDetailed(tint) {
-  const L = FISH.length, H = FISH.height, W = FISH.width;
-  const g = new THREE.Group();
-  const bodyCol = tint || new THREE.Color(0xff3b30);
-  // Tinted fish get their own materials (the color gene); untinted falls back
-  // to the shared cached material.
-  const bodyMat = tint
-    ? new THREE.MeshStandardMaterial({ color: bodyCol.clone(), emissive: bodyCol.clone().multiplyScalar(0.22), emissiveIntensity: 0.5, roughness: 0.5 })
-    : cmat('fishBody', { color: 0xff3b30, emissive: 0x661111, emissiveIntensity: 0.5, roughness: 0.5 });
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 10), bodyMat);
-  body.scale.set(L * 0.62, H, W);        // ellipsoid torpedo
-  g.add(body);
-  const finCol = bodyCol.clone().multiplyScalar(0.78); // fins a shade darker than the body
-  const finMat = tint
-    ? new THREE.MeshStandardMaterial({ color: finCol, emissive: finCol.clone().multiplyScalar(0.2), emissiveIntensity: 0.4, roughness: 0.6 })
-    : cmat('fishFin', { color: 0xd62a20, emissive: 0x550d0d, emissiveIntensity: 0.4, roughness: 0.6 });
-  const tail = new THREE.Mesh(new THREE.ConeGeometry(H * 0.9, L * 0.5, 4), finMat);
-  tail.rotation.z = Math.PI / 2;          // fan out behind (-X)
-  tail.scale.set(1, 1, 0.25);             // flatten into a fin
-  tail.position.set(-L * 0.5, 0, 0);
-  g.add(tail);
-  const dorsal = new THREE.Mesh(new THREE.ConeGeometry(H * 0.5, L * 0.28, 3), finMat);
-  dorsal.rotation.x = Math.PI;
-  dorsal.scale.set(1, 1, 0.18);
-  dorsal.position.set(L * 0.02, H * 0.7, 0);
-  g.add(dorsal);
-  g.add(eyePair(L * 0.28, H * 0.35, W * 0.45, 0.1));
-  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
-  return g;
+  return buildPartsModel(FISH_PARTS, 0xff3b30, tint);
 }
 
 /* Generic declarative model builder for JSON-defined species. Reads a parts

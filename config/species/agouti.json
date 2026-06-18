@@ -5,5 +5,22 @@
   "behavior": "terrestrial",
   "color": "#795548",
   "chartColor": "#795548",
-  "breeding": { "mtbLayEgg": 20, "growthFood": 18 }
+  "breeding": { "mtbLayEgg": 20, "growthFood": 18 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.1, 0], "scale": [0.85, 0.52, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [-0.4, 0.16, 0], "scale": [0.6, 0.6, 0.54], "color": "body" },
+    { "shape": "sphere", "pos": [0.42, 0.06, 0], "scale": [0.5, 0.48, 0.46], "color": "body" },
+    { "shape": "sphere", "pos": [0.72, 0.12, 0], "scale": [0.34, 0.34, 0.32], "color": "body" },
+    { "shape": "sphere", "pos": [0.98, 0.16, 0], "scale": [0.38, 0.34, 0.34], "color": "body" },
+    { "shape": "cone", "pos": [1.24, 0.1, 0], "rot": [0, 0, -1.5708], "scale": [0.18, 0.28, 0.18], "color": "body" },
+    { "shape": "sphere", "pos": [1.36, 0.09, 0], "scale": [0.08, 0.08, 0.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.9, 0.38, 0.12], "scale": [0.08, 0.18, 0.06], "color": "body" },
+    { "shape": "cone", "pos": [0.9, 0.38, -0.12], "scale": [0.08, 0.18, 0.06], "color": "body" },
+    { "shape": "eyes", "pos": [1.04, 0.24, 0.14], "r": 0.05 },
+    { "shape": "cylinder", "pos": [0.42, -0.18, 0.2], "scale": [0.08, 0.44, 0.08], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.42, -0.18, -0.2], "scale": [0.08, 0.44, 0.08], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.42, -0.16, 0.22], "scale": [0.09, 0.48, 0.09], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.42, -0.16, -0.22], "scale": [0.09, 0.48, 0.09], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.78, 0.12, 0], "scale": [0.12, 0.1, 0.1], "color": "bodyDark" }
+  ] }
 }

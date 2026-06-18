@@ -6,5 +6,18 @@
   "color": "#8fa3ad",
   "chartColor": "#ef5350",
   "cfg": { "contactRadius": 3.0, "winThreshold": 0.3 },
-  "breeding": { "mtbLayEgg": 30 }
+  "breeding": { "mtbLayEgg": 30 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [1.1, 0.95, 0.5], "color": "body" },
+    { "shape": "sphere", "pos": [0.12, -0.34, 0], "scale": [0.78, 0.5, 0.42], "color": "#b0463c" },
+    { "shape": "sphere", "pos": [0.55, 0.02, 0], "scale": [0.5, 0.72, 0.46], "color": "body" },
+    { "shape": "box", "pos": [0.78, -0.26, 0], "scale": [0.32, 0.2, 0.36], "color": "body" },
+    { "shape": "box", "pos": [0.82, -0.14, 0], "scale": [0.24, 0.05, 0.32], "color": "#eeeeee" },
+    { "shape": "cone", "pos": [-0.95, 0.0, 0], "rot": [0, 0, 1.5708], "scale": [0.72, 0.6, 0.14], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.1, 0.62, 0], "scale": [0.4, 0.5, 0.12], "color": "bodyDark" },
+    { "shape": "cone", "pos": [-0.2, -0.6, 0], "rot": [3.14159, 0, 0], "scale": [0.3, 0.4, 0.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.45, -0.2, 0.4], "rot": [0.7, 0, 2.2], "scale": [0.2, 0.4, 0.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.45, -0.2, -0.4], "rot": [-0.7, 0, 2.2], "scale": [0.2, 0.4, 0.1], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.72, 0.2, 0.22], "r": 0.09 }
+  ] }
 }

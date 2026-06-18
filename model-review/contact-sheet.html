@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Model Contact Sheet</title>
+<style> html,body{margin:0;height:100%;background:#0e1218;overflow:hidden;} #c{display:block;} </style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script type="module">
+import * as THREE from 'three';
+
+function eyePair(fwd, up, side, r = 0.12) {
+  const g = new THREE.Group();
+  const m = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3 });
+  for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.SphereGeometry(r, 8, 6), m); e.position.set(fwd, up, s * side); g.add(e); }
+  return g;
+}
+function buildPartsModel(parts, baseColor, tint) {
+  const g = new THREE.Group();
+  const bodyCol = tint || new THREE.Color(baseColor != null ? baseColor : 0xffffff);
+  for (const part of (parts || [])) {
+    if (part.shape === 'eyes') { const p = part.pos || [0.3,0.2,0.2]; g.add(eyePair(p[0],p[1],p[2],part.r||0.1)); continue; }
+    let geo;
+    switch (part.shape) {
+      case 'sphere': geo = new THREE.SphereGeometry(0.5,12,9); break;
+      case 'cone': geo = new THREE.ConeGeometry(0.5,1,10); break;
+      case 'cylinder': geo = new THREE.CylinderGeometry(0.5,0.5,1,10); break;
+      default: geo = new THREE.BoxGeometry(1,1,1);
+    }
+    const spec = part.color;
+    const col = (spec==null||spec==='body') ? bodyCol.clone()
+      : spec==='bodyDark' ? bodyCol.clone().multiplyScalar(0.7)
+      : spec==='accent' ? bodyCol.clone().offsetHSL(0.5,0,0)
+      : new THREE.Color(spec);
+    const mat = new THREE.MeshStandardMaterial({ color: col, roughness: part.roughness!=null?part.roughness:0.6, metalness: 0,
+      emissive: part.glow ? col.clone().multiplyScalar(0.3) : new THREE.Color(0x000000), emissiveIntensity: part.glow?0.5:0 });
+    const m = new THREE.Mesh(geo, mat);
+    const s = part.scale==null ? [1,1,1] : (Array.isArray(part.scale)?part.scale:[part.scale,part.scale,part.scale]);
+    m.scale.set(s[0],s[1],s[2]);
+    if (part.pos) m.position.set(part.pos[0],part.pos[1],part.pos[2]);
+    if (part.rot) m.rotation.set(part.rot[0],part.rot[1],part.rot[2]);
+    g.add(m);
+  }
+  return g;
+}
+function labelPlane(text, color) {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 64;
+  const x = cv.getContext('2d');
+  x.fillStyle = '#0e1218'; x.fillRect(0,0,256,64);
+  x.fillStyle = color || '#cdd6e3'; x.font = 'bold 30px system-ui'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText(text, 128, 34);
+  const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.65),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
+  m.rotation.x = -Math.PI/2;
+  return m;
+}
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0e1218);
+scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x202018, 1.0));
+const key = new THREE.DirectionalLight(0xffffff, 1.5); key.position.set(4,8,5); scene.add(key);
+const fill = new THREE.DirectionalLight(0xa9c6ff, 0.5); fill.position.set(-4,3,-4); scene.add(fill);
+
+const COLS = 6, CELL = 3.5;
+const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 500);
+window.__ready = false;
+
+async function run() {
+  const list = (await (await fetch('models.json?t='+Date.now())).json()).models;
+  let placed = 0, rows = 0;
+  for (let i = 0; i < list.length; i++) {
+    const id = list[i].id;
+    let def;
+    try { def = await (await fetch('../config/species/'+id+'.json?t='+Date.now())).json(); } catch (e) { continue; }
+    const col = i % COLS, row = Math.floor(i / COLS);
+    rows = Math.max(rows, row + 1);
+    const cx = col * CELL, cz = row * CELL;
+    if (def.model && def.model.parts) {
+      const g = buildPartsModel(def.model.parts, def.color);
+      const box = new THREE.Box3().setFromObject(g); const size = box.getSize(new THREE.Vector3()); const c = box.getCenter(new THREE.Vector3());
+      const maxd = Math.max(size.x, size.y, size.z) || 1; const sc = 2.4 / maxd;
+      g.scale.setScalar(sc);
+      g.position.set(cx - c.x*sc, -box.min.y*sc, cz - c.z*sc);
+      g.rotation.y = -0.5;
+      scene.add(g);
+    }
+    const lbl = labelPlane(def.name || id, def.chartColor || def.color);
+    lbl.position.set(cx, 0.02, cz + 1.7); scene.add(lbl);
+    placed++;
+  }
+  // frame the whole grid
+  const gw = (COLS - 1) * CELL, gh = (rows - 1) * CELL;
+  const cx = gw/2, cz = gh/2;
+  const span = Math.max(gw, gh) + CELL * 2.2;
+  camera.position.set(cx, span*0.6, cz + span*0.82);
+  camera.lookAt(cx, 0.3, cz);
+  resize();
+  window.__ready = true;
+}
+function resize(){ const w=innerWidth,h=innerHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+renderer.setAnimationLoop(() => renderer.render(scene, camera));
+run();
+</script>
+</body>
+</html>

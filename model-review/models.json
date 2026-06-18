@@ -1,0 +1,22 @@
+{
+  "_comment": "Ordered review list (apex -> down). Each id resolves to config/species/<id>.json; the viewer/contact-sheet read its model.parts + color.",
+  "models": [
+    { "id": "jaguar",       "tier": "L4 apex" },
+    { "id": "harpy_eagle",  "tier": "L4 apex" },
+    { "id": "black_caiman", "tier": "L4 apex" },
+    { "id": "boa",          "tier": "L3 meso" },
+    { "id": "ocelot",       "tier": "L3 meso" },
+    { "id": "monkey",       "tier": "L3 meso" },
+    { "id": "piranha",      "tier": "L3 meso" },
+    { "id": "dart_frog",    "tier": "L2 insectivore" },
+    { "id": "anole",        "tier": "L2 insectivore" },
+    { "id": "insect_bat",   "tier": "L2 insectivore" },
+    { "id": "macaw",        "tier": "L2 insectivore" },
+    { "id": "capybara",     "tier": "L1 herbivore" },
+    { "id": "agouti",       "tier": "L1 herbivore" },
+    { "id": "peccary",      "tier": "L1 herbivore" },
+    { "id": "sloth",        "tier": "L1 herbivore" },
+    { "id": "ant",          "tier": "L1 prey" },
+    { "id": "butterfly",    "tier": "L1 prey" }
+  ]
+}

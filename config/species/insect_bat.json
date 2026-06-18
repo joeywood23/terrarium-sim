@@ -10,5 +10,17 @@
     "flySpeed": 14, "altMin": 3, "altMax": 25,
     "contactRadius": 2.5, "winThreshold": 0.5
   },
-  "breeding": { "mtbLayEgg": 26, "growthFood": 16 }
+  "breeding": { "mtbLayEgg": 26, "growthFood": 16 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.0, 0], "scale": [0.5, 0.42, 0.32], "color": "body" },
+    { "shape": "sphere", "pos": [0.3, 0.08, 0], "scale": [0.34, 0.34, 0.3], "color": "body" },
+    { "shape": "sphere", "pos": [0.46, 0.02, 0], "scale": [0.14, 0.12, 0.14], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.3, 0.36, 0.12], "scale": [0.1, 0.26, 0.08], "color": "body" },
+    { "shape": "cone", "pos": [0.3, 0.36, -0.12], "scale": [0.1, 0.26, 0.08], "color": "body" },
+    { "shape": "eyes", "pos": [0.42, 0.12, 0.1], "r": 0.04 },
+    { "shape": "box", "pos": [-0.05, 0.04, 0.62], "rot": [0, 0.2, 0.18], "scale": [0.5, 0.03, 0.9], "color": "#5d4037" },
+    { "shape": "box", "pos": [-0.05, 0.04, -0.62], "rot": [0, -0.2, -0.18], "scale": [0.5, 0.03, 0.9], "color": "#5d4037" },
+    { "shape": "box", "pos": [-0.1, 0.08, 1.25], "rot": [0, 0.4, 0.2], "scale": [0.3, 0.03, 0.5], "color": "#4e342e" },
+    { "shape": "box", "pos": [-0.1, 0.08, -1.25], "rot": [0, -0.4, -0.2], "scale": [0.3, 0.03, 0.5], "color": "#4e342e" }
+  ] }
 }

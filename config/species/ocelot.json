@@ -6,5 +6,32 @@
   "color": "#d8a441",
   "chartColor": "#d8a441",
   "cfg": { "contactRadius": 3.0, "winThreshold": 0.45 },
-  "breeding": { "mtbLayEgg": 55, "growthFood": 40 }
+  "breeding": { "mtbLayEgg": 55, "growthFood": 40 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.0, 0.05, 0], "scale": [1.2, 0.5, 0.54], "color": "body" },
+    { "shape": "sphere", "pos": [0.5, 0.07, 0], "scale": [0.62, 0.5, 0.52], "color": "body" },
+    { "shape": "sphere", "pos": [-0.5, 0.07, 0], "scale": [0.7, 0.52, 0.58], "color": "body" },
+    { "shape": "sphere", "pos": [0.82, 0.2, 0], "scale": [0.36, 0.36, 0.34], "color": "body" },
+    { "shape": "sphere", "pos": [1.06, 0.3, 0], "scale": [0.42, 0.4, 0.42], "color": "body" },
+    { "shape": "sphere", "pos": [1.28, 0.24, 0], "scale": [0.24, 0.22, 0.26], "color": "body" },
+    { "shape": "sphere", "pos": [1.4, 0.25, 0], "scale": [0.1, 0.08, 0.12], "color": "#2a2014" },
+    { "shape": "cone", "pos": [0.98, 0.52, 0.15], "scale": [0.13, 0.2, 0.1], "color": "bodyDark" },
+    { "shape": "cone", "pos": [0.98, 0.52, -0.15], "scale": [0.13, 0.2, 0.1], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.5, -0.2, 0.24], "scale": [0.13, 0.5, 0.13], "color": "body" },
+    { "shape": "cylinder", "pos": [0.5, -0.2, -0.24], "scale": [0.13, 0.5, 0.13], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.52, -0.2, 0.26], "scale": [0.13, 0.5, 0.13], "color": "body" },
+    { "shape": "cylinder", "pos": [-0.52, -0.2, -0.26], "scale": [0.13, 0.5, 0.13], "color": "body" },
+    { "shape": "sphere", "pos": [0.5, -0.43, 0.24], "scale": [0.16, 0.11, 0.17], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [0.5, -0.43, -0.24], "scale": [0.16, 0.11, 0.17], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.52, -0.43, 0.26], "scale": [0.16, 0.11, 0.17], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.52, -0.43, -0.26], "scale": [0.16, 0.11, 0.17], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.98, 0.16, 0], "rot": [0, 0, 1.5708], "scale": [0.09, 0.7, 0.09], "color": "body" },
+    { "shape": "cone", "pos": [-1.34, 0.24, 0], "rot": [0, 0, -1.0], "scale": [0.09, 0.28, 0.09], "color": "#2a2014" },
+    { "shape": "sphere", "pos": [0.3, 0.28, 0.18], "scale": [0.1, 0.05, 0.1], "color": "#2a2014" },
+    { "shape": "sphere", "pos": [0.0, 0.3, -0.15], "scale": [0.1, 0.05, 0.1], "color": "#2a2014" },
+    { "shape": "sphere", "pos": [-0.3, 0.3, 0.2], "scale": [0.1, 0.05, 0.1], "color": "#2a2014" },
+    { "shape": "sphere", "pos": [-0.5, 0.28, -0.2], "scale": [0.1, 0.05, 0.1], "color": "#2a2014" },
+    { "shape": "sphere", "pos": [0.15, 0.24, 0.28], "scale": [0.09, 0.05, 0.09], "color": "#2a2014" },
+    { "shape": "eyes", "pos": [1.2, 0.34, 0.16], "r": 0.06 }
+  ] }
 }

@@ -11,5 +11,22 @@
     "altMin": 1, "altMax": 6,
     "walkFlightMin": 30, "walkFlightMax": 90
   },
-  "breeding": { "mtbLayEgg": 12, "growthFood": 12, "juvenileScale": 0.5 }
+  "breeding": { "mtbLayEgg": 12, "growthFood": 12, "juvenileScale": 0.5 },
+  "model": { "parts": [
+    { "shape": "sphere", "pos": [0.28, 0.06, 0], "scale": [0.17, 0.16, 0.16], "color": "body" },
+    { "shape": "sphere", "pos": [0.08, 0.05, 0], "scale": [0.19, 0.17, 0.17], "color": "body" },
+    { "shape": "sphere", "pos": [-0.04, 0.03, 0], "scale": [0.07, 0.07, 0.07], "color": "bodyDark" },
+    { "shape": "sphere", "pos": [-0.22, 0.05, 0], "scale": [0.26, 0.23, 0.23], "color": "body" },
+    { "shape": "cone", "pos": [0.4, 0.04, 0.05], "rot": [0, 0, -1.2], "scale": [0.04, 0.12, 0.04], "color": "#241810" },
+    { "shape": "cone", "pos": [0.4, 0.04, -0.05], "rot": [0, 0, -1.2], "scale": [0.04, 0.12, 0.04], "color": "#241810" },
+    { "shape": "cylinder", "pos": [0.34, 0.18, 0.05], "rot": [0, 0, 0.6], "scale": [0.02, 0.18, 0.02], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.34, 0.18, -0.05], "rot": [0, 0, 0.6], "scale": [0.02, 0.18, 0.02], "color": "bodyDark" },
+    { "shape": "eyes", "pos": [0.33, 0.08, 0.08], "r": 0.03 },
+    { "shape": "cylinder", "pos": [0.12, -0.05, 0.14], "rot": [0.7, 0, 0], "scale": [0.025, 0.24, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.12, -0.05, -0.14], "rot": [-0.7, 0, 0], "scale": [0.025, 0.24, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.02, -0.05, 0.15], "rot": [0.9, 0, 0], "scale": [0.025, 0.24, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [0.02, -0.05, -0.15], "rot": [-0.9, 0, 0], "scale": [0.025, 0.24, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.08, -0.05, 0.14], "rot": [1.1, 0, 0], "scale": [0.025, 0.24, 0.025], "color": "bodyDark" },
+    { "shape": "cylinder", "pos": [-0.08, -0.05, -0.14], "rot": [-1.1, 0, 0], "scale": [0.025, 0.24, 0.025], "color": "bodyDark" }
+  ] }
 }

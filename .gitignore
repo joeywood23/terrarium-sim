@@ -1,0 +1,5 @@
+.claude/
+test-screenshots/
+model-review/shots/
+__pycache__/
+*.pyc
