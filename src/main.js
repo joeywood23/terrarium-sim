@@ -1832,29 +1832,39 @@ function buildFrogGLB() {
 DETAILED_BUILDERS.frog = () => FROG_GLB ? buildFrogGLB() : buildFrogDetailed();
 
 /* ---- Hand-authored low-poly beetle GLB (assets/models/beetle_lowpoly.glb,
- * built by tools/make_beetle_glb.py) — upscales the primitive parts beetle.
- * Static single mesh authored in +X/centred convention. The beetle is a JSON
- * species, so its detailed builder is overridden inside the async callback,
- * after registerSpecies has populated DETAILED_BUILDERS. */
+ * built by tools/make_beetle_glb.py) — upscales the primitive parts beetle, and
+ * carries a baked "Scurry" node animation (two alternating leg tripods + body
+ * bob). Authored in +X/centred convention. The beetle is a JSON species, so its
+ * detailed builder is overridden inside the async callback, after registerSpecies
+ * has populated DETAILED_BUILDERS. */
 new GLTFLoader().load('assets/models/beetle_lowpoly.glb', (gltf) => {
-  let geom = null, mat = null;
-  gltf.scene.traverse(o => { if (o.isMesh && !geom) { geom = o.geometry; mat = o.material; } });
-  if (!geom || !DETAILED_BUILDERS.beetle) return;
-  // Fit to the procedural beetle's bounds (centre-aligned, like the fish).
+  if (!DETAILED_BUILDERS.beetle) return;
+  // Fit the rigged scene to the procedural beetle's bounds (centre-aligned).
   const refBox = new THREE.Box3().setFromObject(DETAILED_BUILDERS.beetle());
   const refSize = refBox.getSize(new THREE.Vector3());
   const refCenter = refBox.getCenter(new THREE.Vector3());
-  const inner = new THREE.Mesh(geom, mat);
+  const inner = gltf.scene;
+  inner.updateMatrixWorld(true);
   let b = new THREE.Box3().setFromObject(inner);
   const gs = b.getSize(_glbV);
   inner.scale.setScalar(Math.max(refSize.x, refSize.y, refSize.z) / (Math.max(gs.x, gs.y, gs.z) || 1));
   inner.updateMatrixWorld(true);
   b = new THREE.Box3().setFromObject(inner);
   inner.position.sub(b.getCenter(_glbV)).add(refCenter);
-  inner.castShadow = true;
+  inner.traverse(o => { if (o.isMesh) o.castShadow = true; });
   const template = new THREE.Group(); template.add(inner);
+  const clips = gltf.animations || null;
   DETAILED_BUILDERS.beetle = () => {
     const m = cloneSkinned(template);
+    if (clips && clips.length) {
+      const clip = clips.find(c => /scurry/i.test(c.name)) || clips[0];
+      const mixer = new THREE.AnimationMixer(m);
+      const action = mixer.clipAction(clip);
+      action.time = Math.random() * clip.duration; // desync the swarm
+      action.timeScale = 0.9 + Math.random() * 0.5;
+      action.play();
+      m.userData.mixer = mixer;
+    }
     addEyeAnchor(m, null, { forward: 0.6, height: 0.18 }); // POV near the head
     return m;
   };
@@ -5140,6 +5150,7 @@ function animate() {
   const animDt = dt * Math.min(6, Math.max(1, timeScale));
   for (const a of fishes) { if (!a.st.dead && a.mesh.userData.mixer) a.mesh.userData.mixer.update(animDt); }
   for (const a of frogs)  { if (!a.st.dead && a.mesh.userData.mixer) a.mesh.userData.mixer.update(animDt); }
+  for (const a of birds)  { if (!a.st.dead && a.mesh.userData.mixer) a.mesh.userData.mixer.update(animDt); } // beetle scurry
   // Rebuild grass to match painted soil, once the stroke ends (deterministic
   // layout means only the painted patches change, not the whole field).
   if (grassDirty && !brush.painting) generateGrass();
