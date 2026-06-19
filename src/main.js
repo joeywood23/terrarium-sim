@@ -1787,6 +1787,80 @@ function buildFishGLB(tint) {
 // The fish's detailed model is the GLB once loaded, else the procedural fallback.
 DETAILED_BUILDERS.fish = (tint) => FISH_GLB ? buildFishGLB(tint) : scaleBuilder(buildFishDetailed, 1.4, false)(tint);
 
+/* ---- Imported frog GLB (Quaternius "Frog", CC0 — assets/models/) ----
+ * Same pipeline as the fish: async load with procedural fallback, SkeletonUtils
+ * clone, fitted to the procedural frog's bounds and +X forward, with the baked
+ * idle animation. Frogs aren't gene-coloured, so the native material is kept.
+ * (FROG cfg is declared later in the file, so the reference box — which needs
+ * buildFrogDetailed — is measured inside the async callback, at runtime.) */
+let FROG_GLB = null;
+let FROG_GLB_CLIPS = null;
+
+new GLTFLoader().load('assets/models/frog_quaternius.glb', (gltf) => {
+  const refBox = new THREE.Box3().setFromObject(buildFrogDetailed());
+  const refSize = refBox.getSize(new THREE.Vector3());
+  const refCenter = refBox.getCenter(new THREE.Vector3());
+  const inner = gltf.scene;
+  inner.rotation.y = Math.PI / 2;                      // nose -> +X
+  inner.updateMatrixWorld(true);
+  let b = new THREE.Box3().setFromObject(inner);
+  const gs = b.getSize(_glbV);
+  inner.scale.setScalar(Math.max(refSize.x, refSize.y, refSize.z) / (Math.max(gs.x, gs.y, gs.z) || 1));
+  inner.updateMatrixWorld(true);
+  b = new THREE.Box3().setFromObject(inner);
+  inner.position.sub(b.getCenter(_glbV)).add(refCenter);  // centre like the procedural frog (seated by centre)
+  inner.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  FROG_GLB = new THREE.Group(); FROG_GLB.add(inner);
+  FROG_GLB_CLIPS = gltf.animations || null;             // Idle / Jump / Attack / Death
+  rebuildCreatureVisuals();
+}, undefined, (e) => console.warn('frog GLB load failed; using procedural frog', e));
+
+function buildFrogGLB() {
+  const m = cloneSkinned(FROG_GLB);
+  if (FROG_GLB_CLIPS && FROG_GLB_CLIPS.length) {
+    const clip = FROG_GLB_CLIPS.find(c => /idle/i.test(c.name)) || FROG_GLB_CLIPS[0];
+    const mixer = new THREE.AnimationMixer(m);
+    const action = mixer.clipAction(clip);
+    action.time = Math.random() * clip.duration; // desync the school
+    action.timeScale = 0.85 + Math.random() * 0.4;
+    action.play();
+    m.userData.mixer = mixer;
+  }
+  addEyeAnchor(m, null, { forward: FROG.length * 0.34, height: FROG.height * 0.6 }); // POV at the eyes
+  return m;
+}
+DETAILED_BUILDERS.frog = () => FROG_GLB ? buildFrogGLB() : buildFrogDetailed();
+
+/* ---- Hand-authored low-poly beetle GLB (assets/models/beetle_lowpoly.glb,
+ * built by tools/make_beetle_glb.py) — upscales the primitive parts beetle.
+ * Static single mesh authored in +X/centred convention. The beetle is a JSON
+ * species, so its detailed builder is overridden inside the async callback,
+ * after registerSpecies has populated DETAILED_BUILDERS. */
+new GLTFLoader().load('assets/models/beetle_lowpoly.glb', (gltf) => {
+  let geom = null, mat = null;
+  gltf.scene.traverse(o => { if (o.isMesh && !geom) { geom = o.geometry; mat = o.material; } });
+  if (!geom || !DETAILED_BUILDERS.beetle) return;
+  // Fit to the procedural beetle's bounds (centre-aligned, like the fish).
+  const refBox = new THREE.Box3().setFromObject(DETAILED_BUILDERS.beetle());
+  const refSize = refBox.getSize(new THREE.Vector3());
+  const refCenter = refBox.getCenter(new THREE.Vector3());
+  const inner = new THREE.Mesh(geom, mat);
+  let b = new THREE.Box3().setFromObject(inner);
+  const gs = b.getSize(_glbV);
+  inner.scale.setScalar(Math.max(refSize.x, refSize.y, refSize.z) / (Math.max(gs.x, gs.y, gs.z) || 1));
+  inner.updateMatrixWorld(true);
+  b = new THREE.Box3().setFromObject(inner);
+  inner.position.sub(b.getCenter(_glbV)).add(refCenter);
+  inner.castShadow = true;
+  const template = new THREE.Group(); template.add(inner);
+  DETAILED_BUILDERS.beetle = () => {
+    const m = cloneSkinned(template);
+    addEyeAnchor(m, null, { forward: 0.6, height: 0.18 }); // POV near the head
+    return m;
+  };
+  rebuildCreatureVisuals();
+}, undefined, (e) => console.warn('beetle GLB load failed; using procedural beetle', e));
+
 /* Build a creature's visual root for the current artMode. Primitive returns
  * a single Mesh (original geo/mat); detailed returns a composed Group. */
 function buildModel(species, geo, primitiveMat, tint) {
@@ -2509,6 +2583,30 @@ function growVegLayer(L, need) {
   markVegLayer(L);
   old.dispose();
 }
+
+/* Swap a layer's geometry in place (e.g. procedural -> imported GLB), keeping
+ * its plants. Re-derives every instance into a fresh InstancedMesh. */
+function rebuildVegLayerGeom(L, geom) {
+  const next = new THREE.InstancedMesh(geom, vegMat, L.cap);
+  next.count = L.list.length; next.castShadow = true; next.frustumCulled = false; next.visible = L.mesh.visible;
+  platformGroup.add(next); platformGroup.remove(L.mesh);
+  const old = L.mesh; L.mesh = next;
+  for (let i = 0; i < L.list.length; i++) writePlantInstance(L, i, L.list[i]);
+  markVegLayer(L);
+  old.dispose();
+}
+
+/* Upscale the procedural 'tree' to a hand-authored low-poly GLB (assets/models/
+ * tree_lowpoly.glb, built by tools/make_tree_glb.py). It's a single static
+ * vertex-coloured mesh, so its geometry drops straight into the instanced
+ * vegetation renderer. Loaded async; the procedural tree stands in until ready. */
+new GLTFLoader().load('assets/models/tree_lowpoly.glb', (gltf) => {
+  let geom = null;
+  gltf.scene.traverse(o => { if (o.isMesh && !geom) geom = o.geometry; });
+  if (!geom) return;
+  VEG_GEO.tree.geom = geom;                                       // new tree layers use it
+  if (vegLayers.tree) rebuildVegLayerGeom(vegLayers.tree, geom);  // swap any existing trees
+}, undefined, (e) => console.warn('tree GLB load failed; using procedural tree', e));
 
 const plants = [];                 // { x, z, age, grown, food, ... }
 
@@ -5036,10 +5134,12 @@ function animate() {
   populationTick(simDt, dt); // log every 15 sim-s, live-redraw the chart
   vegVisualTick();           // GPU instance writes: once per frame, changed plants only
   grassUniforms.uTime.value += dt; // wind sway (cosmetic: real time, not sim-scaled)
-  // Fish tail-undulation: advance each live fish's animation mixer. Real-time
-  // based, mildly sped up with the sim so fast-forward fish still beat faster.
-  const swimDt = dt * Math.min(6, Math.max(1, timeScale));
-  for (const a of fishes) { if (!a.st.dead && a.mesh.userData.mixer) a.mesh.userData.mixer.update(swimDt); }
+  // Skeletal creature animation (fish tail-undulation, frog idle): advance each
+  // live creature's mixer. Real-time based, mildly sped up with the sim so
+  // fast-forward creatures still animate faster.
+  const animDt = dt * Math.min(6, Math.max(1, timeScale));
+  for (const a of fishes) { if (!a.st.dead && a.mesh.userData.mixer) a.mesh.userData.mixer.update(animDt); }
+  for (const a of frogs)  { if (!a.st.dead && a.mesh.userData.mixer) a.mesh.userData.mixer.update(animDt); }
   // Rebuild grass to match painted soil, once the stroke ends (deterministic
   // layout means only the painted patches change, not the whole field).
   if (grassDirty && !brush.painting) generateGrass();
