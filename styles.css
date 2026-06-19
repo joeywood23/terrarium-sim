@@ -5,7 +5,7 @@
     --grid:       #2a323d;   /* minor grid lines                   */
     --grid-axis:  #3d4754;   /* major / axis grid lines            */
     --platform:   #6b7480;   /* platform slab                      */
-    --terrain:    #7e8676;   /* heightfield surface (dry earth)    */
+    --terrain:    #7c5a3c;   /* heightfield surface (bare brown soil) */
     --water:      #3d7a9e;   /* water volume                       */
     --hud-bg:     rgba(14, 17, 22, 0.82);
     --hud-edge:   rgba(255, 255, 255, 0.08);
@@ -283,6 +283,55 @@
   }
   #setup .go:hover { background: rgba(95,179,212,0.22); }
   #setup .est { text-align: center; color: var(--hud-dim); font-size: 10px; margin-top: 9px; }
+  #setup .card { max-height: 92vh; overflow-y: auto; }
+  #setup .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  #setup .presets button {
+    flex: 1 1 calc(33.333% - 6px); min-width: 90px; padding: 8px 6px;
+    background: rgba(255,255,255,0.04); color: var(--hud-text);
+    border: 1px solid var(--hud-edge); border-radius: 7px;
+    font: 11px var(--mono); cursor: pointer; text-align: center;
+  }
+  #setup .presets button:hover { border-color: var(--accent); color: var(--accent); }
+  #setup .presets button.active {
+    border-color: var(--accent); background: rgba(95,179,212,0.16); color: var(--accent);
+  }
+  #setup .adv { margin-top: 16px; border-top: 1px solid var(--hud-edge); padding-top: 12px; }
+  #setup .adv > summary {
+    cursor: pointer; list-style: none; user-select: none;
+    display: flex; align-items: center; justify-content: space-between;
+    color: var(--hud-dim); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  #setup .adv > summary::-webkit-details-marker { display: none; }
+  #setup .adv > summary::after { content: '▾'; color: var(--hud-dim); }
+  #setup .adv[open] > summary::after { content: '▴'; }
+  #setup .adv .adv-hint { text-transform: none; letter-spacing: 0; color: var(--hud-edge); font-size: 9px; }
+  #setup #su-adv-body { margin-top: 6px; }
+  #setup #su-adv-body .grp.ctl { cursor: help; } /* signals a hover tooltip is available */
+  #setup #su-adv-body .grp.ctl label { cursor: help; }
+  #setup .dims .dim[data-tip-body], #setup .grp.ctl[data-tip-body] { cursor: help; }
+
+  /* Styled floating tooltip (appended to <body> by initTooltips). */
+  .tooltip {
+    position: fixed; z-index: 9999; pointer-events: none;
+    max-width: 264px; padding: 9px 11px;
+    background: var(--hud-bg); border: 1px solid var(--hud-edge);
+    border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+    color: var(--hud-text); font: 11px/1.5 var(--mono);
+    backdrop-filter: blur(4px);
+  }
+  .tooltip .tt-head {
+    color: var(--accent); font-weight: 600; font-size: 11px;
+    text-transform: capitalize; letter-spacing: 0.02em; margin-bottom: 3px;
+  }
+  .tooltip .tt-body { color: var(--hud-dim); }
+  #setup #su-adv-body .grp.head:first-child { border-top: none; padding-top: 0; margin-top: 8px; }
+  #setup .adv-reset {
+    width: 100%; margin-top: 6px; padding: 7px;
+    background: transparent; color: var(--hud-dim);
+    border: 1px solid var(--hud-edge); border-radius: 7px;
+    font: 11px var(--mono); cursor: pointer;
+  }
+  #setup .adv-reset:hover { color: var(--hud-text); border-color: var(--accent); }
   /* In-sim button to return to the setup menu */
   #new-world { /* inherits .panel button styling */ }
 

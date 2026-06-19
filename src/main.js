@@ -5,6 +5,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import { CONFIG } from '../config/world.js';
 
 /* ============================================================
@@ -78,6 +80,78 @@ const PERF = IS_MOBILE ? {
   defaultWorld: null,
 };
 
+/* Advanced world-gen knobs surfaced on the setup screen. Data-driven so the
+ * UI, the hash round-trip, and the CONFIG.terrain patch all stay in sync from
+ * one list. Each knob's default comes from CONFIG.terrain (config/world.js);
+ * the setup screen can override it, and the override rides the same hash→reload
+ * path as the structural dials. `dp` = decimal places for the value readout. */
+const TERRAIN_KNOB_GROUPS = [
+  { title: 'Noise & shape', knobs: [
+    { key: 'octaves',      label: 'octaves',        min: 1,   max: 8,   step: 1,    dp: 0, tip: 'Number of noise detail layers summed together. More octaves add finer ridges and roughness but cost a little more to generate; fewer give smoother, simpler landforms.' },
+    { key: 'lacunarity',   label: 'lacunarity',     min: 1.5, max: 3,   step: 0.05, dp: 2, tip: 'How much the frequency jumps between each octave. Around 2.0 looks natural; higher values pack in more small-scale detail per layer.' },
+    { key: 'persistence',  label: 'persistence',    min: 0.2, max: 0.8, step: 0.01, dp: 2, tip: 'How much each finer octave contributes to the total height. Higher makes terrain rougher and noisier; lower yields smooth, rolling hills.' },
+    { key: 'warpStrength', label: 'domain warp',    min: 0,   max: 2,   step: 0.05, dp: 2, tip: 'Bends the noise coordinates with more noise so valleys meander and ridges swirl. 0 leaves it geometric; higher gives a more organic, water-eroded look.' },
+    { key: 'redistPow',    label: 'redistribution', min: 0.5, max: 5,   step: 0.1,  dp: 1, tip: 'Reshapes the elevation curve toward broad low ground with a few high peaks. 1 leaves it linear; raise it for flatter plains and more dramatic, isolated summits.' },
+  ] },
+  { title: 'Mountains & terraces', knobs: [
+    { key: 'ridgeMix',        label: 'ridge mix',        min: 0, max: 1,  step: 0.05, dp: 2, tip: 'Blends sharp, creased ridgelines into the higher elevations so they read as mountain ranges. 0 keeps everything rounded; 1 gives full alpine ridges.' },
+    { key: 'terraceLevels',   label: 'terrace levels',   min: 0, max: 16, step: 1,    dp: 0, tip: 'Number of flat stepped bands cut into the elevation, like rice terraces or mesas. Set to 0 to disable terracing entirely.' },
+    { key: 'terraceStrength', label: 'terrace strength', min: 0, max: 1,  step: 0.05, dp: 2, tip: 'How hard the terrain snaps onto those terrace steps. 0 stays smooth; 1 produces crisp, flat plateaus with steep risers.' },
+  ] },
+  { title: 'Coastline', knobs: [
+    { key: 'coastStart',  label: 'coast start',    min: 0.2, max: 0.95, step: 0.01,  dp: 2, tip: 'Radius at which the island begins sloping down to the sea (0 is the center, 1 the map edge). Lower values shrink the landmass and leave more open water around it.' },
+    { key: 'coastWobble', label: 'coast wobble',   min: 0,   max: 0.4,  step: 0.01,  dp: 2, tip: 'Adds noise to the shoreline so it forms bays, inlets and peninsulas. 0 gives a smooth geometric coast; higher makes a more ragged, natural outline.' },
+    { key: 'seaBias',     label: 'sea-level bias', min: 0,   max: 0.3,  step: 0.005, dp: 3, tip: 'Lowers the whole landmass relative to the water line. Raise it to flood more of the map, lower it to expose more dry land.' },
+    { key: 'beachWidth',  label: 'beach width',    min: 0,   max: 6,    step: 0.25,  dp: 2, tip: 'Width of the flattened beach and shallow underwater shelf along the waterline. 0 gives a hard shore edge; larger values create gentle, wadeable shallows for fish and shore plants.' },
+  ] },
+  { title: 'Hydraulic erosion', knobs: [
+    { key: 'erosionDroplets',       label: 'droplets',          min: 0, max: 200000, step: 5000,  dp: 0, tip: 'How many simulated rain droplets carve the terrain after the noise pass. More droplets dig deeper, more detailed river valleys but take longer to generate; 0 turns hydraulic erosion off.' },
+    { key: 'erosionRadius',         label: 'erosion radius',    min: 1, max: 8,      step: 1,     dp: 0, tip: 'How wide a footprint each droplet erodes around its path. Larger radii carve broad, smooth valleys; smaller ones cut narrow, sharp channels.' },
+    { key: 'inertia',               label: 'inertia',           min: 0, max: 0.9,    step: 0.05,  dp: 2, tip: 'How strongly droplets hold their heading versus turning straight downhill. Higher inertia makes straighter rivers; lower lets them hug every contour.' },
+    { key: 'sedimentCapacityFactor',label: 'sediment capacity', min: 1, max: 12,     step: 0.5,   dp: 1, tip: 'How much eroded material fast-flowing water can carry before dropping it. Higher values dig more aggressively and build larger sediment deposits.' },
+    { key: 'minSedimentCapacity',   label: 'min capacity',      min: 0, max: 0.05,   step: 0.005, dp: 3, tip: 'A floor on carrying capacity so even slow water erodes a little. Without it, flat or gentle areas would never gain any river detail.' },
+    { key: 'erodeSpeed',            label: 'erode speed',       min: 0, max: 1,      step: 0.05,  dp: 2, tip: 'How quickly each droplet removes material from the terrain. Higher carves faster and sharper; lower gives subtler, gentler erosion.' },
+    { key: 'depositSpeed',          label: 'deposit speed',     min: 0, max: 1,      step: 0.05,  dp: 2, tip: 'How quickly droplets lay sediment back down when they slow or pool. Higher builds more pronounced fans, deltas and flat valley floors.' },
+    { key: 'evaporateSpeed',        label: 'evaporate',         min: 0, max: 0.1,    step: 0.005, dp: 3, tip: 'How fast a droplet shrinks and dies as it travels. Higher evaporation makes shorter rivers; lower lets them run much farther.' },
+    { key: 'gravity',               label: 'gravity',           min: 1, max: 20,     step: 0.5,   dp: 1, tip: 'How strongly downhill slope accelerates the droplets. Higher gravity means faster flow and stronger erosion on steep ground.' },
+    { key: 'maxDropletLifetime',    label: 'droplet life',      min: 5, max: 80,     step: 5,     dp: 0, tip: 'The most steps a single droplet can travel before it stops. Higher lets rivers reach across the whole map; lower keeps erosion local.' },
+  ] },
+  { title: 'Thermal erosion', knobs: [
+    { key: 'thermalIterations', label: 'iterations',   min: 0,   max: 40, step: 1,    dp: 0, tip: 'How many passes slump over-steep slopes into stable scree. More passes smooth cliffs and erosion scars; 0 skips thermal erosion.' },
+    { key: 'thermalTalus',      label: 'talus angle',  min: 0.1, max: 3,  step: 0.1,  dp: 1, tip: 'The steepest slope that can stay put before material slides down. Lower values smooth everything more; higher keeps sharp cliffs intact.' },
+    { key: 'thermalFactor',     label: 'talus factor', min: 0,   max: 1,  step: 0.05, dp: 2, tip: 'How much of the excess steepness is moved on each thermal pass. Higher smooths faster but can wash out fine detail.' },
+  ] },
+];
+const TERRAIN_KNOBS = TERRAIN_KNOB_GROUPS.flatMap(g => g.knobs);
+
+/* One-click world archetypes shown on the setup screen. Clicking one resets all
+ * terrain knobs to their config/world.js defaults, then layers on `terrain`
+ * overrides; `amp`/`water` drive the basic sliders. Tuned against the default
+ * 480×320 / height-20 world. */
+const TERRAIN_PRESETS = [
+  { label: 'Continent', tip: 'One large, contiguous landmass with gentle interior relief and a broad, smooth coastline.',
+    amp: 10, water: 2.5,
+    terrain: { coastStart: 0.82, coastWobble: 0.10, seaBias: 0.02, redistPow: 1.8, ridgeMix: 0.30, warpStrength: 0.5 } },
+  { label: 'Few large islands', tip: 'A handful of big islands separated by generous channels of open water.',
+    amp: 11, water: 3.5,
+    terrain: { coastStart: 0.55, coastWobble: 0.20, seaBias: 0.10, redistPow: 2.2, ridgeMix: 0.40 } },
+  { label: 'Archipelago', tip: 'Many small, scattered islands and islets ringed by shallow water.',
+    amp: 11, water: 4,
+    terrain: { coastStart: 0.45, coastWobble: 0.32, seaBias: 0.16, redistPow: 2.6, ridgeMix: 0.35, persistence: 0.58, octaves: 7, warpStrength: 0.8, beachWidth: 2.5 } },
+  { label: 'Mountain range', tip: 'High, sharply ridged peaks with deep, water-carved valleys across the interior.',
+    amp: 18, water: 2,
+    terrain: { coastStart: 0.80, coastWobble: 0.10, seaBias: 0.02, ridgeMix: 0.95, redistPow: 3.5, warpStrength: 0.9, octaves: 7, persistence: 0.55, erosionDroplets: 120000, erodeSpeed: 0.40, thermalIterations: 12 } },
+  { label: 'Rolling hills', tip: 'Soft, smooth hills and wide plains — a calm, pastoral world with little water.',
+    amp: 8, water: 2.5,
+    terrain: { coastStart: 0.80, coastWobble: 0.12, seaBias: 0.03, ridgeMix: 0.0, redistPow: 1.4, persistence: 0.42, octaves: 5, warpStrength: 0.4, erosionDroplets: 40000, thermalIterations: 14 } },
+  { label: 'Canyon mesas', tip: 'Stepped plateaus and flat-topped mesas carved into deep channels by erosion.',
+    amp: 14, water: 2,
+    terrain: { coastStart: 0.78, coastWobble: 0.10, seaBias: 0.03, ridgeMix: 0.30, redistPow: 2.2, terraceLevels: 8, terraceStrength: 0.55, erosionDroplets: 110000, erodeSpeed: 0.40, thermalIterations: 4, warpStrength: 0.7 } },
+  { label: 'Ocean', tip: 'Open water broken only by a few small specks of low-lying land.',
+    amp: 9, water: 6,
+    terrain: { coastStart: 0.35, coastWobble: 0.25, seaBias: 0.22, redistPow: 2.6, ridgeMix: 0.30 } },
+];
+
 const SETUP = {
   width:      clampNum(SETUP_PARAMS.get('w'),   4, Infinity, CONFIG.platform.width),
   length:     clampNum(SETUP_PARAMS.get('l'),   4, Infinity, CONFIG.platform.depth),
@@ -92,6 +166,18 @@ SETUP.water     = Math.min(SETUP.water, SETUP.height);     // independent, but b
 function clampNum(raw, lo, hi, dflt) {
   const v = parseFloat(raw);
   return Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : dflt;
+}
+
+// Snapshot the config/world.js defaults BEFORE applying any hash overrides, so
+// the setup screen's "reset" can restore them.
+const DEFAULT_TERRAIN = {};
+for (const k of TERRAIN_KNOBS) DEFAULT_TERRAIN[k.key] = CONFIG.terrain[k.key];
+// Patch CONFIG.terrain in place from any advanced knobs present in the hash, so
+// generateIsland picks them up. These are non-structural (no array resize), so
+// no rebuild is needed beyond the single reload the setup screen already does.
+for (const k of TERRAIN_KNOBS) {
+  const v = clampNum(SETUP_PARAMS.get(k.key), k.min, k.max, NaN);
+  if (Number.isFinite(v)) CONFIG.terrain[k.key] = v;
 }
 
 // Structural params -> CONFIG, before the size-dependent consts are built.
@@ -343,6 +429,37 @@ zoneTex.minFilter = zoneTex.magFilter = THREE.LinearFilter;
 zoneTex.needsUpdate = true;
 const zoneUniforms = { uZoneTex: { value: zoneTex } };
 
+/* Soil carrying capacity: a coarse patch grid where each patch caps how many
+ * calories of plant matter it can support. `soilCap` is the painted capacity
+ * (calories), `soilLoad` the current biomass (Σ plant food, recomputed each
+ * soil pass). A normalized Uint8 copy (`soilTexData`) drives a fertility tint
+ * shown while the Soil brush is active. Granularity is CONFIG.soil.patch units,
+ * coarser than the heightfield so a single plant's biomass reads stably. */
+const SOIL = CONFIG.soil;
+const SPX = Math.max(1, Math.ceil(P.width / SOIL.patch));
+const SPZ = Math.max(1, Math.ceil(P.depth / SOIL.patch));
+const soilCap     = new Float32Array(SPX * SPZ).fill(SOIL.defaultCap);
+const soilLoad    = new Float32Array(SPX * SPZ);
+const soilTexData = new Uint8Array(SPX * SPZ).fill(Math.round(Math.min(1, SOIL.defaultCap / SOIL.maxCap) * 255));
+const soilTex = new THREE.DataTexture(soilTexData, SPX, SPZ, THREE.RedFormat, THREE.UnsignedByteType);
+// Linear so the always-on fertility GROUND COLOR blends smoothly between patches;
+// the editing overlay re-snaps to patch centres in-shader to keep the grid crisp.
+soilTex.minFilter = soilTex.magFilter = THREE.LinearFilter;
+soilTex.needsUpdate = true;
+const soilUniforms = { uSoilTex: { value: soilTex }, uSoilOn: { value: 0 } };
+let soilAccum = 0; // sim-seconds since the last carrying-capacity pass
+
+const soilPatchIndex = (x, z) => {
+  const px = Math.min(SPX - 1, Math.max(0, ((x + P.width / 2) / SOIL.patch) | 0));
+  const pz = Math.min(SPZ - 1, Math.max(0, ((z + P.depth / 2) / SOIL.patch) | 0));
+  return pz * SPX + px;
+};
+// True if patch (x,z) can still take `food` more calories without exceeding cap.
+const soilRoomFor = (x, z, food) => {
+  const pi = soilPatchIndex(x, z);
+  return soilLoad[pi] + food <= soilCap[pi];
+};
+
 /* Fish breeding flow field: BFS distance-to-nearest-zone over navigable
  * water. Declared here (before the water/fish sections that mark it
  * dirty during init); computed lazily in computeFlowField() at runtime. */
@@ -356,20 +473,28 @@ const terrainMat = new THREE.MeshStandardMaterial({
   metalness: 0.0,
 });
 terrainMat.onBeforeCompile = (shader) => {
-  Object.assign(shader.uniforms, brushUniforms, zoneUniforms);
+  Object.assign(shader.uniforms, brushUniforms, zoneUniforms, soilUniforms);
   shader.vertexShader = shader.vertexShader
     .replace('#include <common>', '#include <common>\nvarying vec3 vBrushWorld;')
     .replace('#include <worldpos_vertex>',
       '#include <worldpos_vertex>\nvBrushWorld = (modelMatrix * vec4(transformed, 1.0)).xyz;');
   shader.fragmentShader = shader.fragmentShader
     .replace('#include <common>',
-      '#include <common>\nvarying vec3 vBrushWorld;\nuniform vec3 uBrushPos;\nuniform float uBrushRadius;\nuniform float uBrushOn;\nuniform sampler2D uZoneTex;')
+      '#include <common>\nvarying vec3 vBrushWorld;\nuniform vec3 uBrushPos;\nuniform float uBrushRadius;\nuniform float uBrushOn;\nuniform sampler2D uZoneTex;\nuniform sampler2D uSoilTex;\nuniform float uSoilOn;')
     .replace('#include <dithering_fragment>', `#include <dithering_fragment>
       {
-        // Egg-laying zone tint (sampled from the painted mask).
         vec2 zUv = vBrushWorld.xz / vec2(${P.width.toFixed(1)}, ${P.depth.toFixed(1)}) + 0.5;
+
+        // Egg-laying zone tint (sampled from the painted mask).
         float zone = texture2D(uZoneTex, zUv).r;
         gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.36, 0.85, 0.55), zone * 0.4);
+
+        // Soil carrying-capacity EDIT overlay (only while the Soil brush is
+        // active): snap to patch centres for a crisp grid, yellow -> dark green.
+        vec2 pUv = (floor(zUv * vec2(${SPX.toFixed(1)}, ${SPZ.toFixed(1)})) + 0.5) / vec2(${SPX.toFixed(1)}, ${SPZ.toFixed(1)});
+        float soilCrisp = texture2D(uSoilTex, pUv).r;
+        vec3 soilCol = mix(vec3(0.90, 0.84, 0.22), vec3(0.07, 0.30, 0.11), soilCrisp);
+        gl_FragColor.rgb = mix(gl_FragColor.rgb, soilCol, uSoilOn * 0.5);
 
         // Brush cursor ring.
         float d = distance(vBrushWorld.xz, uBrushPos.xz);
@@ -470,32 +595,89 @@ function sampleHeight(x, z) {
        + (heights[i01] * (1 - tx) + heights[i11] * tx) * tz;
 }
 
-/* ---- Procedural island: value-noise fBm × rounded-rect edge falloff ---- */
+/* ---- Procedural island: simplex fBm + domain warp × organic falloff,
+ *      baked through hydraulic + thermal erosion ---- */
 const sstep = (a, b, x) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
 };
-function hash2(ix, iz, seed) {
-  const s = Math.sin(ix * 127.1 + iz * 311.7 + seed * 0.131) * 43758.5453123;
-  return s - Math.floor(s);
-}
-function valueNoise(x, z, seed) {
-  const xi = Math.floor(x), zi = Math.floor(z);
-  const xf = x - xi, zf = z - zi;
-  const u = xf * xf * (3 - 2 * xf), w = zf * zf * (3 - 2 * zf);
-  const a = hash2(xi, zi, seed),     b = hash2(xi + 1, zi, seed);
-  const c = hash2(xi, zi + 1, seed), d = hash2(xi + 1, zi + 1, seed);
-  return (a * (1 - u) + b * u) * (1 - w) + (c * (1 - u) + d * u) * w;
-}
-function fbm(x, z, seed) {
-  let total = 0, amp = 0.5, freq = 1, norm = 0;
-  for (let o = 0; o < 4; o++) {
-    total += amp * valueNoise(x * freq, z * freq, seed + o * 17.7);
-    norm  += amp;
-    amp   *= 0.5;
-    freq  *= 2.05;
+
+/* 2D simplex noise (Gustavson), output ~[-1,1]. Far fewer directional
+ * artifacts than the old value noise — the single biggest realism win.
+ * The permutation table is rebuilt from worldSeed on each generate so the
+ * whole field is deterministic and seed-only (no per-cell RNG → no chunk
+ * seams when streaming later). */
+const _perm     = new Uint8Array(512);
+const _permMod12 = new Uint8Array(512);
+// 12 gradient directions (2D components of the classic grad3 set).
+const _GRAD = [
+  [1, 1], [-1, 1], [1, -1], [-1, -1],
+  [1, 0], [-1, 0], [1, 0], [-1, 0],
+  [0, 1], [0, -1], [0, 1], [0, -1],
+];
+function buildPerm(seed) {
+  const p = new Uint8Array(256);
+  for (let i = 0; i < 256; i++) p[i] = i;
+  // seeded Fisher–Yates shuffle (mulberry32 PRNG)
+  let s = (seed * 0x9e3779b1) >>> 0 || 1;
+  const rng = () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  for (let i = 255; i > 0; i--) {
+    const j = (rng() * (i + 1)) | 0;
+    const tmp = p[i]; p[i] = p[j]; p[j] = tmp;
   }
-  return total / norm; // [0, 1]
+  for (let i = 0; i < 512; i++) { _perm[i] = p[i & 255]; _permMod12[i] = _perm[i] % 12; }
+}
+const _F2 = 0.5 * (Math.sqrt(3) - 1);
+const _G2 = (3 - Math.sqrt(3)) / 6;
+function snoise(xin, zin) {
+  const s = (xin + zin) * _F2;
+  const i = Math.floor(xin + s), j = Math.floor(zin + s);
+  const t = (i + j) * _G2;
+  const x0 = xin - (i - t), y0 = zin - (j - t);
+  let i1, j1;
+  if (x0 > y0) { i1 = 1; j1 = 0; } else { i1 = 0; j1 = 1; }
+  const x1 = x0 - i1 + _G2,     y1 = y0 - j1 + _G2;
+  const x2 = x0 - 1 + 2 * _G2,  y2 = y0 - 1 + 2 * _G2;
+  const ii = i & 255, jj = j & 255;
+  const gi0 = _permMod12[ii + _perm[jj]];
+  const gi1 = _permMod12[ii + i1 + _perm[jj + j1]];
+  const gi2 = _permMod12[ii + 1 + _perm[jj + 1]];
+  let n0 = 0, n1 = 0, n2 = 0;
+  let t0 = 0.5 - x0 * x0 - y0 * y0;
+  if (t0 > 0) { t0 *= t0; n0 = t0 * t0 * (_GRAD[gi0][0] * x0 + _GRAD[gi0][1] * y0); }
+  let t1 = 0.5 - x1 * x1 - y1 * y1;
+  if (t1 > 0) { t1 *= t1; n1 = t1 * t1 * (_GRAD[gi1][0] * x1 + _GRAD[gi1][1] * y1); }
+  let t2 = 0.5 - x2 * x2 - y2 * y2;
+  if (t2 > 0) { t2 *= t2; n2 = t2 * t2 * (_GRAD[gi2][0] * x2 + _GRAD[gi2][1] * y2); }
+  return 70 * (n0 + n1 + n2); // ~[-1,1]
+}
+
+// fBm: octaves of simplex at doubling freq / halving amplitude → ~[-1,1].
+function fbm(x, z, { octaves = T.octaves, lacunarity = T.lacunarity, gain = T.persistence } = {}) {
+  let sum = 0, amp = 1, freq = 1, norm = 0;
+  for (let o = 0; o < octaves; o++) {
+    sum  += amp * snoise(x * freq, z * freq);
+    norm += amp;
+    amp  *= gain;
+    freq *= lacunarity;
+  }
+  return sum / norm;
+}
+// Ridged multifractal: creased ridgelines for mountain regions → ~[0,1].
+function ridged(x, z, { octaves = T.octaves, lacunarity = T.lacunarity, gain = T.persistence } = {}) {
+  let sum = 0, amp = 0.5, freq = 1, prev = 1;
+  for (let o = 0; o < octaves; o++) {
+    let n = 1 - Math.abs(snoise(x * freq, z * freq)); // crease at zero crossings
+    n *= n;     // sharpen the ridge
+    n *= prev;  // feedback: detail concentrates on existing ridges
+    sum += n * amp; prev = n; freq *= lacunarity; amp *= gain;
+  }
+  return Math.min(1, sum);
 }
 
 /* Pure worldgen: terrain height at any world coordinate, independent of the
@@ -507,24 +689,179 @@ function fbm(x, z, seed) {
 let worldSeed = Math.random() * 1000;
 let worldAmp = 3;
 function terrainHeightAt(wx, wz) {
-  // Rounded-rectangle falloff to 0 at the platform rim. (For an unbounded
-  // streaming world this term becomes a per-island mask or drops away.)
+  const f = T.featureFreq;
+  let x = wx * f, z = wz * f;
+
+  // (5) Domain warp — distort the sample coords with noise before evaluating,
+  // for meandering valleys and "eroded" structure without a sim. Strength is in
+  // x-space (≈1 unit per feature wavelength), so keep warpStrength < 1.
+  if (T.warpStrength > 0) {
+    const qx = fbm(x, z);
+    const qz = fbm(x + 5.2, z + 1.3);
+    x += T.warpStrength * qx;
+    z += T.warpStrength * qz;
+  }
+
+  // (3) Base fBm, remapped to [0,1].
+  let e = fbm(x, z) * 0.5 + 0.5;
+
+  // (4) Blend ridged noise into low-frequency mountain regions so ranges occur
+  // in patches, not everywhere.
+  if (T.ridgeMix > 0) {
+    const mask = fbm(wx * f * 0.35 + 100, wz * f * 0.35 + 100) * 0.5 + 0.5;
+    const m = sstep(0.5, 0.8, mask) * T.ridgeMix;
+    if (m > 0) e = e * (1 - m) + ridged(x, z) * m;
+  }
+
+  // (6) Redistribution: pow(e,k) gives lots of low/flat land and few high peaks
+  // — the key "terrain not hills" knob. Optional partial terracing for mesas.
+  e = Math.pow(Math.max(0, e), T.redistPow);
+  if (T.terraceLevels > 0 && T.terraceStrength > 0) {
+    const stepped = Math.round(e * T.terraceLevels) / T.terraceLevels;
+    e = e * (1 - T.terraceStrength) + stepped * T.terraceStrength;
+  }
+
+  // (7) Organic island mask: superellipse falloff with the rim perturbed by
+  // low-freq noise → believable bays/peninsulas instead of a geometric ellipse.
   const u = wx / (P.width / 2), v = wz / (P.depth / 2);
-  const d = Math.pow(Math.pow(Math.abs(u), 4) + Math.pow(Math.abs(v), 4), 0.25);
-  const falloff = 1 - sstep(0.55, 1.0, d);
-  const n = fbm(wx * T.featureFreq, wz * T.featureFreq, worldSeed);
+  const d = Math.pow(Math.abs(u) ** 4 + Math.abs(v) ** 4, 0.25);
+  const wobble = T.coastWobble * fbm(u * 2.2 + 55, v * 2.2 + 55);
+  const falloff = 1 - sstep(T.coastStart, 1.0, d + wobble);
+
+  // Subtract a sea-level bias so coastline forms where elevation·mask crosses 0.
   // worldHeight is the ceiling: terrain can't rise above the walls.
-  return Math.min(worldHeight, Math.max(0, n * falloff - 0.10) * worldAmp * 1.4);
+  return Math.min(worldHeight, Math.max(0, e * falloff - T.seaBias) * worldAmp * 1.4);
+}
+
+/* ---- Erosion bakes (whole-grid, stateful — NOT per-cell, so they live here
+ *      in generateIsland, never in the analytic terrainHeightAt seam) ---- */
+
+// Precompute a radial brush (relative cell offsets + normalized weights) used to
+// spread each droplet's erosion over a small footprint instead of a single cell.
+function makeErosionBrush(radius) {
+  const r = Math.max(1, radius | 0);
+  const offs = [];
+  let wsum = 0;
+  for (let dz = -r; dz <= r; dz++)
+    for (let dx = -r; dx <= r; dx++) {
+      const dist = Math.hypot(dx, dz);
+      if (dist > r) continue;
+      const w = 1 - dist / r;
+      offs.push(dx, dz, w);
+      wsum += w;
+    }
+  for (let i = 2; i < offs.length; i += 3) offs[i] /= wsum;
+  return offs; // flat [dx,dz,w, dx,dz,w, ...]
+}
+
+// (8) Droplet hydraulic erosion — rain that flows downhill, erodes where fast,
+// deposits where it slows/turns uphill. Carves dendritic valleys + sediment
+// fans that noise alone can't. Defaults follow Sebastian Lague's Erosion.cs.
+function hydraulicErode() {
+  const w = NX, h = NZ, T2 = T;
+  const brush = makeErosionBrush(T2.erosionRadius);
+  for (let drop = 0; drop < T2.erosionDroplets; drop++) {
+    let px = Math.random() * (w - 1), pz = Math.random() * (h - 1);
+    let dx = 0, dz = 0, speed = 1, water = 1, sediment = 0;
+    for (let life = 0; life < T2.maxDropletLifetime; life++) {
+      const nx = px | 0, nz = pz | 0;
+      const ox = px - nx, oz = pz - nz;
+      const i = nz * w + nx;
+      const hNW = heights[i], hNE = heights[i + 1], hSW = heights[i + w], hSE = heights[i + w + 1];
+      // bilinear height + gradient at the droplet
+      const gradX = (hNE - hNW) * (1 - oz) + (hSE - hSW) * oz;
+      const gradZ = (hSW - hNW) * (1 - ox) + (hSE - hNE) * ox;
+      const hCur = hNW * (1 - ox) * (1 - oz) + hNE * ox * (1 - oz)
+                 + hSW * (1 - ox) * oz       + hSE * ox * oz;
+      // steer: blend momentum (inertia) with the downhill gradient
+      dx = dx * T2.inertia - gradX * (1 - T2.inertia);
+      dz = dz * T2.inertia - gradZ * (1 - T2.inertia);
+      const len = Math.hypot(dx, dz);
+      if (len !== 0) { dx /= len; dz /= len; }
+      px += dx; pz += dz;
+      if ((dx === 0 && dz === 0) || px < 0 || px >= w - 1 || pz < 0 || pz >= h - 1) break;
+      // height at the new position
+      const mx = px | 0, mz = pz | 0, mox = px - mx, moz = pz - mz, mi = mz * w + mx;
+      const hNew = heights[mi] * (1 - mox) * (1 - moz) + heights[mi + 1] * mox * (1 - moz)
+                 + heights[mi + w] * (1 - mox) * moz   + heights[mi + w + 1] * mox * moz;
+      const dh = hNew - hCur;
+      const capacity = Math.max(-dh * speed * water * T2.sedimentCapacityFactor, T2.minSedimentCapacity);
+      if (sediment > capacity || dh > 0) {
+        // deposit (carrying too much, or flowing uphill) onto the OLD cell
+        const amt = dh > 0 ? Math.min(dh, sediment) : (sediment - capacity) * T2.depositSpeed;
+        sediment -= amt;
+        heights[i]         += amt * (1 - ox) * (1 - oz);
+        heights[i + 1]     += amt * ox * (1 - oz);
+        heights[i + w]     += amt * (1 - ox) * oz;
+        heights[i + w + 1] += amt * ox * oz;
+      } else {
+        // erode, spread over the brush; never dig a cell below the sea floor (0)
+        const amt = Math.min((capacity - sediment) * T2.erodeSpeed, -dh);
+        let removed = 0;
+        for (let b = 0; b < brush.length; b += 3) {
+          const bx = nx + brush[b], bz = nz + brush[b + 1];
+          if (bx < 0 || bx >= w || bz < 0 || bz >= h) continue;
+          const bi = bz * w + bx;
+          const take = Math.min(heights[bi], amt * brush[b + 2]);
+          heights[bi] -= take; removed += take;
+        }
+        sediment += removed;
+      }
+      speed = Math.sqrt(Math.max(0, speed * speed + dh * T2.gravity));
+      water *= (1 - T2.evaporateSpeed);
+    }
+  }
+}
+
+// (9) Thermal erosion — wherever a slope exceeds the talus angle, slump material
+// downhill until stable. Softens noisy cliffs and erosion scars into scree.
+function thermalErode() {
+  const w = NX, h = NZ, talus = T.thermalTalus, factor = T.thermalFactor;
+  const nb = [-1, 1, -w, w];
+  for (let it = 0; it < T.thermalIterations; it++) {
+    for (let z = 1; z < h - 1; z++) for (let x = 1; x < w - 1; x++) {
+      const i = z * w + x, hc = heights[i];
+      let dmax = 0, dsum = 0;
+      for (let k = 0; k < 4; k++) { const dd = hc - heights[i + nb[k]]; if (dd > talus) { dsum += dd; if (dd > dmax) dmax = dd; } }
+      if (dsum === 0) continue;
+      const moved = factor * (dmax - talus);
+      for (let k = 0; k < 4; k++) { const dd = hc - heights[i + nb[k]]; if (dd > talus) heights[i + nb[k]] += moved * (dd / dsum); }
+      heights[i] -= moved;
+    }
+  }
+}
+
+// (10) Shore shelf — pull near-waterline cells toward the water level so the
+// coast reads as a gentle beach + shallow underwater shelf (feeds waterDepthAt,
+// fish/aquatic-plant placement) instead of a hard noise edge.
+function shoreShelf() {
+  const width = T.beachWidth;
+  if (width <= 0) return;
+  const lvl = water.level;
+  for (let i = 0; i < heights.length; i++) {
+    const band = Math.abs(heights[i] - lvl);
+    if (band < width) {
+      const t = sstep(0, width, band);
+      heights[i] = lvl * (1 - t) + heights[i] * t;
+    }
+  }
 }
 
 function generateIsland() {
   worldAmp  = parseFloat(document.getElementById('island-amp').value);
   worldSeed = Math.random() * 1000;
+  buildPerm(worldSeed); // reseed the simplex permutation table for this world
   for (let iz = 0; iz < NZ; iz++) {
     for (let ix = 0; ix < NX; ix++) {
       heights[iz * NX + ix] = terrainHeightAt(-P.width / 2 + ix * dx, -P.depth / 2 + iz * dz);
     }
   }
+  // Whole-grid bakes, in order: carve (hydraulic) → settle (thermal) → beach.
+  if (T.erosionDroplets   > 0) hydraulicErode();
+  if (T.thermalIterations > 0) thermalErode();
+  shoreShelf();
+  // Erosion/thermal can push cells past the ceiling or below the floor; reclamp.
+  for (let i = 0; i < heights.length; i++) heights[i] = Math.min(worldHeight, Math.max(0, heights[i]));
   refreshTerrain();
   markFlowDirty();
   generateVegetation(); // shore-weighted plant layer follows the new coastline
@@ -571,6 +908,11 @@ function setBrushMode(m) {
   );
   document.getElementById('r-mode').textContent = m;
   brushUniforms.uBrushRadius.value = effectiveRingRadius(); // plant tool has its own radius
+  soilUniforms.uSoilOn.value = (m === 'soil') ? 1 : 0;       // fertility tint only while painting soil
+  const soilRow = document.getElementById('r-soil-row');
+  if (soilRow) soilRow.style.display = (m === 'soil') ? '' : 'none';
+  const soilCapRow = document.getElementById('soil-cap-row');
+  if (soilCapRow) soilCapRow.style.display = (m === 'soil') ? '' : 'none';
   brush.needRecast = true;
 }
 
@@ -635,6 +977,32 @@ function applyBrush(dt) {
     return;
   }
 
+  // Soil capacity painting: STAMP every covered patch to the brush's fixed
+  // capacity value (Shift stamps 0 = barren). A flat set, not a nudge, so a
+  // patch always reads exactly the value you painted. Edits the coarse
+  // soil-patch grid, not the heightfield.
+  if (m === 'soil') {
+    const target = brush.shift ? 0 : soilBrush.value;
+    const tex = Math.round(Math.min(1, target / SOIL.maxCap) * 255);
+    const ps = SOIL.patch;
+    const px0 = Math.max(0, Math.floor((cx - rad + P.width / 2) / ps));
+    const px1 = Math.min(SPX - 1, Math.floor((cx + rad + P.width / 2) / ps));
+    const pz0 = Math.max(0, Math.floor((cz - rad + P.depth / 2) / ps));
+    const pz1 = Math.min(SPZ - 1, Math.floor((cz + rad + P.depth / 2) / ps));
+    for (let pz = pz0; pz <= pz1; pz++) {
+      for (let px = px0; px <= px1; px++) {
+        const wx = -P.width / 2 + (px + 0.5) * ps, wz = -P.depth / 2 + (pz + 0.5) * ps;
+        if (Math.hypot(wx - cx, wz - cz) > rad) continue; // patch centre inside the brush disc
+        const pi = pz * SPX + px;
+        soilCap[pi] = target;
+        soilTexData[pi] = tex;
+      }
+    }
+    soilTex.needsUpdate = true;
+    grassDirty = true; // rebuild grass to match the new capacity when the stroke ends
+    return;
+  }
+
   /* Smoothing reads neighbours from a snapshot so the pass is unbiased.
    * The snapshot is a persistent scratch buffer and only the brush AABB
    * (+1 halo for the neighbour reads) is copied — heights.slice() here
@@ -686,7 +1054,22 @@ function brushTick(dt) {
     castBrush();
     brush.needRecast = false;
   }
+  if (brush.mode === 'soil') updateSoilReadout();
   if (brush.painting) applyBrush(dt);
+}
+
+/* Show the carrying capacity of the patch under the cursor (calories), and what
+ * the brush will stamp, so the effect of painting is visible numerically. */
+function updateSoilReadout() {
+  const el = document.getElementById('r-soil');
+  if (!el) return;
+  if (brush.hit) {
+    const cur = Math.round(soilCap[soilPatchIndex(brush.hit.x, brush.hit.z)]);
+    const tgt = brush.shift ? 0 : Math.round(soilBrush.value);
+    el.textContent = `${cur} → ${tgt}`;
+  } else {
+    el.textContent = '—';
+  }
 }
 
 /* ---- Pointer + keyboard wiring ---- */
@@ -823,6 +1206,7 @@ function bindSlider(id, apply, fmt = v => v.toFixed(1)) {
 
 /* Vegetation brush runtime settings (driven by the sliders below). */
 const veg = { radius: 8, density: 0.5 };
+const soilBrush = { value: SOIL.defaultCap }; // capacity the Soil brush stamps onto covered patches
 
 /* The plant tool has its own radius (placement area) and density; all other
  * brushes share brush.radius. The ring shows whichever is active. */
@@ -836,6 +1220,7 @@ const strengthInput   = bindSlider('brush-strength', v => { brush.strength = v; 
 const ampInput        = bindSlider('island-amp',     () => {}); // read at generate time
 const vegDensityInput = bindSlider('veg-density',    v => { veg.density = v; }, v => v.toFixed(2));
 const vegRadiusInput  = bindSlider('veg-radius',     v => { veg.radius  = v; syncBrushRing(); });
+bindSlider('soil-cap', v => { soilBrush.value = v; }, v => String(Math.round(v))); // Soil-brush stamp value
 
 // Live vegetation tuning feeds CONFIG.vegetation directly (the VEG alias
 // declared in the vegetation section is the same object), so the change
@@ -871,6 +1256,7 @@ window.addEventListener('keydown', e => {
   if (k === 'e') setBrushMode('lower');
   if (k === 'r') setBrushMode('smooth');
   if (k === 'z') setBrushMode('zone');
+  if (k === 'c') setBrushMode('soil');
   if (k === 't') setBrushMode('place');
   if (k === 'p') setBrushMode('plant');
   if (k === '[' || k === ']') {
@@ -1338,6 +1724,68 @@ const DETAILED_BUILDERS = {
   frog: buildFrogDetailed,                           // 2cm reference (sizeScale 1.0)
   insect: () => buildFlierDetailed('insect'),
 };
+
+/* ---- Imported fish GLB (Quaternius "Fish", CC0 — assets/models/) ----
+ * The detailed fish becomes a real 3D model, loaded asynchronously. Until it's
+ * ready the procedural fish stands in; once loaded, every live fish swaps to it.
+ * It's fitted to the procedural fish's bounds and to local +X forward (the axis
+ * orientAgent uses), exactly as validated in model-review/editor.html. */
+let FISH_GLB = null;
+let FISH_GLB_CLIPS = null; // baked animation clips (e.g. "Armature|Swim")
+const _glbV = new THREE.Vector3();
+// Measure-only procedural fish, to match the GLB's size to the existing look.
+const _fishRefBox = new THREE.Box3().setFromObject(scaleBuilder(buildFishDetailed, 1.4, false)());
+const _fishRefSize = _fishRefBox.getSize(new THREE.Vector3());
+const _fishRefCenter = _fishRefBox.getCenter(new THREE.Vector3());
+
+new GLTFLoader().load('assets/models/fish_quaternius.glb', (gltf) => {
+  const inner = gltf.scene;
+  inner.rotation.y = Math.PI / 2;                       // nose -> +X (engine forward)
+  inner.updateMatrixWorld(true);
+  let b = new THREE.Box3().setFromObject(inner);
+  const gs = b.getSize(_glbV);
+  inner.scale.setScalar(Math.max(_fishRefSize.x, _fishRefSize.y, _fishRefSize.z) / (Math.max(gs.x, gs.y, gs.z) || 1));
+  inner.updateMatrixWorld(true);
+  b = new THREE.Box3().setFromObject(inner);
+  inner.position.sub(b.getCenter(_glbV)).add(_fishRefCenter); // centre like the procedural fish
+  inner.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  FISH_GLB = new THREE.Group(); FISH_GLB.add(inner);
+  FISH_GLB_CLIPS = gltf.animations || null; // tail-undulation swim cycle
+  rebuildCreatureVisuals(); // swap any already-spawned fish to the GLB
+}, undefined, (e) => console.warn('fish GLB load failed; using procedural fish', e));
+
+// Clone the GLB template, tint its materials to the fish's gene colour, and add
+// a POV eye anchor derived from the model bounds. The model is SKINNED, so it
+// must be cloned with SkeletonUtils (a plain .clone() leaves clones bound to the
+// original skeleton and they collapse / vanish).
+function buildFishGLB(tint) {
+  const m = cloneSkinned(FISH_GLB);
+  if (tint) m.traverse(o => {
+    if (!o.isMesh || !o.material) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    const cloned = mats.map(src => {
+      const c = src.clone();
+      c.color = (c.color ? c.color.clone() : new THREE.Color(0xffffff)).multiply(tint);
+      return c;
+    });
+    o.material = cloned.length === 1 ? cloned[0] : cloned;
+  });
+  // Per-fish swim animation (tail undulation). Randomize phase + tempo so a
+  // school doesn't beat in unison. The mixer is updated from the main loop.
+  if (FISH_GLB_CLIPS && FISH_GLB_CLIPS.length) {
+    const mixer = new THREE.AnimationMixer(m);
+    const clip = FISH_GLB_CLIPS[0];
+    const action = mixer.clipAction(clip);
+    action.time = Math.random() * clip.duration;
+    action.timeScale = 0.8 + Math.random() * 0.5;
+    action.play();
+    m.userData.mixer = mixer;
+  }
+  addEyeAnchor(m, [], null); // bbox-derived eye point (front-top) for first-person POV
+  return m;
+}
+// The fish's detailed model is the GLB once loaded, else the procedural fallback.
+DETAILED_BUILDERS.fish = (tint) => FISH_GLB ? buildFishGLB(tint) : scaleBuilder(buildFishDetailed, 1.4, false)(tint);
 
 /* Build a creature's visual root for the current artMode. Primitive returns
  * a single Mesh (original geo/mat); detailed returns a composed Group. */
@@ -1935,37 +2383,132 @@ function eggTick(dt) {
  * spray-spacing checks cheap.
  * ============================================================ */
 const VEG = CONFIG.vegetation;
-let vegCapacity = VEG.cap; // current InstancedMesh capacity; grows on demand (no hard cap)
-let vegMesh = new THREE.InstancedMesh(
-  new THREE.SphereGeometry(1, 8, 6), // unit sphere, scaled per-instance
-  new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.75, metalness: 0 }),
-  vegCapacity
-);
-vegMesh.count = 0;
 
-/* Grow the plant InstancedMesh to at least `need` instances. The instance
- * buffer is a fixed GPU allocation, so "unlimited plants" means reallocating
- * a larger mesh (doubling) and re-deriving every instance from the plants
- * array. Shared geometry/material carry over; the old buffers are released. */
-function growVegMesh(need) {
-  let cap = vegCapacity;
-  while (cap < need) cap *= 2;
-  const next = new THREE.InstancedMesh(vegMesh.geometry, vegMesh.material, cap);
-  const old = vegMesh;
-  next.count = plants.length;
-  next.frustumCulled = old.frustumCulled;
-  platformGroup.add(next);
-  platformGroup.remove(old);
-  vegMesh = next;
-  vegCapacity = cap;
-  for (let i = 0; i < plants.length; i++) writePlantInstance(i, plants[i]); // re-write into new buffer
-  vegMesh.instanceMatrix.needsUpdate = true;
-  if (vegMesh.instanceColor) vegMesh.instanceColor.needsUpdate = true;
-  old.dispose(); // frees the old instance buffers (not the shared geo/mat)
+/* Plant rendering: one InstancedMesh per GEOMETRY ("veg layer"), so species can
+ * have different models. Each plant lives in its species' layer at index pl.idx
+ * AND in the global `plants` array at pl.gidx (both swap-removed in O(1)). A
+ * single shared material (vertexColors) lets a model bake a base->tip gradient
+ * while each plant's instanceColor carries the species' young->lush tint. */
+
+// Sphere model (the original look) — fallback for species without a bespoke
+// model. White colour attribute so it works with the shared vertexColors mat.
+function makeVegSphereGeo() {
+  const g = new THREE.SphereGeometry(1, 8, 6);
+  const col = new Float32Array(g.attributes.position.count * 3).fill(1);
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  return g;
 }
-vegMesh.castShadow = true;
-vegMesh.frustumCulled = false;
-platformGroup.add(vegMesh);
+
+// Low-poly BUSH model: a clump of icosahedron foliage blobs, base at y=0,
+// ~unit footprint and ~1.3 tall (scaled per plant by its food-driven radius).
+// Vertex colours bake a darker-base / brighter-top gradient (x species tint).
+// ~120 tris — squarely in the stylized game-art low-poly range.
+function makeVegBushGeo() {
+  const blobs = [ // x, y, z, radius
+    [ 0.00, 0.60,  0.00, 0.55], [-0.42, 0.40,  0.12, 0.40], [ 0.40, 0.44, -0.10, 0.42],
+    [ 0.10, 0.40,  0.42, 0.38], [-0.12, 0.36, -0.40, 0.36], [ 0.00, 0.92,  0.00, 0.34],
+  ];
+  const pos = [], nor = [], col = [];
+  for (const [bx, by, bz, br] of blobs) {
+    const g = new THREE.IcosahedronGeometry(br, 0).toNonIndexed();
+    const p = g.attributes.position, nm = g.attributes.normal;
+    for (let i = 0; i < p.count; i++) {
+      const vy = p.getY(i) + by;
+      pos.push(p.getX(i) + bx, vy, p.getZ(i) + bz);
+      nor.push(nm.getX(i), nm.getY(i), nm.getZ(i));
+      const shade = 0.5 + 0.6 * Math.min(1, vy / 1.25); // darker base -> brighter top
+      col.push(shade, shade, shade);
+    }
+    g.dispose();
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal',   new THREE.Float32BufferAttribute(nor, 3));
+  geo.setAttribute('color',    new THREE.Float32BufferAttribute(col, 3));
+  geo.computeBoundingSphere();
+  return geo;
+}
+
+// Low-poly TREE model: a tapered trunk + a clump of canopy blobs above it, base
+// at y=0, ~2.5 tall in unit space (taller than wide, so uniform scale-by-food
+// keeps tree proportions). Unlike the all-green bush, the tree bakes its OWN
+// colours (brown trunk, green canopy gradient); the species tint stays ~white.
+function makeVegTreeGeo() {
+  const pos = [], nor = [], col = [];
+  const append = (g, ox, oy, oz, shade) => {
+    const ng = g.toNonIndexed(), p = ng.attributes.position, nm = ng.attributes.normal;
+    for (let i = 0; i < p.count; i++) {
+      const vy = p.getY(i) + oy;
+      pos.push(p.getX(i) + ox, vy, p.getZ(i) + oz);
+      nor.push(nm.getX(i), nm.getY(i), nm.getZ(i));
+      col.push(...shade(vy));               // baked RGB, per vertex
+    }
+    ng.dispose(); g.dispose();
+  };
+  // Trunk: short tapered cylinder, base at y=0.
+  const trunkH = 1.35;
+  const trunk = new THREE.CylinderGeometry(0.10, 0.15, trunkH, 6, 1);
+  trunk.translate(0, trunkH / 2, 0);
+  append(trunk, 0, 0, 0, () => [0.40, 0.27, 0.16]); // bark brown
+  // Canopy: green foliage blobs above the trunk, brighter toward the crown.
+  const canopy = [ // x, y, z, radius
+    [ 0.00, 1.80,  0.00, 0.74], [-0.52, 1.52,  0.18, 0.50], [ 0.52, 1.56, -0.12, 0.52],
+    [ 0.14, 1.50,  0.50, 0.48], [-0.16, 2.10, -0.10, 0.45],
+  ];
+  const canopyShade = (vy) => {
+    const t = Math.max(0, Math.min(1, (vy - 1.0) / 1.3));
+    return [0.12 + 0.10 * t, 0.40 + 0.32 * t, 0.12 + 0.06 * t]; // green, brighter up top
+  };
+  for (const [bx, by, bz, br] of canopy) append(new THREE.IcosahedronGeometry(br, 0), bx, by, bz, canopyShade);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('normal',   new THREE.Float32BufferAttribute(nor, 3));
+  geo.setAttribute('color',    new THREE.Float32BufferAttribute(col, 3));
+  geo.computeBoundingSphere();
+  return geo;
+}
+
+const vegMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8, metalness: 0, vertexColors: true });
+// Geometry templates + the species -> geometry mapping. Add entries as more
+// species get bespoke models; anything unmapped falls back to the sphere.
+const VEG_GEO = {
+  sphere: { geom: makeVegSphereGeo(), originBase: false }, // centred (y = ground + r)
+  bush:   { geom: makeVegBushGeo(),   originBase: true  }, // base on the ground (y = ground)
+  tree:   { geom: makeVegTreeGeo(),   originBase: true  }, // trunk base on the ground
+};
+const PLANT_MODEL = { plant: 'bush', tree: 'tree' }; // species id -> geometry key
+const vegLayers = {};                  // geometry key -> { key, mesh, cap, list, originBase }
+
+function vegLayerFor(sp) {
+  const key = PLANT_MODEL[sp.id] || 'sphere';
+  let L = vegLayers[key];
+  if (!L) {
+    const def = VEG_GEO[key];
+    const mesh = new THREE.InstancedMesh(def.geom, vegMat, 256);
+    mesh.count = 0; mesh.castShadow = true; mesh.frustumCulled = false;
+    platformGroup.add(mesh);
+    L = vegLayers[key] = { key, mesh, cap: 256, list: [], originBase: def.originBase };
+  }
+  return L;
+}
+function markVegLayer(L) {
+  L.mesh.instanceMatrix.needsUpdate = true;
+  if (L.mesh.instanceColor) L.mesh.instanceColor.needsUpdate = true;
+}
+function flushVegLayers() { for (const k in vegLayers) markVegLayer(vegLayers[k]); }
+
+/* Grow a layer's instance buffer (a fixed GPU allocation) by doubling, then
+ * re-derive every instance from the layer's plant list. */
+function growVegLayer(L, need) {
+  let cap = L.cap; while (cap < need) cap *= 2;
+  const next = new THREE.InstancedMesh(L.mesh.geometry, vegMat, cap);
+  next.count = L.list.length; next.castShadow = true; next.frustumCulled = false; next.visible = L.mesh.visible;
+  platformGroup.add(next); platformGroup.remove(L.mesh);
+  const old = L.mesh; L.mesh = next; L.cap = cap;
+  for (let i = 0; i < L.list.length; i++) writePlantInstance(L, i, L.list[i]);
+  markVegLayer(L);
+  old.dispose();
+}
 
 const plants = [];                 // { x, z, age, grown, food, ... }
 
@@ -2008,24 +2551,24 @@ function vegNear(x, z, spacing) {
   return false;
 }
 
-function writePlantInstance(i, pl) {
+function writePlantInstance(L, i, pl) {
   // Food level is the plant's lushness: 1/10 = small & light green (stripped),
   // 10/10 = large & dark green (lush). pl.maxR is the plant's fixed full size
   // (a genetic trait set at birth), so the slider never resizes living plants.
   const foodFrac = pl.food / VEG.maxFood;
   const r = VEG.minRadius + (pl.maxR - VEG.minRadius) * foodFrac;
-  const y = sampleHeight(pl.x, pl.z) + r; // rest on the surface
+  const baseY = sampleHeight(pl.x, pl.z);
   _vegM4.makeScale(r, r, r);
-  _vegM4.setPosition(pl.x, y, pl.z);
-  vegMesh.setMatrixAt(i, _vegM4);
+  // base-origin models (bush) sit ON the surface; centred models (sphere) rest +r.
+  _vegM4.setPosition(pl.x, L.originBase ? baseY : baseY + r, pl.z);
+  L.mesh.setMatrixAt(i, _vegM4);
   _vegColor.copy(pl.sp.young).lerp(pl.sp.old, foodFrac);
-  vegMesh.setColorAt(i, _vegColor);
+  L.mesh.setColorAt(i, _vegColor);
   pl.shownFood = pl.food; // change-detection baseline for vegVisualTick
 }
 
-/* The eaten-bush shake: a quick scale-pulse + horizontal sway (spheres ignore
- * rotation, so we squash/stretch and jitter instead). Size still tracks food. */
-function writePlantRustle(i, pl) {
+/* The eaten-plant shake: a quick scale-pulse + horizontal sway. Size tracks food. */
+function writePlantRustle(L, i, pl) {
   const foodFrac = pl.food / VEG.maxFood;
   const baseR = VEG.minRadius + (pl.maxR - VEG.minRadius) * foodFrac;
   const ph = (pl.rustlePhase || 0) * RUSTLE.rate;
@@ -2035,52 +2578,60 @@ function writePlantRustle(i, pl) {
   const sy = baseR * (1 - 0.5 * pulse);
   const jx = Math.sin(ph * 1.7) * baseR * RUSTLE.swayFrac;
   const jz = Math.cos(ph * 1.3) * baseR * RUSTLE.swayFrac;
-  _vegPos.set(pl.x + jx, sampleHeight(pl.x, pl.z) + sy, pl.z + jz);
+  const baseY = sampleHeight(pl.x, pl.z);
+  _vegPos.set(pl.x + jx, L.originBase ? baseY : baseY + sy, pl.z + jz);
   _vegQuat.identity();
   _vegScale.set(sx, sy, sz);
   _vegM4.compose(_vegPos, _vegQuat, _vegScale);
-  vegMesh.setMatrixAt(i, _vegM4);
+  L.mesh.setMatrixAt(i, _vegM4);
   _vegColor.copy(pl.sp.young).lerp(pl.sp.old, foodFrac);
-  vegMesh.setColorAt(i, _vegColor);
+  L.mesh.setColorAt(i, _vegColor);
 }
 
 function addPlant(x, z, food = VEG.startFood, sp = PLANT_SPECIES.plant) {
-  if (plants.length >= vegCapacity) growVegMesh(plants.length + 1); // expand, never reject
-  const i = plants.length;
+  // Soil carrying capacity: a patch that's full won't let anything else
+  // germinate (this gates the procedural fill, seed dispersal, and the brush).
+  const soilPi = soilPatchIndex(x, z);
+  if (soilLoad[soilPi] + food > soilCap[soilPi]) return false;
+  const L = vegLayerFor(sp);
+  if (L.list.length >= L.cap) growVegLayer(L, L.list.length + 1); // expand, never reject
   const cellKey = vegKey(Math.floor(x / vegCell), Math.floor(z / vegCell));
   // Roll a fixed full size: 60%-100% of this species' max AT BIRTH. This "gene"
   // stays with the plant for life — later slider changes only affect new plants.
   const maxR = Math.max(VEG.minRadius, sp.maxR * (0.6 + Math.random() * 0.4));
-  const pl = { x, z, food, idx: i, cellKey, eaten: false, maxR, sp };
+  const pl = { x, z, food, idx: L.list.length, gidx: plants.length, cellKey, eaten: false, maxR, sp, soil: soilPi, layer: L };
+  soilLoad[soilPi] += food; // track biomass in this patch
   plants.push(pl);
-  writePlantInstance(i, pl);
-  vegMesh.count = plants.length;
+  L.list.push(pl);
+  writePlantInstance(L, pl.idx, pl);
+  L.mesh.count = L.list.length;
+  markVegLayer(L);
   let arr = vegGrid.get(cellKey);
   if (!arr) vegGrid.set(cellKey, arr = []);
   arr.push(pl);
   return true;
 }
 
-/* Swap-remove a plant from the InstancedMesh (e.g. eaten by a grazer). */
+/* Swap-remove a plant from both its render layer and the global array. */
 function removePlant(pl) {
   if (pl.eaten) return;
   pl.eaten = true;
+  if (pl.soil != null) soilLoad[pl.soil] = Math.max(0, soilLoad[pl.soil] - pl.food); // biomass leaves the patch
   const cellArr = vegGrid.get(pl.cellKey);
   if (cellArr) {
     const j = cellArr.indexOf(pl);
     if (j >= 0) cellArr.splice(j, 1);
   }
-  const i = pl.idx;
-  const last = plants[plants.length - 1];
-  plants.pop();
-  if (last !== pl) {            // move the last plant into the freed slot
-    plants[i] = last;
-    last.idx = i;
-    writePlantInstance(i, last);
-  }
-  vegMesh.count = plants.length;
-  vegMesh.instanceMatrix.needsUpdate = true;
-  if (vegMesh.instanceColor) vegMesh.instanceColor.needsUpdate = true;
+  // Render layer: move the layer's last plant into the freed instance slot.
+  const L = pl.layer, vi = pl.idx;
+  const lastL = L.list.pop();
+  if (lastL !== pl) { L.list[vi] = lastL; lastL.idx = vi; writePlantInstance(L, vi, lastL); }
+  L.mesh.count = L.list.length;
+  markVegLayer(L);
+  // Global array: independent swap-remove keyed by gidx.
+  const gi = pl.gidx;
+  const lastG = plants.pop();
+  if (lastG !== pl) { plants[gi] = lastG; lastG.gidx = gi; }
   document.getElementById('r-plants').textContent = plants.length;
 }
 
@@ -2095,9 +2646,9 @@ function removePlant(pl) {
 function clearAllPlants() {
   for (const pl of plants) pl.eaten = true; // grazers drop stale targets next check
   plants.length = 0;
+  soilLoad.fill(0); // no biomass anywhere until the new layer seeds in
   vegGrid.clear();
-  vegMesh.count = 0;
-  vegMesh.instanceMatrix.needsUpdate = true;
+  for (const k in vegLayers) { const L = vegLayers[k]; L.list.length = 0; L.mesh.count = 0; markVegLayer(L); }
 }
 
 /* BFS distance-to-shoreline in grid cells, over the whole map (land AND
@@ -2165,7 +2716,10 @@ function vegDensityAt(x, z, shoreDist, sp) {
     : (wet ? 1 - sstep(0, G.deepReach, d) : 1 - sstep(G.coastBand, G.inlandReach, d));
   // Patchiness: independent noise channel off the same world seed, sharpened
   // so the layer reads as groves with clearings rather than even stippling.
-  const n = fbm(x * G.clumpFreq, z * G.clumpFreq, worldSeed + (water_ ? 137.9 : 71.3));
+  // Land/water channels decorrelate via a coordinate offset (the simplex perm
+  // table is already seeded from worldSeed); remap the [-1,1] field to [0,1].
+  const off = water_ ? 137.9 : 71.3;
+  const n = fbm(x * G.clumpFreq + off, z * G.clumpFreq + off) * 0.5 + 0.5;
   const clump = Math.pow(Math.max(0, (n - 0.2) / 0.8), G.clumpBias);
   const dens = s * clump * vegLevel; // vegLevel: the setup menu's vegetation dial
   if (water_) return dens;           // water flora: no inland floor
@@ -2192,8 +2746,163 @@ function reseatPlantsIn(wx0, wz0, wx1, wz1) {
   }
 }
 
+/* ============================================================
+ * GRASS  —  instanced procedural blades, scattered by soil fertility.
+ * Density and height rise with a patch's carrying capacity, so fertile
+ * ground reads as lush green and barren/rocky ground stays bare. One
+ * InstancedMesh (per-blade matrix + colour) is a single draw call for tens
+ * of thousands of blades; wind sway is computed in the vertex shader.
+ * ============================================================ */
+const GRASS = CONFIG.grass;
+const grassUniforms = { uTime: { value: 0 } };
+let grassDirty = false; // a soil edit happened; rebuild the grass layer when the stroke ends
+const mulberry32 = (a) => () => {
+  a |= 0; a = (a + 0x6d2b79f5) | 0;
+  let t = Math.imul(a ^ (a >>> 15), 1 | a);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
+// A blade: a short tapered, slightly forward-curved strip. Base at y=0, grows
+// +Y, width along X, front toward +Z. Vertex colours bake a base->tip
+// brightness gradient (multiplied by each tuft's per-instance colour).
+function makeBladeGeometry() {
+  const segs = 3, w = GRASS.bladeW, h = GRASS.bladeH, bend = h * 0.12;
+  const pos = [], col = [], idx = [];
+  for (let i = 0; i <= segs; i++) {
+    const t = i / segs;
+    const hw = w * 0.5 * (1 - t * 0.85);  // taper toward a point
+    const y = h * t, z = bend * t * t;    // gentle forward curve
+    const shade = 0.6 + 0.7 * t;          // darker base, brighter tip
+    pos.push(-hw, y, z, hw, y, z);
+    col.push(shade, shade, shade, shade, shade, shade);
+  }
+  for (let i = 0; i < segs; i++) {
+    const a = i * 2;
+    idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
+}
+
+const grassMat = new THREE.MeshStandardMaterial({
+  vertexColors: true, side: THREE.DoubleSide, roughness: 0.85, metalness: 0,
+});
+grassMat.onBeforeCompile = (sh) => {
+  sh.uniforms.uTime = grassUniforms.uTime;
+  sh.vertexShader = sh.vertexShader
+    .replace('#include <common>', '#include <common>\nuniform float uTime;')
+    .replace('#include <begin_vertex>', `#include <begin_vertex>
+      #ifdef USE_INSTANCING
+        float gK = transformed.y / ${GRASS.bladeH.toFixed(3)}; gK = gK * gK; // tips sway most
+        float gPh = uTime * ${GRASS.windSpeed.toFixed(3)} + instanceMatrix[3].x * 0.5 + instanceMatrix[3].z * 0.5;
+        transformed.x += sin(gPh) * ${GRASS.wind.toFixed(3)} * gK;
+        transformed.z += cos(gPh * 0.7) * ${(GRASS.wind * 0.6).toFixed(3)} * gK;
+      #endif`);
+};
+
+let grassMesh = new THREE.InstancedMesh(makeBladeGeometry(), grassMat, GRASS.maxBlades);
+grassMesh.count = 0;
+grassMesh.frustumCulled = false;
+grassMesh.castShadow = false;
+grassMesh.receiveShadow = false;
+platformGroup.add(grassMesh);
+
+const _grassObj = new THREE.Object3D();
+const _grassCol = new THREE.Color();
+const _grassDry = new THREE.Color(GRASS.dryColor);
+const _grassLush = new THREE.Color(GRASS.lushColor);
+const soilFertAt = (x, z) => soilCap[soilPatchIndex(x, z)] / SOIL.maxCap; // normalized [0,~1]
+
+/* Rebuild the whole grass layer from the current fertility field. Runs with
+ * world generation (after soil capacity is derived). */
+function generateGrass() {
+  grassDirty = false;
+  if (!GRASS.enabled) { grassMesh.count = 0; return; }
+  // Each scatter point gets its OWN rng seeded by (worldSeed, k) — so the layout
+  // is deterministic and per-point independent. Editing soil capacity in one
+  // area changes only the points that fall there; everywhere else regenerates
+  // pixel-identical, so a brush edit doesn't reshuffle the whole field.
+  const baseSeed = (Math.floor(worldSeed * 100000) >>> 0) || 1;
+  let n = 0;
+  for (let k = 0; k < GRASS.attempts && n < GRASS.maxBlades; k++) {
+    const rng = mulberry32((baseSeed ^ Math.imul(k, 0x9e3779b1)) >>> 0);
+    const x = (rng() - 0.5) * P.width;
+    const z = (rng() - 0.5) * P.depth;
+    if (sampleHeight(x, z) <= water.level + 0.05) continue;         // dry land only
+    const fert = soilFertAt(x, z);
+    if (fert < GRASS.minFert) continue;                             // bare / rocky
+    if (rng() > sstep(GRASS.minFert, 1.0, fert)) continue;          // denser where fertile
+    // A tuft of blades per accepted point, count scaling with fertility — this
+    // is what makes rich ground read as lush instead of evenly stippled.
+    const tuft = 1 + Math.round(fert * GRASS.tuftMax);
+    for (let b = 0; b < tuft && n < GRASS.maxBlades; b++) {
+      let bx = x, bz = z;
+      if (b > 0) {
+        const a = rng() * Math.PI * 2, rr = rng() * GRASS.tuftRadius;
+        bx += Math.cos(a) * rr; bz += Math.sin(a) * rr;
+      }
+      const bh = sampleHeight(bx, bz);
+      if (bh <= water.level + 0.05) continue;                       // a blade that fell into water
+      const hMul = (GRASS.minScale + (1 - GRASS.minScale) * fert) * (0.8 + rng() * 0.4);
+      const wMul = 0.85 + rng() * 0.3;
+      _grassObj.position.set(bx, bh, bz);
+      _grassObj.rotation.set((rng() - 0.5) * 0.25, rng() * Math.PI * 2, (rng() - 0.5) * 0.25);
+      _grassObj.scale.set(wMul, hMul, wMul);
+      _grassObj.updateMatrix();
+      grassMesh.setMatrixAt(n, _grassObj.matrix);
+      _grassCol.copy(_grassDry).lerp(_grassLush, fert).multiplyScalar(0.9 + rng() * 0.2);
+      grassMesh.setColorAt(n, _grassCol);
+      n++;
+    }
+  }
+  grassMesh.count = n;
+  grassMesh.instanceMatrix.needsUpdate = true;
+  if (grassMesh.instanceColor) grassMesh.instanceColor.needsUpdate = true;
+}
+
+/* Derive the soil carrying-capacity field for a freshly seeded world. Capacity
+ * is anchored to the biomass the vegetation layer just placed in each patch
+ * (so total plant density tracks the vegetation parameters), then modulated by
+ * a world-seeded noise field into natural fertile/poor patches. Rich patches
+ * get headroom to grow; the poorest sit below their initial planting and thin
+ * into clearings. Call AFTER the plants are seeded (it reads their biomass). */
+function generateSoilCapacity() {
+  const tex = i => { soilTexData[i] = Math.round(Math.min(1, soilCap[i] / SOIL.maxCap) * 255); };
+  if (!SOIL.genFertility) {
+    soilCap.fill(SOIL.defaultCap);
+    for (let i = 0; i < soilCap.length; i++) tex(i);
+    soilTex.needsUpdate = true;
+    return;
+  }
+  recomputeSoilLoad(); // per-patch biomass actually seeded
+  const f = SOIL.genFreq, c = SOIL.genContrast, span = SOIL.fertMax - SOIL.fertMin;
+  for (let pz = 0; pz < SPZ; pz++) {
+    for (let px = 0; px < SPX; px++) {
+      const i = pz * SPX + px;
+      const wx = -P.width / 2 + (px + 0.5) * SOIL.patch;
+      const wz = -P.depth / 2 + (pz + 0.5) * SOIL.patch;
+      // Natural fertility field: world-seeded simplex, offset to decorrelate
+      // from the terrain and the vegetation clump noise.
+      const n = Math.pow(fbm(wx * f + 900, wz * f + 900) * 0.5 + 0.5, c);
+      const mult = SOIL.fertMin + span * n;
+      const cap = (SOIL.genFloor + soilLoad[i] * SOIL.genHeadroom) * mult;
+      soilCap[i] = Math.max(0, Math.min(SOIL.maxCap, cap));
+      tex(i);
+    }
+  }
+  soilTex.needsUpdate = true;
+}
+
 function generateVegetation() {
   clearAllPlants();
+  // Seed the natural layer UNGATED, then derive capacity from what landed —
+  // capacity follows the vegetation params instead of pre-limiting them.
+  soilCap.fill(Infinity);
   const G = CONFIG.vegGen;
   const shoreDist = computeShoreDist();
   for (let k = 0; k < G.attempts; k++) {
@@ -2226,8 +2935,9 @@ function generateVegetation() {
       addPlant(x, z, 2 + Math.random() * (VEG.maxFood - 2), sp);
     }
   }
-  vegMesh.instanceMatrix.needsUpdate = true;
-  if (vegMesh.instanceColor) vegMesh.instanceColor.needsUpdate = true;
+  generateSoilCapacity(); // capacity derived from the seeded biomass + fertility noise
+  generateGrass();        // 3D grass layer follows the fertility field
+  flushVegLayers();
   document.getElementById('r-plants').textContent = plants.length;
 }
 
@@ -2300,8 +3010,7 @@ function sprayPlants(cx, cz) {
     if (addPlant(x, z, VEG.startFood, sp)) added = true;
   }
   if (added) {
-    vegMesh.instanceMatrix.needsUpdate = true;
-    if (vegMesh.instanceColor) vegMesh.instanceColor.needsUpdate = true;
+    flushVegLayers();
     document.getElementById('r-plants').textContent = plants.length;
   }
 }
@@ -2361,8 +3070,19 @@ function vegTick(dt) {
   let seeds = null;                // collected, then applied after the loop
   // Iterate backward: removePlant() swap-fills the freed slot from the tail,
   // so a forward loop would skip the moved plant.
+  const dieStep = SOIL.dieRate * dt;
   for (let i = plants.length - 1; i >= 0; i--) {
     const pl = plants[i];
+    // Carrying-capacity die-back: a plant marked dying (by soilTick) sheds
+    // biomass fast — it shrinks visibly, then is removed. It doesn't regrow or
+    // seed while dying.
+    if (pl.dying) {
+      pl.food -= dieStep;
+      if (pl.soil != null) soilLoad[pl.soil] = Math.max(0, soilLoad[pl.soil] - dieStep);
+      if (pl.food <= 0) { removePlant(pl); continue; }
+      pl.settle = true; // rewrite the (smaller) instance next frame
+      continue;
+    }
     if (delta > 0) {
       // Habitat gate: a water-only species regrows solely while submerged.
       if (pl.food < VEG.maxFood && pl.sp.canGrow(pl.x, pl.z)) pl.food = Math.min(VEG.maxFood, pl.food + delta);
@@ -2386,22 +3106,39 @@ function vegTick(dt) {
   if (seeds) for (let k = 0; k < seeds.length; k += 3) plantSeed(seeds[k], seeds[k + 1], seeds[k + 2]);
 }
 
+/* Carrying-capacity enforcement (throttled — see soilAccum in animate). Resyncs
+ * the per-patch biomass load (corrects incremental drift from growth/grazing),
+ * then in any patch over its capacity rolls each plant against cullRate so
+ * roughly 1-in-n start dying, easing the population back under the cap. */
+function recomputeSoilLoad() {
+  soilLoad.fill(0);
+  for (const pl of plants) if (pl.soil != null) soilLoad[pl.soil] += pl.food;
+}
+function soilTick(dt) {
+  recomputeSoilLoad();
+  const p = SOIL.cullRate * (dt / SOIL.interval); // scale the per-pass chance to the real gap
+  for (let i = plants.length - 1; i >= 0; i--) {
+    const pl = plants[i];
+    if (pl.dying) continue;
+    if (soilLoad[pl.soil] > soilCap[pl.soil] && Math.random() < p) pl.dying = true;
+  }
+}
+
 /* Visual half: rewrite an instance matrix only when its appearance actually
  * changed — rustling, just settled, or food drifted visibly since the last
  * write (writePlantInstance records pl.shownFood). Regrowth is slow, so this
  * cuts thousands of matrix composes per frame down to a handful. */
 function vegVisualTick() {
-  let dirty = false;
+  let dirtySet = null;
   for (let i = 0; i < plants.length; i++) {
-    const pl = plants[i];
-    if (pl.rustle > 0)      { writePlantRustle(i, pl);   dirty = true; }
-    else if (pl.settle)     { writePlantInstance(i, pl); pl.settle = false; dirty = true; }
-    else if (Math.abs(pl.food - pl.shownFood) > 0.05) { writePlantInstance(i, pl); dirty = true; }
+    const pl = plants[i], L = pl.layer;
+    let wrote = false;
+    if (pl.rustle > 0)      { writePlantRustle(L, pl.idx, pl);  wrote = true; }
+    else if (pl.settle)     { writePlantInstance(L, pl.idx, pl); pl.settle = false; wrote = true; }
+    else if (Math.abs(pl.food - pl.shownFood) > 0.05) { writePlantInstance(L, pl.idx, pl); wrote = true; }
+    if (wrote) (dirtySet || (dirtySet = new Set())).add(L);
   }
-  if (dirty) {
-    vegMesh.instanceMatrix.needsUpdate = true;
-    if (vegMesh.instanceColor) vegMesh.instanceColor.needsUpdate = true;
-  }
+  if (dirtySet) for (const L of dirtySet) markVegLayer(L);
 }
 
 /* ============================================================
@@ -2752,10 +3489,9 @@ function grazeControl(a, dt, diet) {
         f.ref.food -= 1;
         st.hunger = Math.min(st.maxHunger, st.hunger + GRAZE.gain);
         feedGrowth(st, GRAZE.gain);
-        if (f.ref.food <= 0) removePlant(f.ref); else writePlantInstance(f.ref.idx, f.ref);
+        if (f.ref.food <= 0) removePlant(f.ref);
+        else { writePlantInstance(f.ref.layer, f.ref.idx, f.ref); markVegLayer(f.ref.layer); }
         st.forage = null; st.eatTimer = 0;
-        vegMesh.instanceMatrix.needsUpdate = true;
-        if (vegMesh.instanceColor) vegMesh.instanceColor.needsUpdate = true;
       }
     } else { // carrion: bite, draining the corpse's meat; remove when stripped
       if (st.eatTimer >= PRED.biteDuration) {
@@ -3494,6 +4230,11 @@ document.getElementById('toggle-art').addEventListener('click', e => {
   rebuildCreatureVisuals();
   e.currentTarget.classList.toggle('active', artMode === 'detailed');
   e.currentTarget.textContent = artMode === 'detailed' ? 'Detailed art' : 'Primitive art';
+});
+
+document.getElementById('toggle-grass').addEventListener('click', e => {
+  grassMesh.visible = !grassMesh.visible;
+  e.currentTarget.classList.toggle('active', grassMesh.visible);
 });
 
 /* ============================================================
@@ -4285,11 +5026,23 @@ function animate() {
   }
   // Slow systems: once per frame with the full simDt (see note above).
   vegTick(simDt);
+  // Carrying capacity: recompute + die-back on its own coarse cadence (an O(plants)
+  // pass, so not every frame), accumulating sim-time across frames.
+  soilAccum += simDt;
+  if (soilAccum >= SOIL.interval) { soilTick(soilAccum); soilAccum = 0; }
   eggTick(simDt);
   hungerTick(simDt);
 
   populationTick(simDt, dt); // log every 15 sim-s, live-redraw the chart
   vegVisualTick();           // GPU instance writes: once per frame, changed plants only
+  grassUniforms.uTime.value += dt; // wind sway (cosmetic: real time, not sim-scaled)
+  // Fish tail-undulation: advance each live fish's animation mixer. Real-time
+  // based, mildly sped up with the sim so fast-forward fish still beat faster.
+  const swimDt = dt * Math.min(6, Math.max(1, timeScale));
+  for (const a of fishes) { if (!a.st.dead && a.mesh.userData.mixer) a.mesh.userData.mixer.update(swimDt); }
+  // Rebuild grass to match painted soil, once the stroke ends (deterministic
+  // layout means only the painted patches change, not the whole field).
+  if (grassDirty && !brush.painting) generateGrass();
 
   povTick(dt);               // POV possession: real-time dt, not sim-scaled
   trackCreatureMenu();       // keep context menu pinned to the creature
@@ -4378,6 +5131,131 @@ function startSimulation() {
 
 /* ---- Setup menu wiring ---- */
 const setupEl = document.getElementById('setup');
+
+/* Styled hover tooltips. Any element carrying data-tip-title / data-tip-body
+ * gets a floating card with a heading + description. The card is appended to
+ * <body> and positioned with fixed coords near the cursor, so the setup panel's
+ * `overflow-y:auto` can't clip it (the reason native title was used before).
+ * One delegated listener covers both the static setup rows and the dynamically
+ * built terrain knobs. */
+function initTooltips() {
+  const tip = document.createElement('div');
+  tip.className = 'tooltip';
+  tip.setAttribute('role', 'tooltip');
+  tip.innerHTML = '<div class="tt-head"></div><div class="tt-body"></div>';
+  tip.style.display = 'none';
+  document.body.appendChild(tip);
+  const head = tip.querySelector('.tt-head');
+  const body = tip.querySelector('.tt-body');
+  let target = null;
+
+  const place = (x, y) => {
+    const pad = 16, w = tip.offsetWidth, h = tip.offsetHeight, vw = innerWidth, vh = innerHeight;
+    let left = x + pad, top = y + pad;
+    if (left + w > vw - 8) left = x - pad - w; // flip to the cursor's left near the right edge
+    if (top + h > vh - 8)  top = y - pad - h;  // flip above near the bottom edge
+    tip.style.left = Math.max(8, left) + 'px';
+    tip.style.top  = Math.max(8, top) + 'px';
+  };
+  const show = (el, x, y) => {
+    head.textContent = el.dataset.tipTitle || '';
+    body.textContent = el.dataset.tipBody || '';
+    head.style.display = head.textContent ? '' : 'none';
+    tip.style.display = 'block';
+    place(x, y);
+  };
+  const hide = () => { target = null; tip.style.display = 'none'; };
+
+  document.addEventListener('mouseover', e => {
+    const t = e.target.closest('[data-tip-body],[data-tip-title]');
+    if (t && t !== target) { target = t; show(t, e.clientX, e.clientY); }
+  });
+  document.addEventListener('mousemove', e => { if (target) place(e.clientX, e.clientY); });
+  document.addEventListener('mouseout', e => {
+    if (target && !(e.relatedTarget && target.contains(e.relatedTarget))) hide();
+  });
+  // Don't leave a tooltip stranded when the cursor leaves the window / on scroll.
+  document.addEventListener('mouseleave', hide);
+  window.addEventListener('scroll', hide, true);
+}
+initTooltips();
+
+/* Render the advanced terrain controls from TERRAIN_KNOB_GROUPS, pre-filled from
+ * the (possibly hash-patched) CONFIG.terrain. Each slider keeps its readout in
+ * sync; collection back into the hash happens in the su-go handler. */
+function buildTerrainKnobUI() {
+  const body = document.getElementById('su-adv-body');
+  if (!body) return;
+  body.innerHTML = '';
+  for (const g of TERRAIN_KNOB_GROUPS) {
+    const head = document.createElement('div');
+    head.className = 'grp head';
+    head.textContent = g.title;
+    body.appendChild(head);
+    for (const k of g.knobs) {
+      const row = document.createElement('div');
+      row.className = 'grp ctl';
+      row.dataset.tipTitle = k.label;   // styled tooltip: heading…
+      if (k.tip) row.dataset.tipBody = k.tip; // …+ description (see initTooltips)
+      const val = CONFIG.terrain[k.key];
+      row.innerHTML =
+        `<label>${k.label}</label>` +
+        `<input id="su-t-${k.key}" type="range" min="${k.min}" max="${k.max}" step="${k.step}" value="${val}">` +
+        `<span class="val" id="su-t-${k.key}-v">${(+val).toFixed(k.dp)}</span>`;
+      body.appendChild(row);
+      const input = row.querySelector('input');
+      const out   = row.querySelector('.val');
+      input.addEventListener('input', () => { out.textContent = (+input.value).toFixed(k.dp); });
+    }
+  }
+}
+
+/* Apply a world preset to the setup sliders. Resets every terrain knob to its
+ * default first so presets are absolute (not additive on prior tweaks), then
+ * lays the preset's overrides over the top, and nudges the basic amp/water
+ * sliders. su-go reads the slider values, so this is all that's needed. */
+function applyTerrainPreset(preset) {
+  const $ = id => document.getElementById(id);
+  const vals = Object.assign({}, DEFAULT_TERRAIN, preset.terrain || {});
+  for (const k of TERRAIN_KNOBS) {
+    const input = $('su-t-' + k.key);
+    if (!input) continue;
+    const v = Math.min(k.max, Math.max(k.min, vals[k.key]));
+    input.value = v;
+    const out = $('su-t-' + k.key + '-v');
+    if (out) out.textContent = (+v).toFixed(k.dp);
+  }
+  if (preset.amp   != null) $('su-amp').value   = preset.amp;
+  if (preset.water != null) $('su-water').value = preset.water;
+  // Re-run the basic-slider refresh (clamps to height, updates readouts).
+  $('su-amp').dispatchEvent(new Event('input'));
+  $('su-water').dispatchEvent(new Event('input'));
+}
+
+/* Render the preset chips. Clicking one applies it, marks it active, and opens
+ * the advanced section so the resulting knob values are visible. */
+function buildPresetUI() {
+  const host = document.getElementById('su-presets');
+  if (!host) return;
+  host.innerHTML = '';
+  const buttons = [];
+  for (const preset of TERRAIN_PRESETS) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = preset.label;
+    btn.dataset.tipTitle = preset.label;
+    btn.dataset.tipBody = preset.tip;
+    btn.addEventListener('click', () => {
+      applyTerrainPreset(preset);
+      for (const b of buttons) b.classList.toggle('active', b === btn);
+      const adv = document.getElementById('su-adv');
+      if (adv) adv.open = true;
+    });
+    buttons.push(btn);
+    host.appendChild(btn);
+  }
+}
+
 function wireSetup() {
   const ids = ['su-width','su-length','su-height','su-amp','su-water','su-veg'];
   const $ = id => document.getElementById(id);
@@ -4405,6 +5283,18 @@ function wireSetup() {
   };
   ids.forEach(id => $(id).addEventListener('input', refresh));
   refresh();
+  // World presets + advanced terrain knobs.
+  buildPresetUI();
+  buildTerrainKnobUI();
+  const resetBtn = $('su-adv-reset');
+  if (resetBtn) resetBtn.addEventListener('click', () => {
+    for (const k of TERRAIN_KNOBS) {
+      const input = $('su-t-' + k.key);
+      if (!input) continue;
+      input.value = DEFAULT_TERRAIN[k.key];
+      $('su-t-' + k.key + '-v').textContent = (+DEFAULT_TERRAIN[k.key]).toFixed(k.dp);
+    }
+  });
   $('su-go').addEventListener('click', () => {
     const p = new URLSearchParams({
       go: '1',
@@ -4415,6 +5305,11 @@ function wireSetup() {
       water: $('su-water').value,
       veg: $('su-veg').value,
     });
+    // Carry the advanced terrain knobs through the same hash→reload path.
+    for (const k of TERRAIN_KNOBS) {
+      const input = $('su-t-' + k.key);
+      if (input) p.set(k.key, input.value);
+    }
     try {
       location.hash = p.toString();
       location.reload(); // rebuild at the chosen dimensions
@@ -4425,6 +5320,10 @@ function wireSetup() {
       SETUP.amplitude = +$('su-amp').value;
       SETUP.water = +$('su-water').value;
       vegLevel = +$('su-veg').value;
+      for (const k of TERRAIN_KNOBS) {
+        const input = $('su-t-' + k.key);
+        if (input) { const v = parseFloat(input.value); if (Number.isFinite(v)) CONFIG.terrain[k.key] = v; }
+      }
       setupEl.classList.add('hidden');
       startSimulation();
     }

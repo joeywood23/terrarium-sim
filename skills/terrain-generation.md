@@ -2,17 +2,19 @@
 
 **Purpose:** Compressed, implementation-ready reference for building a realistic, art-directable procedural terrain generator for **Terrarium** (browser, Three.js, no build step, Three.js as the only dep). Written for a coding agent. Output **must** stay a 2D heightfield `y = f(x,z)` so existing `sampleHeight`/`waterDepthAt`/`computeShoreDist`/vegetation/creature code keeps working.
 
-**Last Updated:** 2026-06-17
+**Last Updated:** 2026-06-18
+
+> **Implementation status (2026-06-18):** Stages 1–4 are now **implemented** in `src/main.js`. The generator is no longer value-noise. Current state: seeded 2D **simplex** noise (`snoise` + per-seed `buildPerm`), `fbm`/`ridged` helpers, an analytic `terrainHeightAt` with **domain warp + ridged mountain mask + `pow` redistribution + organic (noise-perturbed) coastline**, and whole-grid **bakes** in `generateIsland`: `hydraulicErode()` → `thermalErode()` → `shoreShelf()`. All knobs live in `CONFIG.terrain` (`config/world.js`). Stage 5 (moisture/biome map) is the remaining follow-on. Sections below are the design reference these were built from.
 
 ---
 
 ## 0. Where this plugs into the current code (`src/main.js`)
 
-The existing generator (read before editing):
+The generator (read before editing):
 
-- `terrainHeightAt(wx, wz)` — **pure worldgen seam.** Currently: `fbm(value-noise, 4 oct) × rounded-rect falloff`, clamped to `worldHeight`. This is the one function to upgrade. It must stay pure & deterministic (depends only on `wx, wz, worldSeed`) so per-chunk / streaming generation stays border-consistent.
-- `generateIsland()` — fills the `heights` typed array by calling `terrainHeightAt` per cell, then `refreshTerrain()` + `markFlowDirty()` + `generateVegetation()`.
-- `fbm(x,z,seed)` / `valueNoise` / `hash2` — noise stack. Replaceable.
+- `terrainHeightAt(wx, wz)` — **pure worldgen seam.** Now: simplex `fbm` with domain warp + ridge blend + `pow(e,redistPow)` redistribution × organic falloff, clamped to `worldHeight`. Stays pure & deterministic (depends only on `wx, wz, worldSeed` via the seeded perm table) so per-chunk / streaming generation stays border-consistent. **Analytic only** — the sculpt brush calls into this path, so erosion must NOT live here.
+- `generateIsland()` — reseeds the perm table (`buildPerm`), fills the `heights` typed array via `terrainHeightAt`, then runs the erosion bakes (`hydraulicErode` → `thermalErode` → `shoreShelf`), reclamps to `[0, worldHeight]`, then `refreshTerrain()` + `markFlowDirty()` + `generateVegetation()`.
+- `snoise` / `buildPerm` / `fbm(x,z,opts)` / `ridged(x,z,opts)` — current noise stack. `fbm`/`ridged` take an options object (`{octaves,lacunarity,gain}`) and output ~`[-1,1]` / ~`[0,1]`. (The old `valueNoise`/`hash2` value-noise stack has been removed.)
 - `sampleHeight(x,z)` — bilinear sample of `heights`. **Do not change its contract** (returns world-Y).
 - Globals: `worldSeed`, `worldAmp` (UI `#island-amp`), `worldHeight` (wall ceiling), `T = CONFIG.terrain`, `P = CONFIG.platform`.
 - `heights` is a flat `NX*NZ` array; `dx,dz` are cell sizes (≈1 unit). `NX=segX+1`, `NZ=segZ+1`.

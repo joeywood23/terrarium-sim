@@ -31,17 +31,26 @@
 
       <div class="grp head">World size</div>
       <div class="dims">
-        <div class="dim"><span>width (X)</span><input id="su-width" type="number" min="4" step="10" value="480"></div>
-        <div class="dim"><span>length (Z)</span><input id="su-length" type="number" min="4" step="10" value="320"></div>
-        <div class="dim"><span>height (Y)</span><input id="su-height" type="number" min="0" step="1" value="20"></div>
+        <div class="dim" data-tip-title="Width (X)" data-tip-body="World extent along the X axis, in world units, and the heightfield grid width at one cell per unit. Larger maps give more room to explore but cost more to generate and simulate."><span>width (X)</span><input id="su-width" type="number" min="4" step="10" value="480"></div>
+        <div class="dim" data-tip-title="Length (Z)" data-tip-body="World extent along the Z axis, in world units, and the heightfield grid depth at one cell per unit. Larger maps give more room to explore but cost more to generate and simulate."><span>length (Z)</span><input id="su-length" type="number" min="4" step="10" value="320"></div>
+        <div class="dim" data-tip-title="Height (Y)" data-tip-body="The world's vertical extent — both the perimeter wall height and the ceiling terrain can't rise above. Amplitude and water level are always capped by this value."><span>height (Y)</span><input id="su-height" type="number" min="0" step="1" value="20"></div>
       </div>
 
       <div class="grp head">Terrain &amp; water</div>
-      <div class="grp ctl"><label>amplitude</label><input id="su-amp" type="range" min="0" max="100" step="0.5" value="12"><span class="val" id="su-amp-v">12.0</span></div>
-      <div class="grp ctl"><label>water level</label><input id="su-water" type="range" min="0" max="100" step="0.1" value="3"><span class="val" id="su-water-v">3.00</span></div>
+      <div class="grp ctl" data-tip-title="Amplitude" data-tip-body="Overall vertical scale of the terrain — how tall hills and mountains rise. It's capped by the world height, and you can re-roll it later with Generate Island."><label>amplitude</label><input id="su-amp" type="range" min="0" max="100" step="0.5" value="12"><span class="val" id="su-amp-v">12.0</span></div>
+      <div class="grp ctl" data-tip-title="Water level" data-tip-body="Height the water fills to from the floor. Everything below it is submerged, and it's the reference all ecology uses to tell shore from shallow from deep water."><label>water level</label><input id="su-water" type="range" min="0" max="100" step="0.1" value="3"><span class="val" id="su-water-v">3.00</span></div>
 
       <div class="grp head">Life</div>
-      <div class="grp ctl"><label>vegetation</label><input id="su-veg" type="range" min="0" max="1.5" step="0.05" value="1"><span class="val" id="su-veg-v">1.00</span></div>
+      <div class="grp ctl" data-tip-title="Vegetation" data-tip-body="Density multiplier for the procedurally seeded plant layer. 0 leaves the world barren, 1 is the normal amount, and up to 1.5 makes it lush."><label>vegetation</label><input id="su-veg" type="range" min="0" max="1.5" step="0.05" value="1"><span class="val" id="su-veg-v">1.00</span></div>
+
+      <div class="grp head">Presets</div>
+      <div id="su-presets" class="presets"></div>
+
+      <details id="su-adv" class="adv">
+        <summary>Advanced terrain<span class="adv-hint">noise · coast · erosion</span></summary>
+        <div id="su-adv-body"></div>
+        <button type="button" class="adv-reset" id="su-adv-reset">Reset terrain defaults</button>
+      </details>
 
       <button class="go" id="su-go">Generate World →</button>
       <div class="est" id="su-est"></div>
@@ -72,6 +81,7 @@
       <div class="row"><span>fliers</span><b id="r-birds">0</b></div>
       <div class="row"><span>eggs</span><b id="r-eggs">0</b></div>
       <div class="row"><span>plants</span><b id="r-plants">0</b></div>
+      <div class="row" id="r-soil-row" style="display:none"><span>soil cap</span><b id="r-soil">—</b></div>
       <div class="row"><span>platform</span><b id="r-size">—</b></div>
       <div class="row"><span>fps</span><b id="r-fps">—</b></div>
     </div>
@@ -111,9 +121,11 @@
         <button data-mode="lower">Lower</button>
         <button data-mode="smooth">Smooth</button>
         <button data-mode="zone">Egg zone</button>
+        <button data-mode="soil" title="Paint soil carrying capacity. Drag to enrich (raise calories a patch supports); hold Shift to deplete. Over capacity, plants stop germinating and thin out.">Soil</button>
       </div>
       <label class="slider"><span>radius</span><input id="brush-radius" type="range" min="1" max="30" step="0.5" value="8"><b id="brush-radius-v">8.0</b></label>
       <label class="slider"><span>strength</span><input id="brush-strength" type="range" min="0.05" max="1" step="0.05" value="0.5"><b id="brush-strength-v">0.50</b></label>
+      <label class="slider" id="soil-cap-row" style="display:none" title="Capacity (calories of plant matter) the Soil brush stamps onto every patch it covers. Hold Shift while painting to stamp 0 (barren)."><span>capacity</span><input id="soil-cap" type="range" min="0" max="100" step="5" value="30"><b id="soil-cap-v">30</b></label>
       <div class="title title-gap" style="margin-top:14px">Creatures</div>
       <div class="btn-row">
         <select id="creature-select" aria-label="Creature to place">
@@ -137,6 +149,7 @@
       <div class="btn-row">
         <button id="toggle-bars">Hunger bars</button>
         <button id="toggle-art" class="active" title="Detailed models vs. primitive boxes">Detailed art</button>
+        <button id="toggle-grass" class="active" title="Show/hide the 3D grass layer">Grass</button>
       </div>
       <div class="btn-row">
         <button id="toggle-music" title="Generative ambient music">♪ Music: off</button>

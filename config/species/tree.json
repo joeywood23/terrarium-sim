@@ -1,0 +1,12 @@
+{
+  "_comment": "Generic TREE template — base parameters for a tree-form plant, to be copied into specific tree species (kapok, brazil nut, etc.) and tweaked. Rendered with the procedural 'tree' model (brown trunk + green canopy). That model bakes its own colours, so colorYoung/colorOld act as an overall brightness TINT — keep them near-white. maxRadius drives full size (scaled by food); seedShare sets how many seed at world-gen.",
+  "id": "tree",
+  "name": "Tree",
+  "behavior": "plant",
+  "habitat": "land",
+  "colorYoung": "#ffffff",
+  "colorOld": "#dbe4cc",
+  "chartColor": "#2f7d27",
+  "maxRadius": 25,
+  "seedShare": 0.18
+}

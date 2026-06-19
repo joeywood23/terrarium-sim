@@ -23,6 +23,35 @@ export const CONFIG = {
     featureFreq: 3.12 / 240, // worldgen noise frequency in absolute world units, so a
                              // bigger map gets MORE hills/coves, not scaled-up ones
     brushSpeed: 5,  // world units / sec at full strength, brush centre
+
+    // ---- Analytic field (simplex fBm + warp + ridge + redistribution) ----
+    octaves:      6,    // fBm octaves: more = finer detail, more cost
+    lacunarity:   2.0,  // per-octave frequency multiplier
+    persistence:  0.5,  // per-octave amplitude multiplier (= gain); H=1 natural terrain
+    warpStrength: 0.6,  // domain warp in x-space (~1 unit/wavelength). 0 disables.
+    ridgeMix:     0.6,  // how strongly mountain-mask regions adopt ridged noise (0..1)
+    redistPow:    2.5,  // pow(e,k) valley/peak shaping: >1 flattens lowland, sharpens peaks
+    terraceLevels:   0, // 0 = off; e.g. 8 for mesa/plateau stepping
+    terraceStrength: 0, // 0..1 partial terracing blend
+    coastStart:   0.55, // island falloff inner edge (superellipse distance)
+    coastWobble:  0.12, // organic-coastline noise amplitude added to the falloff distance
+    seaBias:      0.06, // sea-level subtraction; raise to flood more, lower for more land
+
+    // ---- Erosion bakes (whole-grid, run once on Generate) ----
+    erosionDroplets: 70000, // droplet count for hydraulic erosion (0 disables the bake)
+    erosionRadius:   3,     // cells the erosion footprint spreads over
+    inertia:         0.05,  // 0 = water follows gradient exactly, 1 = keeps momentum
+    sedimentCapacityFactor: 4,
+    minSedimentCapacity:    0.01,
+    erodeSpeed:      0.3,
+    depositSpeed:    0.3,
+    evaporateSpeed:  0.01,
+    gravity:         4,
+    maxDropletLifetime: 30,
+    thermalIterations:  8,    // talus/scree smoothing passes (0 disables)
+    thermalTalus:       0.6,  // max stable height diff between neighbours
+    thermalFactor:      0.5,  // fraction of the excess slope moved per pass
+    beachWidth:         2.0,  // shore-shelf band straddling water level (0 disables)
   },
   fence: {
     thickness: 1,      // wall thickness, world units
@@ -65,6 +94,44 @@ export const CONFIG = {
     seedDist:     3.5,   // mean dispersal distance of a seed from its parent
     seedSpacing:  1.3,   // a landing within this of an existing plant counts as "occupied"
     seedMaxDepth: 0.4,   // seeds only take on land / waterline (max water depth to germinate)
+  },
+  soil: {                // per-patch carrying capacity: a cap on how many calories
+                         // of plant matter a patch of ground can support. Paint it
+                         // with the Soil brush. Over capacity, germination stops and
+                         // 1-in-n plants begin to die back until load falls under cap.
+    patch:      4,    // world units per soil patch (capacity + load granularity)
+    defaultCap: 30,   // starting calories of plant matter a patch supports (unpainted)
+    maxCap:     100,  // brush ceiling, and the value display/tint normalizes against
+    brushSpeed: 140,  // calories/sec added (or removed with Shift) at full brush strength
+    interval:   0.5,  // sim-seconds between carrying-capacity recomputes / die-back passes
+    cullRate:   0.12, // per pass, chance an over-capacity plant starts dying (the "1 in n")
+    dieRate:    4,    // calories/sec a dying plant sheds before it's removed (a visible wilt)
+    // World-gen fertility field: instead of a flat default, derive each patch's
+    // capacity from the biomass the vegetation layer actually seeds there (so the
+    // overall density tracks the vegetation dial), modulated by world-seeded
+    // noise into natural rich/poor patches.
+    genFertility: true,  // false = flat defaultCap everywhere
+    genFreq:     0.03,   // fertility-noise frequency (world units): smaller = broader patches
+    genContrast: 1.3,    // >1 sharpens the rich/poor contrast
+    fertMin:     0.5,    // capacity multiplier in the poorest patches
+    fertMax:     1.8,    // capacity multiplier in the richest patches
+    genHeadroom: 1.5,    // capacity = seeded biomass x this (growth room above the initial planting)
+    genFloor:    8,      // baseline capacity in unseeded patches, so dispersal can slowly colonize
+  },
+  grass: {               // instanced 3D grass blades, scattered by soil fertility
+    enabled:   true,
+    maxBlades: 800000, // instanced-blade ceiling (rendered in a single draw call)
+    attempts:  600000, // scatter darts (tuft centres); acceptance rises with fertility
+    minFert:   0.04,   // normalized capacity (cap/maxCap) below which ground stays bare
+    tuftMax:   8,      // extra blades clustered per accepted point at full fertility
+    tuftRadius: 0.7,   // world-unit spread of a tuft's blades around its centre
+    bladeW:    0.10,   // blade base width (world units)
+    bladeH:    1.3,    // blade height at full fertility
+    minScale:  0.45,   // height multiplier at minFert (shorter where soil is poor)
+    wind:      0.14,   // tip sway amplitude (world units)
+    windSpeed: 1.6,    // sway speed
+    dryColor:  '#9fa84a', // tuft colour on poor soil (dry yellow-green)
+    lushColor: '#2e7d27', // tuft colour on rich soil (lush green)
   },
   vegGen: {              // procedural vegetation layer, regenerated with the island
     attempts:    45000,  // dart throws over the map; each accepted by local density
