@@ -97,6 +97,63 @@ def quad_rig(has_tail, tail_tx=None, sweep=14.0, bob=0.03, tail_sway=8.0, period
     return nodes, {"name": "Walk", "channels": channels}
 
 
+def bird_rig(shoulder=(0.0, 0.16, 0.14), period=0.45, flap=(-8, 32, -8, 32, -8)):
+    """Rig for meshes [body, wingL(+Z), wingR(-Z)] — wings beat up/down together."""
+    nodes = [
+        {"name": "root", "children": [1, 2, 3]},
+        {"name": "body", "mesh": 0, "translation": [0, 0, 0]},
+        {"name": "wingL", "mesh": 1, "translation": [shoulder[0], shoulder[1], shoulder[2]], "rotation": [0, 0, 0, 1]},
+        {"name": "wingR", "mesh": 2, "translation": [shoulder[0], shoulder[1], -shoulder[2]], "rotation": [0, 0, 0, 1]},
+    ]
+    T = [period * f for f in (0, 0.25, 0.5, 0.75, 1.0)]
+    anim = {"name": "Fly", "channels": [
+        {"node": 2, "path": "rotation", "times": T, "values": [QX(d) for d in flap]},
+        {"node": 3, "path": "rotation", "times": T, "values": [QX(-d) for d in flap]},
+    ]}
+    return nodes, anim
+
+
+def bug_rig(period=0.36, sweep=16.0, pivot=(0.0, -0.05, 0.0), bob=0.03):
+    """Rig for meshes [body, legsA, legsB] — alternating leg tripods (about Y) + bob."""
+    nodes = [
+        {"name": "root", "children": [1, 2, 3]},
+        {"name": "body", "mesh": 0, "translation": [0, 0, 0]},
+        {"name": "legsA", "mesh": 1, "translation": list(pivot), "rotation": [0, 0, 0, 1]},
+        {"name": "legsB", "mesh": 2, "translation": list(pivot), "rotation": [0, 0, 0, 1]},
+    ]
+    T = [period * f for f in (0, 0.25, 0.5, 0.75, 1.0)]
+    anim = {"name": "Scurry", "channels": [
+        {"node": 2, "path": "rotation", "times": T, "values": [QY(d) for d in (0, sweep, 0, -sweep, 0)]},
+        {"node": 3, "path": "rotation", "times": T, "values": [QY(d) for d in (0, -sweep, 0, sweep, 0)]},
+        {"node": 1, "path": "translation", "times": T, "values": [(0, 0, 0), (0, bob, 0), (0, 0, 0), (0, bob, 0), (0, 0, 0)]},
+    ]}
+    return nodes, anim
+
+
+def wag_rig(tail_pivot, period=0.7, amp=18.0, name="Swim"):
+    """Rig for meshes [body, tail] — tail node sweeps side to side about Y (fish)."""
+    nodes = [
+        {"name": "root", "children": [1, 2]},
+        {"name": "body", "mesh": 0, "translation": [0, 0, 0]},
+        {"name": "tail", "mesh": 1, "translation": list(tail_pivot), "rotation": [0, 0, 0, 1]},
+    ]
+    T = [period * f for f in (0, 0.25, 0.5, 0.75, 1.0)]
+    anim = {"name": name, "channels": [
+        {"node": 2, "path": "rotation", "times": T, "values": [QY(d) for d in (0, amp, 0, -amp, 0)]},
+    ]}
+    return nodes, anim
+
+
+def sway_rig(period=2.2, amp=5.0, name="Idle"):
+    """Rig for meshes [body] — a single node breathes/sways gently (primates, etc.)."""
+    nodes = [{"name": "root", "children": [1]}, {"name": "body", "mesh": 0, "rotation": [0, 0, 0, 1]}]
+    T = [period * f for f in (0, 0.5, 1.0)]
+    anim = {"name": name, "channels": [
+        {"node": 1, "path": "rotation", "times": T, "values": [QZ(-amp), QZ(amp), QZ(-amp)]},
+    ]}
+    return nodes, anim
+
+
 def write_glb(path, nodes, meshes, anim=None, material=None):
     """nodes: list of {name, mesh?, translation?, rotation?, children?} (node 0 = root).
        meshes: list of Mesh (indices match node 'mesh').
@@ -133,7 +190,8 @@ def write_glb(path, nodes, meshes, anim=None, material=None):
             channels.append({"sampler": len(samplers)-1, "target": {"node": ch["node"], "path": ch["path"]}})
         anims_json = [{"name": anim.get("name", "Action"), "samplers": samplers, "channels": channels}]
 
-    mat = material or {"metallicFactor": 0.0, "roughnessFactor": 0.85}
+    mat = {"metallicFactor": 0.0, "roughnessFactor": 0.85}
+    if material: mat.update(material)
     gltf = {
         "asset": {"version": "2.0", "generator": "terrarium glbkit"},
         "scene": 0, "scenes": [{"nodes": [0]}],

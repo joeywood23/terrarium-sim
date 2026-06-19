@@ -31,3 +31,7 @@ vertex-coloured, baked node animations). Original to this project.
 - `tortoise_lowpoly.glb` — `tools/make_tortoise_glb.py` (animation: Walk) — used for red_footed_tortoise
 - `macaw_lowpoly.glb` — `tools/make_macaw_glb.py` (animation: Fly)
 - `boa_lowpoly.glb` — `tools/make_boa_glb.py` (animation: Slither)
+- Review-list fauna via `tools/make_fauna.py` (+ shared `tools/glbkit.py`):
+  `ocelot, agouti, peccary, sloth, black_caiman, anole, dart_frog, harpy_eagle,
+  insect_bat, butterfly, piranha, ant, monkey` — each with a baked Walk / Fly /
+  Swim / Scurry / Slither / Idle clip.

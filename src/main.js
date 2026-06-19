@@ -1876,12 +1876,25 @@ new GLTFLoader().load('assets/models/beetle_lowpoly.glb', (gltf) => {
  * procedural bounds (centre-aligned), clone with SkeletonUtils, play the model's
  * animation, and override the species' detailed builder once registerSpecies has
  * populated it. rotY is the per-model forward-axis fix (engine faces +X). */
-const CREATURE_GLB = [ // hand-authored low-poly GLBs (tools/make_*_glb.py), built facing +X
+const CREATURE_GLB = [ // hand-authored low-poly GLBs (tools/make_*_glb.py, make_fauna.py), built facing +X
   { id: 'jaguar',              file: 'jaguar_lowpoly.glb',   rotY: 0 },
   { id: 'capybara',            file: 'capybara_lowpoly.glb', rotY: 0 },
   { id: 'macaw',               file: 'macaw_lowpoly.glb',    rotY: 0 },
   { id: 'boa',                 file: 'boa_lowpoly.glb',      rotY: 0 },
   { id: 'red_footed_tortoise', file: 'tortoise_lowpoly.glb', rotY: 0 },
+  { id: 'ocelot',              file: 'ocelot_lowpoly.glb',       rotY: 0 },
+  { id: 'agouti',              file: 'agouti_lowpoly.glb',       rotY: 0 },
+  { id: 'peccary',             file: 'peccary_lowpoly.glb',      rotY: 0 },
+  { id: 'sloth',               file: 'sloth_lowpoly.glb',        rotY: 0 },
+  { id: 'black_caiman',        file: 'black_caiman_lowpoly.glb', rotY: 0 },
+  { id: 'anole',               file: 'anole_lowpoly.glb',        rotY: 0 },
+  { id: 'dart_frog',           file: 'dart_frog_lowpoly.glb',    rotY: 0 },
+  { id: 'harpy_eagle',         file: 'harpy_eagle_lowpoly.glb',  rotY: 0 },
+  { id: 'insect_bat',          file: 'insect_bat_lowpoly.glb',   rotY: 0 },
+  { id: 'butterfly',           file: 'butterfly_lowpoly.glb',    rotY: 0 },
+  { id: 'piranha',             file: 'piranha_lowpoly.glb',      rotY: 0 },
+  { id: 'ant',                 file: 'ant_lowpoly.glb',          rotY: 0 },
+  { id: 'monkey',              file: 'monkey_lowpoly.glb',       rotY: 0 },
 ];
 const _clipPref = /idle|walk|run|fly|move|swim|crawl|slither/i;
 for (const cg of CREATURE_GLB) {
