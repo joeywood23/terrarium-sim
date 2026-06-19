@@ -94,6 +94,37 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// Optional GLB overlay per species: the imported model is shown SOLID against
+// the existing procedural model (rendered translucent) for comparison.
+const GLB_OVERLAY = { fish: '../assets/models/fish_quaternius.glb' };
+const gltfLoader = new GLTFLoader();
+let glbModel = null;
+
+function makeTranslucent(root, opacity) {
+  root.traverse(o => {
+    if (!o.isMesh || !o.material) return;
+    for (const m of (Array.isArray(o.material) ? o.material : [o.material])) {
+      m.transparent = true; m.opacity = opacity; m.depthWrite = false;
+    }
+  });
+}
+// Scale + center an imported GLB onto the procedural model's bounds so the two
+// overlay for comparison. This GLB faces -Z; the engine faces +X, so +90° about
+// Y points its nose to +X (matching orientAgent's forward axis).
+function fitGlb(glb, targetSize, targetCenter) {
+  glb.rotation.y = Math.PI / 2;
+  glb.updateMatrixWorld(true);
+  let b = new THREE.Box3().setFromObject(glb);
+  const gs = b.getSize(new THREE.Vector3());
+  const tmax = Math.max(targetSize.x, targetSize.y, targetSize.z);
+  const gmax = Math.max(gs.x, gs.y, gs.z) || 1;
+  glb.scale.setScalar(tmax / gmax);
+  glb.updateMatrixWorld(true);
+  b = new THREE.Box3().setFromObject(glb);
+  glb.position.sub(b.getCenter(new THREE.Vector3())).add(targetCenter);
+}
 
 // ── engine-faithful model builder (mirrors src/main.js buildPartsModel) ──────
 function eyePair(fwd, up, side, r = 0.12) {
@@ -238,14 +269,34 @@ window.reseed = reseed;
 
 async function loadModel(id) {
   if (model) { scene.remove(model); model = null; }
+  if (glbModel) { scene.remove(glbModel); glbModel = null; }
   try { def = await (await fetch('../config/species/' + id + '.json?t=' + Date.now())).json(); }
   catch (e) { $('name').textContent = id + ' (load failed)'; return; }
-  model = buildPartsModel((def.model && def.model.parts) || [], def.color);
+  let parts = (def.model && def.model.parts) || [];
+  let color = def.color;
+  // Built-in creatures (fish/frog/insect) keep their procedural parts in
+  // approved/<id>.json rather than the species JSON — fall back to it.
+  if (!parts.length) {
+    try { const ap = await (await fetch('approved/' + id + '.json?t=' + Date.now())).json(); parts = ap.parts || parts; if (color == null) color = ap.color; }
+    catch (e) {}
+  }
+  model = buildPartsModel(parts, color);
   scene.add(model);
   const box = new THREE.Box3().setFromObject(model);
   const size = box.getSize(new THREE.Vector3());
   box.getCenter(center);
   radius = Math.max(size.x, size.y, size.z) * 0.5 || 1;
+
+  // GLB comparison overlay: imported model SOLID, procedural model translucent.
+  const glbUrl = GLB_OVERLAY[id];
+  if (glbUrl) {
+    makeTranslucent(model, 0.28);
+    gltfLoader.load(glbUrl, (gltf) => {
+      glbModel = gltf.scene;
+      fitGlb(glbModel, size, center);
+      scene.add(glbModel);
+    }, undefined, (err) => { $('saveState').textContent = 'GLB load failed: ' + err; });
+  }
 
   const pv = def.pov || {};
   P.roll = pv.roll || 0; P.fov = pv.fov != null ? pv.fov : 45;
