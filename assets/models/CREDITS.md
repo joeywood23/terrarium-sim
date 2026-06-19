@@ -16,3 +16,28 @@ External model assets bundled with Terrarium and their licenses.
 - **Source:** https://poly.pizza/m/9Z2V8fpazF (file: https://static.poly.pizza/08416495-b056-4ed7-b23b-5a10e82277a0.glb)
 - **Animations:** Frog_Idle, Frog_Jump, Frog_Attack, Frog_Death
 - **Pulled:** 2026-06-19
+
+## boa_poly.glb  (used for: boa)
+- **Title:** Snake — **Author:** Quaternius — **License:** CC0 1.0 (Public Domain) — animated.
+- **Source:** https://poly.pizza/m/x9x0viZs8V
+- **Pulled:** 2026-06-19
+
+## jaguar_poly.glb  (used for: jaguar)
+- **Title:** Jaguar — **Author:** Poly by Google — **License:** CC-BY 3.0 (attribution) — animated.
+- **Source:** https://poly.pizza/m/4fb-oMr2uUF
+- **Pulled:** 2026-06-19
+
+## capybara_poly.glb  (used for: capybara)
+- **Title:** Capybara — **Author:** Poly by Google — **License:** CC-BY 3.0 (attribution) — animated.
+- **Source:** https://poly.pizza/m/66d-mKAgF17
+- **Pulled:** 2026-06-19
+
+## macaw_poly.glb  (used for: macaw)
+- **Title:** Scarlet macaw — **Author:** Poly by Google — **License:** CC-BY 3.0 (attribution) — animated.
+- **Source:** https://poly.pizza/m/7sfRRUS5F_v
+- **Pulled:** 2026-06-19
+
+## tortoise_poly.glb  (used for: red_footed_tortoise)
+- **Title:** Turtle — **Author:** Poly by Google — **License:** CC-BY 3.0 (attribution) — animated.
+- **Source:** https://poly.pizza/m/2LCcq8vhqJ3
+- **Pulled:** 2026-06-19

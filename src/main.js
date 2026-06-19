@@ -1871,6 +1871,55 @@ new GLTFLoader().load('assets/models/beetle_lowpoly.glb', (gltf) => {
   rebuildCreatureVisuals();
 }, undefined, (e) => console.warn('beetle GLB load failed; using procedural beetle', e));
 
+/* ---- Batch creature upscales: pulled low-poly GLBs for JSON species --------
+ * Generic version of the fish/frog/beetle path: load async, fit to the species'
+ * procedural bounds (centre-aligned), clone with SkeletonUtils, play the model's
+ * animation, and override the species' detailed builder once registerSpecies has
+ * populated it. rotY is the per-model forward-axis fix (engine faces +X). */
+const CREATURE_GLB = [
+  { id: 'jaguar',              file: 'jaguar_poly.glb',   rotY: -Math.PI / 2 },
+  { id: 'capybara',            file: 'capybara_poly.glb', rotY: -Math.PI / 2 },
+  { id: 'macaw',               file: 'macaw_poly.glb',    rotY: -Math.PI / 2 },
+  { id: 'boa',                 file: 'boa_poly.glb',      rotY: -Math.PI / 2 },
+  { id: 'red_footed_tortoise', file: 'tortoise_poly.glb', rotY: -Math.PI / 2 },
+];
+const _clipPref = /idle|walk|run|fly|move|swim|crawl|slither/i;
+for (const cg of CREATURE_GLB) {
+  new GLTFLoader().load('assets/models/' + cg.file, (gltf) => {
+    const proc = DETAILED_BUILDERS[cg.id];
+    if (!proc) return;                                   // species not registered (skipped)
+    const refBox = new THREE.Box3().setFromObject(proc());
+    const refSize = refBox.getSize(new THREE.Vector3());
+    const refCenter = refBox.getCenter(new THREE.Vector3());
+    const inner = gltf.scene;
+    inner.rotation.y = cg.rotY;
+    inner.updateMatrixWorld(true);
+    let b = new THREE.Box3().setFromObject(inner);
+    const gs = b.getSize(_glbV);
+    inner.scale.setScalar(Math.max(refSize.x, refSize.y, refSize.z) / (Math.max(gs.x, gs.y, gs.z) || 1));
+    inner.updateMatrixWorld(true);
+    b = new THREE.Box3().setFromObject(inner);
+    inner.position.sub(b.getCenter(_glbV)).add(refCenter);  // centre-align like the procedural model
+    inner.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    const template = new THREE.Group(); template.add(inner);
+    const clips = gltf.animations || [];
+    const clip = clips.find(c => _clipPref.test(c.name)) || clips[0] || null;
+    DETAILED_BUILDERS[cg.id] = () => {
+      const m = cloneSkinned(template);
+      if (clip) {
+        const mx = new THREE.AnimationMixer(m);
+        const a = mx.clipAction(clip);
+        a.time = Math.random() * clip.duration; a.timeScale = 0.9 + Math.random() * 0.3;
+        a.play();
+        m.userData.mixer = mx;
+      }
+      addEyeAnchor(m, null, { forward: refSize.x * 0.32, height: refSize.y * 0.55 });
+      return m;
+    };
+    rebuildCreatureVisuals();
+  }, undefined, (e) => console.warn(cg.id + ' GLB load failed; keeping procedural', e));
+}
+
 /* Build a creature's visual root for the current artMode. Primitive returns
  * a single Mesh (original geo/mat); detailed returns a composed Group. */
 function buildModel(species, geo, primitiveMat, tint) {
