@@ -1876,12 +1876,12 @@ new GLTFLoader().load('assets/models/beetle_lowpoly.glb', (gltf) => {
  * procedural bounds (centre-aligned), clone with SkeletonUtils, play the model's
  * animation, and override the species' detailed builder once registerSpecies has
  * populated it. rotY is the per-model forward-axis fix (engine faces +X). */
-const CREATURE_GLB = [
-  { id: 'jaguar',              file: 'jaguar_poly.glb',   rotY: -Math.PI / 2 },
-  { id: 'capybara',            file: 'capybara_poly.glb', rotY: -Math.PI / 2 },
-  { id: 'macaw',               file: 'macaw_poly.glb',    rotY: -Math.PI / 2 },
-  { id: 'boa',                 file: 'boa_poly.glb',      rotY: -Math.PI / 2 },
-  { id: 'red_footed_tortoise', file: 'tortoise_poly.glb', rotY: -Math.PI / 2 },
+const CREATURE_GLB = [ // hand-authored low-poly GLBs (tools/make_*_glb.py), built facing +X
+  { id: 'jaguar',              file: 'jaguar_lowpoly.glb',   rotY: 0 },
+  { id: 'capybara',            file: 'capybara_lowpoly.glb', rotY: 0 },
+  { id: 'macaw',               file: 'macaw_lowpoly.glb',    rotY: 0 },
+  { id: 'boa',                 file: 'boa_lowpoly.glb',      rotY: 0 },
+  { id: 'red_footed_tortoise', file: 'tortoise_lowpoly.glb', rotY: 0 },
 ];
 const _clipPref = /idle|walk|run|fly|move|swim|crawl|slither/i;
 for (const cg of CREATURE_GLB) {
