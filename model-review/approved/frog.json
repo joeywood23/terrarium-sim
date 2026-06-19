@@ -1,0 +1,15 @@
+{
+  "_comment": "Procedural reference parts mirroring buildFrogDetailed() in src/main.js (FROG cfg L=1.6 H=0.9 W=2.2). Used by model-review/editor.html to show the existing frog as a translucent reference behind the imported GLB.",
+  "id": "frog",
+  "name": "Frog",
+  "color": "#2ecc40",
+  "parts": [
+    { "shape": "sphere", "pos": [0, 0.09, 0], "scale": [1.6, 0.99, 2.2], "color": "body" },
+    { "shape": "sphere", "pos": [0.544, 0.54, 0.616], "scale": 0.576, "color": "body" },
+    { "shape": "sphere", "pos": [0.544, 0.54, -0.616], "scale": 0.576, "color": "body" },
+    { "shape": "sphere", "pos": [0.664, 0.594, 0.616], "scale": 0.288, "color": "#111111" },
+    { "shape": "sphere", "pos": [0.664, 0.594, -0.616], "scale": 0.288, "color": "#111111" },
+    { "shape": "sphere", "pos": [-0.48, -0.135, 0.748], "scale": [0.8, 0.36, 0.484], "color": "body" },
+    { "shape": "sphere", "pos": [-0.48, -0.135, -0.748], "scale": [0.8, 0.36, 0.484], "color": "body" }
+  ]
+}

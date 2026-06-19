@@ -2,6 +2,7 @@
   "_comment": "Ordered review list (apex -> down). Each id resolves to config/species/<id>.json; the viewer/contact-sheet read its model.parts + color.",
   "models": [
     { "id": "fish",         "tier": "aquatic — GLB overlay vs procedural" },
+    { "id": "frog",         "tier": "terrestrial — GLB overlay vs procedural" },
     { "id": "jaguar",       "tier": "L4 apex" },
     { "id": "harpy_eagle",  "tier": "L4 apex" },
     { "id": "black_caiman", "tier": "L4 apex" },

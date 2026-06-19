@@ -97,8 +97,12 @@ import { VignetteShader } from 'three/addons/shaders/VignetteShader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // Optional GLB overlay per species: the imported model is shown SOLID against
-// the existing procedural model (rendered translucent) for comparison.
-const GLB_OVERLAY = { fish: '../assets/models/fish_quaternius.glb' };
+// the existing procedural model (rendered translucent) for comparison. rotY is
+// the forward-axis fix (engine faces +X; models vary), matching src/main.js.
+const GLB_OVERLAY = {
+  fish: { url: '../assets/models/fish_quaternius.glb', rotY: Math.PI / 2 },
+  frog: { url: '../assets/models/frog_quaternius.glb', rotY: Math.PI / 2 },
+};
 const gltfLoader = new GLTFLoader();
 let glbModel = null;
 
@@ -113,8 +117,8 @@ function makeTranslucent(root, opacity) {
 // Scale + center an imported GLB onto the procedural model's bounds so the two
 // overlay for comparison. This GLB faces -Z; the engine faces +X, so +90° about
 // Y points its nose to +X (matching orientAgent's forward axis).
-function fitGlb(glb, targetSize, targetCenter) {
-  glb.rotation.y = Math.PI / 2;
+function fitGlb(glb, targetSize, targetCenter, rotY) {
+  glb.rotation.y = rotY;
   glb.updateMatrixWorld(true);
   let b = new THREE.Box3().setFromObject(glb);
   const gs = b.getSize(new THREE.Vector3());
@@ -288,12 +292,12 @@ async function loadModel(id) {
   radius = Math.max(size.x, size.y, size.z) * 0.5 || 1;
 
   // GLB comparison overlay: imported model SOLID, procedural model translucent.
-  const glbUrl = GLB_OVERLAY[id];
-  if (glbUrl) {
+  const glb = GLB_OVERLAY[id];
+  if (glb) {
     makeTranslucent(model, 0.28);
-    gltfLoader.load(glbUrl, (gltf) => {
+    gltfLoader.load(glb.url, (gltf) => {
       glbModel = gltf.scene;
-      fitGlb(glbModel, size, center);
+      fitGlb(glbModel, size, center, glb.rotY);
       scene.add(glbModel);
     }, undefined, (err) => { $('saveState').textContent = 'GLB load failed: ' + err; });
   }
